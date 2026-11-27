@@ -5,3 +5,7 @@ Use the desktop-windows or desktop-linux CMake preset, and use a separate build 
 See docs for the architecture and realization allocation. Future increments include independent broker processes, service registry, session contracts, diagnostics, persistence, target adapters and target evidence. No real automotive hardware is operated by this starter.
 
 [Architecture index](docs/architecture/00-README.md) � [Project site](https://susmithmrm.github.io/ZARC/) � [Review findings](docs/REPOSITORY-AUDIT.md)
+
+## License
+
+ZARC is licensed under the [MIT License](LICENSE). Third-party dependencies retain their respective licenses.
