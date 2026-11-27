@@ -15,6 +15,7 @@ target_sources(app PRIVATE src/main.c
   ${ZARC_ROOT}/src/schedule.c
   ${ZARC_ROOT}/src/traffic.c
   ${ZARC_ROOT}/src/power.c
+  ${ZARC_ROOT}/src/update_journal.c
   ${ZARC_ROOT}/src/update.c)
 
 add_subdirectory(adapters)

@@ -18,3 +18,17 @@ int zarc_native_config_write(struct nvs_fs *fs,uint16_t key,const zarc_config_st
  if(ret<0)return ret;
  return memcmp(check.slots,s->slots,sizeof s->slots)==0?0:-EIO;
 }
+
+int zarc_native_update_journal_persist(void *context,const zarc_update *u){
+ struct zarc_native_update_journal *j=context;
+ if(!j||!j->fs||!j->writable||j->revision==UINT64_MAX)return -EINVAL;
+ zarc_config_store next=j->store;
+ uint64_t revision=j->revision+1u;size_t slot;
+ if(zarc_update_journal_stage(&next,revision,u,&slot)!=ZARC_CONFIG_OK)return -EINVAL;
+ int ret=zarc_native_config_write(j->fs,j->key,&next);
+ if(ret<0){j->writable=false;return ret;}
+ if(zarc_update_journal_commit(&next,slot,revision)!=ZARC_CONFIG_OK){j->writable=false;return -EIO;}
+ ret=zarc_native_config_write(j->fs,j->key,&next);
+ if(ret<0){j->writable=false;return ret;}
+ j->store=next;j->revision=revision;return 0;
+}

@@ -19,20 +19,20 @@ int zarc_native_request_trial(zarc_update *u,bool eligible,zarc_update_persist_f
  }
  return ret;
 }
-int zarc_native_confirm_trial(zarc_update *u,bool healthy,bool compatible,bool eligible,
-                             zarc_update_persist_fn persist,void *ctx){
- if(!u||!persist||!u->configured||u->phase!=ZARC_UPDATE_TRIAL)return -EINVAL;
+int zarc_native_confirm_trial(zarc_update *u,const zarc_image *running,bool verified,bool healthy,bool compatible,bool eligible,
+                              zarc_update_persist_fn persist,void *ctx){
+ if(!u||!running||!persist||!u->configured||u->phase!=ZARC_UPDATE_TRIAL)return -EINVAL;
+ const zarc_image *i=&u->candidate;
+ if(!verified||running->image_id!=i->image_id||running->version!=i->version||
+    running->target!=i->target||running->contract!=i->contract||running->config_schema!=i->config_schema)return -EPERM;
  zarc_update next=*u;
- if(zarc_update_confirm(&next,healthy,compatible,eligible)!=ZARC_UPDATE_OK){
+ if(zarc_update_prepare_confirmation(&next,healthy,compatible,eligible)!=ZARC_UPDATE_OK){
   int ret=save(u,&next,persist,ctx);return ret<0?ret:-EPERM;
  }
- /* The owner must have reconciled the actual running verified image with the
-  * candidate in TRIAL. Never confirm solely because the boot timer expired. */
+ int ret=save(u,&next,persist,ctx);if(ret<0)return ret;
  if(!boot_is_img_confirmed()){
-  int ret=boot_write_img_confirmed();if(ret<0)return ret;
+  ret=boot_write_img_confirmed();if(ret<0)return ret;
  }
- /* If journaling fails after confirmation, next boot must reconcile the
-  * verified running image and confirmation state before offering new work.
-  * No rollback or successful journal write is asserted on that failure. */
+ if(zarc_update_reconcile_confirmation(&next,running,verified,boot_is_img_confirmed())!=ZARC_UPDATE_OK)return -EIO;
  return save(u,&next,persist,ctx);
 }

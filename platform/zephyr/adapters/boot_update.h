@@ -7,6 +7,6 @@
  * not a remote client's assertion. Sole maintenance-worker owner only. */
 typedef int (*zarc_update_persist_fn)(void *,const zarc_update *);
 int zarc_native_request_trial(zarc_update *,bool eligible,zarc_update_persist_fn,void *);
-int zarc_native_confirm_trial(zarc_update *,bool healthy,bool compatible,bool eligible,
+int zarc_native_confirm_trial(zarc_update *,const zarc_image *running,bool verified,bool healthy,bool compatible,bool eligible,
                              zarc_update_persist_fn,void *);
 #endif

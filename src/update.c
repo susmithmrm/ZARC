@@ -39,6 +39,20 @@ zarc_update_status zarc_update_confirm(zarc_update *u,bool healthy,bool compatib
  if(!healthy||!compatible_pair||!eligible){u->phase=ZARC_UPDATE_RECOVERY_REQUIRED;return ZARC_UPDATE_DENIED;}
  u->active=u->candidate;u->candidate=(zarc_image){0};u->phase=ZARC_UPDATE_ACTIVE;return ZARC_UPDATE_OK;
 }
+zarc_update_status zarc_update_prepare_confirmation(zarc_update *u,bool healthy,bool compatible_pair,bool eligible){
+ if(!u||!u->configured)return ZARC_UPDATE_INVALID;
+ if(u->phase!=ZARC_UPDATE_TRIAL)return ZARC_UPDATE_CONFLICT;
+ if(!healthy||!compatible_pair||!eligible){u->phase=ZARC_UPDATE_RECOVERY_REQUIRED;return ZARC_UPDATE_DENIED;}
+ u->phase=ZARC_UPDATE_CONFIRMING;return ZARC_UPDATE_OK;
+}
+zarc_update_status zarc_update_reconcile_confirmation(zarc_update *u,const zarc_image *running,bool verified,bool confirmed){
+ if(!u||!u->configured||!running)return ZARC_UPDATE_INVALID;
+ if(u->phase!=ZARC_UPDATE_CONFIRMING)return ZARC_UPDATE_CONFLICT;
+ if(!verified||!confirmed||!compatible(&u->policy,running)||!same(running,&u->candidate)){
+  u->phase=ZARC_UPDATE_RECOVERY_REQUIRED;return ZARC_UPDATE_DENIED;
+ }
+ u->active=*running;u->candidate=(zarc_image){0};u->phase=ZARC_UPDATE_ACTIVE;return ZARC_UPDATE_OK;
+}
 void zarc_update_interrupt(zarc_update *u){
  if(!u||!u->configured)return;
  switch(u->phase){
