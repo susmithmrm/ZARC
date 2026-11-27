@@ -17,7 +17,9 @@ A supported build is the immutable composition of ZARC release, pinned Zephyr/to
 
 Target ID/revision; SoC/arch/board qualifier and silicon stepping; Zephyr/SDK/compiler revisions; selected profile and required services; physical resource ownership and mapping; DTS overlay/Kconfig and generated configuration hashes; flash/boot/update partitions; watchdog/reset/clock and power capabilities; selected link providers; available resource budgets; security provisioning requirements; isolation capabilities and limitations; physical and simulation test profiles; evidence references. Descriptor is validated at build time and generates compact capability tables; no general YAML/JSON interpreter in control path. Unknown required capability or incompatible resource assignment fails build/admission. Product variants can change approved policy without copying generic source. Never allow unrestricted runtime reconfiguration of allocated safety behavior.
 
-## Repository layout and dependency rules
+## Proposed embedded repository layout and dependency rules
+
+The current desktop tree contains `src/`, `include/zarc/`, `apps/`, `tests/` and a future `platform/zephyr/` boundary. The following layout is a target design, not the current tree.
 
 west.yml; app/{edge,companion,zonal,integrated}; modules/zarc/{core,services,connect}; platform/{board_support,target_adapters}; products/{reference,customer}; host/{broker,adapters}; interfaces/{schemas,mappings,fixtures}; config/{targets,profiles,budgets}; tests/{unit,contract,sim,hil}; assurance/{requirements,evidence}; docs/. Use west modules and standard Zephyr board/SoC/driver conventions; avoid duplicating upstream board definitions. CMake/Kconfig select variants and reject illegal combinations; devicetree describes hardware, product manifest declares logical policy. Sysbuild supports multi-image composition subject to version [S06](13-References.md#s06). Generate manifest from actual build and review differences. Code ownership checks reject generic-to-board/product dependencies, private-header coupling and unauthorized symbol overrides.
 

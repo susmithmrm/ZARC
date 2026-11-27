@@ -19,7 +19,7 @@
 | ADR-013 | Open | Safety item definition, goals, FTTI, allocated reaction | OEM/safety G4 |
 | ADR-014 | Open | Boot/update image layout, recovery and counters | Embedded/security G2 |
 | ADR-015 | Open | Required diagnostics, DTC, SOVD and fleet interface | OEM G3/G4 |
-| ADR-016 | Open | License, trademark/domain and supplier agreement | Product/legal G0 |
+| ADR-016 | Partially resolved | MIT license selected; trademark/domain and supplier agreement open | Product/legal G0 |
 | ADR-017 | Open | Native isolation feasibility and mixed-criticality admission | Safety/SoC G3/G4 |
 | ADR-018 | Open | Long term support SLA, release schedule and end of support | Product G4 |
 | ADR-019 | Open | Zonal endpoint topology and electrical safety allocation | OEM/Tier 1 G4 |

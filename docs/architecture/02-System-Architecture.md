@@ -10,7 +10,7 @@ The system context (D01) consists of vehicle mode authority, central high-perfor
 
 | Domain | Responsibilities | Public dependencies |
 |---|---|---|
-| ZARC Core | Composition, local policy gate, lifecycle, resource ownership, supervision | Native Zephyr + domain contracts |
+| ZARC Core | Composition, local policy gate, lifecycle, resource ownership, supervision | Portable domain contracts; native Zephyr at embedded execution boundary |
 | ZARC Services | Power, edge, health, diagnostics, storage/update orchestration optional | Core and approved interfaces |
 | ZARC Connect | Semantic APIs, bounded messaging, link/session providers | Service contracts, native UART/network/IPC |
 | ZARC Host | Trusted broker, cache, VHAL/SDV/SOME-IP adapters | Connect contract, host OS APIs |
@@ -19,7 +19,7 @@ The system context (D01) consists of vehicle mode authority, central high-perfor
 | ZARC Assurance | Requirements/evidence, configuration and change impact | All published interfaces |
 | ZARC SDK | Native build/test/simulation/integration workflows | Pinned toolchain and fixtures |
 
-Dependencies: product applications import typed public services and Zephyr; service implementations import core contracts and domain device interfaces or native standard drivers; Connect implements transport bindings and depends on semantic contracts, not concrete services. Composition root binds implementations through explicit references; Core must not import service implementations, and a service must not import Connect. Host and target bind through versioned external contracts. Runtime data-flow arrows are not source dependency arrows. D02 illustrates allowed include/build dependencies separately from runtime dispatch. Target adapters map domain IDs to devices and may implement domain-specific interfaces but may not bypass local authority. Host depends only on external contract; no target headers. Pure decision logic may be host-tested with injected time and hardware facts without introducing a universal execution facade. Core must not include a vendor or product header. Dependency cycles and unowned outputs are build/review failures.
+Dependencies: portable product logic imports typed public services; embedded composition and execution adapters use native Zephyr. service implementations import core contracts and domain device interfaces or native standard drivers; Connect implements transport bindings and depends on semantic contracts, not concrete services. Composition root binds implementations through explicit references; Core must not import service implementations, and a service must not import Connect. Host and target bind through versioned external contracts. Runtime data-flow arrows are not source dependency arrows. D02 illustrates allowed include/build dependencies separately from runtime dispatch. Target adapters map domain IDs to devices and may implement domain-specific interfaces but may not bypass local authority. Host depends only on external contract; no target headers. Shared decision logic is developed and host-tested with injected time and hardware facts without introducing a universal execution facade. Core must not include a vendor or product header. Dependency cycles and unowned outputs are build/review failures.
 
 ## Deployment views (D04–D07)
 

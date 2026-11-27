@@ -20,8 +20,8 @@ flowchart TD
   N4_0["Physical endpoints"]
   N0_0 --> N1_0
   N0_1 --> N1_0
-  N1_0 --> N2_0
-  N2_0 --> N3_0
+  N1_0 <--> N2_0
+  N2_0 <--> N3_0
   N3_0 --> N4_0
   N3_1 --> N4_0
   %% Host supplies desired intent and receives observation; local controller owns allocated physical outcomes.
@@ -37,7 +37,7 @@ flowchart TD
   N0_0["Product composition root"]
   N1_0["Service implementations"]
   N1_1["Connect bindings"]
-  N2_0["Core / public domain contracts"]
+  N2_0["Portable core / public domain contracts"]
   N3_0["Native Zephyr APIs / approved target interface"]
   N4_0["Board and vendor drivers"]
   N0_0 --> N1_0
@@ -46,7 +46,6 @@ flowchart TD
   N1_1 --> N2_0
   N1_0 --> N3_0
   N1_1 --> N3_0
-  N2_0 --> N3_0
   N3_0 --> N4_0
   %% Core does not import services, products or vendor private headers. Host imports external schema only.
 ```
@@ -87,7 +86,7 @@ flowchart TD
   N2_0["ZARC Core / health and local app"]
   N3_0["Zephyr MCU and native device drivers"]
   N4_0["Sensor / benign local output"]
-  N0_0 --> N1_0
+  N0_0 <--> N1_0
   N1_0 --> N2_0
   N2_0 --> N3_0
   N3_0 --> N4_0
@@ -107,8 +106,8 @@ flowchart TD
   N3_0["Local policy / feedback"]
   N3_1["Hardware supervision"]
   N4_0["Allocated benign physical domain"]
-  N0_0 --> N1_0
-  N1_0 --> N2_0
+  N0_0 <--> N1_0
+  N1_0 <--> N2_0
   N2_0 --> N3_0
   N3_0 --> N4_0
   N3_1 --> N4_0
@@ -149,8 +148,8 @@ flowchart TD
   N3_0["Owned devices / feedback"]
   N3_1["Independent hardware protection"]
   N4_0["Physical endpoint"]
-  N0_0 --> N1_0
-  N1_0 --> N2_0
+  N0_0 <--> N1_0
+  N1_0 <--> N2_0
   N2_0 --> N3_0
   N3_0 --> N4_0
   N3_1 --> N4_0
@@ -202,6 +201,8 @@ flowchart TD
   N3_0 --> N4_1
   N4_0 --> N5_0
   N4_1 --> N5_1
+  N5_0 --> N2_0
+  N5_1 --> N1_0
   %% Both return to READY only after checks; fully stopped service must initialize/start again.
 ```
 
@@ -295,8 +296,8 @@ flowchart TD
   N1_0 --> N3_0
   N1_1 --> N3_0
   N2_0 --> N3_0
-  N3_0 --> N4_0
-  N4_0 --> N5_0
+  N3_0 <--> N4_0
+  N4_0 <--> N5_0
   %% The trusted service environment alone owns the physical endpoint; VM topology is deployment-specific.
 ```
 
@@ -314,11 +315,11 @@ flowchart TD
   N2_0["ZARC Host policy / broker"]
   N3_0["Controller semantic service"]
   N4_0["Observed physical state"]
-  N0_0 --> N1_0
+  N0_0 <--> N1_0
   N0_1 --> N1_1
-  N1_0 --> N2_0
+  N1_0 <--> N2_0
   N1_1 --> N2_0
-  N2_0 --> N3_0
+  N2_0 <--> N3_0
   N3_0 --> N4_0
   %% VMCU to Android: AP_POWER_STATE_REQ. Android to VMCU: AP_POWER_STATE_REPORT. Physical authority remains local.
 ```
@@ -386,6 +387,7 @@ flowchart TD
   N1_0 --> N2_0
   N2_0 --> N3_0
   N3_0 --> N4_0
+  N4_1 --> N4_0
   %% Engineering and update trust chains are separately controlled; authentication is not a safety mechanism.
 ```
 
@@ -419,8 +421,8 @@ flowchart TD
   %% Verification and evidence progression
   N0_0["Requirements and design contracts"]
   N1_0["Unit / contract tests"]
-  N2_0["Native simulation / SIL"]
-  N3_0["Target simulation / HIL"]
+  N2_0["Desktop and native simulation / SIL"]
+  N3_0["Target simulation and physical HIL"]
   N4_0["Vehicle validation and review"]
   N5_0["Exact configuration release evidence"]
   N0_0 --> N1_0
@@ -463,7 +465,7 @@ sequenceDiagram
   participant C as Authorized client
   participant H as Trusted Host
   participant R as ZARC controller
-  participant F as Physical feedback
+  participant F as Simulated device and feedback
   C->>H: Typed intent and request ID
   H->>R: Authorized intent
   alt eligible and permitted

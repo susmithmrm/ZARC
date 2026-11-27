@@ -1,11 +1,11 @@
-﻿ID,Parent,Profiles,Requirement,Design_ref,Verification_ID,Method,Acceptance,Gate,Owner,Status,Evidence
+ID,Parent,Profiles,Requirement,Design_ref,Verification_ID,Method,Acceptance,Gate,Owner,Status,Evidence
 ZARC-SYS-001,OBJ-SYS,ALL,Each controller shall retain allocated local behavior without central compute.,Z02,T-SYS-001,HIL,Agreed benign local function continues through host restart/outage.,G1,System,PROPOSED,NOT RUN
 ZARC-SYS-002,OBJ-SYS,ALL,Physical resource ownership shall be explicit and unique or reviewed-arbitrated.,Z02,T-SYS-002,Review,Manifest maps each resource to exactly one owner or approved arbitration.,G1,System,PROPOSED,NOT RUN
 ZARC-SYS-003,OBJ-SYS,ALL,Remote clients shall submit typed intent rather than direct hardware operations.,Z02,T-SYS-003,Contract,Public schema contains only approved semantic operations.,G1,System,PROPOSED,NOT RUN
 ZARC-SYS-004,OBJ-SYS,ALL,Observed state shall be sourced from measured feedback where allocated.,Z02,T-SYS-004,HIL,Requested state differs from observed state during simulated transition; correct quality reported.,G1,System,PROPOSED,NOT RUN
 ZARC-SYS-005,OBJ-SYS,ALL,"Vehicle, physical, VM and service lifecycle ownership shall remain distinct.",Z02,T-SYS-005,Review,Authority matrix covers independent states and transition owners.,G1,System,PROPOSED,NOT RUN
 ZARC-SYS-006,OBJ-SYS,ALL,Unsupported required capabilities shall prevent readiness.,Z02,T-SYS-006,SIL,"Missing mandatory capability causes unavailable status, not ready.",G1,System,PROPOSED,NOT RUN
-ZARC-RT-001,OBJ-RT,ALL,Applications shall use native Zephyr execution primitives.,Z03,T-RT-001,Review,No mandatory parallel general RTOS facade in platform dependencies.,G1,Embedded,PROPOSED,NOT RUN
+ZARC-RT-001,OBJ-RT,ALL,Embedded execution adapters shall use native Zephyr execution primitives; portable domain logic shall not depend on RTOS APIs.,Z03,T-RT-001,Review,No mandatory parallel general RTOS facade in platform dependencies.,G1,Embedded,PROPOSED,NOT RUN
 ZARC-RT-002,OBJ-RT,ALL,"Each task shall declare execution context, period or trigger, deadline, resource and blocking bounds.",Z03,T-RT-002,Review,Task inventory complete and allocated by target.,G1,Embedded,PROPOSED,NOT RUN
 ZARC-RT-003,OBJ-RT,ALL,ISR work shall be bounded and not block on remote or persistence work.,Z03,T-RT-003,Review/HIL,Reviewed ISR path and measured bound within approved allocation.,G1,Embedded,PROPOSED,NOT RUN
 ZARC-RT-004,OBJ-RT,ALL,Local RT execution shall not await host transport.,Z03,T-RT-004,HIL,Local timing remains within allocated bound during host outage.,G1,Embedded,PROPOSED,NOT RUN

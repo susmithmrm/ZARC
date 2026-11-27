@@ -8,7 +8,7 @@ The high-level decision remains sound: native Zephyr, independent allocated phys
 
 ## Review method and coverage
 
-Read the active v1.0 specifications, requirement register, diagrams and source register; compare between system, RTOS, lifecycle, interface, product, safety and supplier documents. Check native Zephyr scheduling, workqueue, zbus, UART, PM and Android power semantics against primary documentation. Evaluate boundary consistency, failure handling, ownership, timing assumptions, applicability, testability and forward compatibility. Record severity, evidence, corrective document, and remaining engineering closure. No implementation source, compiler, board, simulator, OS integration or qualification evidence was independently executed. No independent external assessor participated.
+Read the active v1.0 specifications, requirement register, diagrams and source register; compare between system, RTOS, lifecycle, interface, product, safety and supplier documents. Check native Zephyr scheduling, workqueue, zbus, UART, PM and Android power semantics against primary documentation. Evaluate boundary consistency, failure handling, ownership, timing assumptions, applicability, testability and forward compatibility. Record severity, evidence, corrective document, and remaining engineering closure. At that architecture review no implementation, compiler, board, simulator, OS integration or qualification evidence was executed. The later desktop baseline has its own [implementation status](../IMPLEMENTATION-STATUS.md). No independent external assessor participated.
 
 Severity: Critical = incorrect claim or missing control could invalidate architecture/qualification; High = major implementation or ownership ambiguity; Medium = documentation, operational or trace gap. A document correction is not verification of a mechanism. The separate Z15 register records both disposition and evidence gap.
 
@@ -51,7 +51,7 @@ Objectives are stakeholder-level design intents, not safety goals or finished pr
 
 | Gate | Blocking evidence or decision | Owner |
 |---|---|---|
-| G0 | First reference boards, exact Zephyr branch/toolchain, native driver capabilities, scoped domain and contractual requirements | Architecture, vendor and OEM/Tier 1 |
+| G0 | Scoped desktop domain and contractual requirements; first reference boards, exact Zephyr branch/toolchain and driver capabilities are blockers for native bring-up | Architecture, vendor and OEM/Tier 1 |
 | G1 | Compile/run minimal native prototype, schedule, driver/callback behavior, UART codec/profile, session semantics, timing and memory measurements | Embedded/Connect/verification |
 | G2 | Second vendor and independent smart-edge profile, resource closure, approved boot/update scheme, target HIL and recovery | Supplier/Platform/SDK |
 | G3 | Actual host OS/AAOS branch, property mapping/compatibility, independent SOME/IP peer, hypervisor and integrated RT isolation | Host and SoC vendor |

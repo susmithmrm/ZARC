@@ -24,11 +24,11 @@ Open generic interoperable foundations subject to legal review. Support paid int
 
 | Stage | Relative window | Work and exit |
 |---|---|---|
-| G0 | 0–2 months | Stakeholder workshops, candidate boards, benign scope, contract and ownership freeze |
-| G1 | 2–5 months | Native Zephyr minimal core, service composition, UART, Linux broker/simulator and test fixtures |
+| G0 | 0–2 months | Stakeholder workshops, benign desktop scope, contract and ownership freeze; candidate board discovery in parallel |
+| G1 | 2–5 months | Portable desktop core, service composition and two-process simulator first; then native Zephyr, selected UART and target fixtures |
 | G2 | 5–9 months | Smart edge second vendor, target admission, update recovery and measured HIL |
 | G3 | 9–15 months | Host VM, VHAL/SDV, CommonAPI/SOME-IP, Ethernet and IPC feasibility |
 | G4 | 15–24 months | Zonal subset, OEM/Tier 1 pilot, allocated safety/cyber gap and support plan |
 | G5 | After G4 | Configuration-specific candidate release and assessment as appropriate |
 
-Dates are illustrative elapsed windows after funded start, not commitments. Integrated RT path parallel after G2 if SoC partner supplies isolation evidence. Staff system architect, embedded/BSP, native RTOS, host middleware, verification/HIL, cybersecurity, functional safety, release/support and program ownership. First 90 days: scope and board selection, minimal native app and simulator, semantic contract fixtures, UART evaluation, measurement harness, supplier porting baseline and architecture review. Gate outcomes rather than feature count determine investment.
+Dates are illustrative elapsed windows after funded start, not commitments. Integrated RT path parallel after G2 if SoC partner supplies isolation evidence. Staff system architect, embedded/BSP, native RTOS, host middleware, verification/HIL, cybersecurity, functional safety, release/support and program ownership. First 90 days: scope, portable app and desktop simulator, semantic contract fixtures, measurement harness and architecture review; review target board and UART candidates in parallel. Gate outcomes rather than feature count determine investment.

@@ -15,6 +15,7 @@ jobs:
         with:
           persist-credentials: false
       - run: python docs/verify_baseline.py
+      - run: python docs/verify_documentation.py
       - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
       - run: cmake --build build --config ${{ matrix.config }}
       - run: ctest --test-dir build -C ${{ matrix.config }} --output-on-failure

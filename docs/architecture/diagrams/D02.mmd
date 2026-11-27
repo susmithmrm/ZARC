@@ -3,7 +3,7 @@ flowchart TD
   N0_0["Product composition root"]
   N1_0["Service implementations"]
   N1_1["Connect bindings"]
-  N2_0["Core / public domain contracts"]
+  N2_0["Portable core / public domain contracts"]
   N3_0["Native Zephyr APIs / approved target interface"]
   N4_0["Board and vendor drivers"]
   N0_0 --> N1_0
@@ -12,6 +12,5 @@ flowchart TD
   N1_1 --> N2_0
   N1_0 --> N3_0
   N1_1 --> N3_0
-  N2_0 --> N3_0
   N3_0 --> N4_0
   %% Core does not import services, products or vendor private headers. Host imports external schema only.

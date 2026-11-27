@@ -25,14 +25,14 @@ Set coverage and static-analysis/deviation targets by approved safety plan and p
 
 ## Build and release engineering
 
-Use pinned west manifest, compiler/toolchain and dependency versions; native CMake/Kconfig/devicetree/sysbuild. Maintain CI build matrix across selected board/profile/feature/compiler options; run unit and contract fixtures, native_sim, applicable simulator and HIL. Enforce formatting, warnings, static analysis, reproducibility, license review and SBOM. Build metadata records commit, dependencies, config hash, map/resource report and binary hashes. Release artifacts are signed, versioned and reviewed. No bypass of target evidence gate. Fail closed on missing requirements, incompatible dependencies, unaccepted deviation or evidence gap. Maintain vulnerability triage, controlled backports, update compatibility and change-impact matrix; publish supported configuration list and end-of-support plan.
+The current desktop CMake build has CI jobs for Windows and Linux in Debug and Release. Exact compiler versions and upstream Zephyr dependencies remain to be pinned. For embedded release builds use a pinned west manifest, toolchain, native CMake/Kconfig/devicetree/sysbuild. Maintain CI build matrix across selected board/profile/feature/compiler options; run unit and contract fixtures, native_sim, applicable simulator and HIL. Enforce formatting, warnings, static analysis, reproducibility, license review and SBOM. Build metadata records commit, dependencies, config hash, map/resource report and binary hashes. Release artifacts are signed, versioned and reviewed. No bypass of target evidence gate. Fail closed on missing requirements, incompatible dependencies, unaccepted deviation or evidence gap. Maintain vulnerability triage, controlled backports, update compatibility and change-impact matrix; publish supported configuration list and end-of-support plan.
 
 ## Stage gate evidence
 
 | Gate | Acceptance |
 |---|---|
-| G0 | Architecture baseline, owners, benign scope, board and contract allocations |
-| G1 | Native host/MCU demo, reproducible build, contract tests, nominal resource/timing evidence |
+| G0 | Architecture baseline, owners, benign scope and desktop contract allocations; select boards before native bring-up |
+| G1 | Desktop behavior and two-process integration first; then native MCU demo, pinned build, target contract tests and nominal resource/timing evidence |
 | G2 | Second vendor/edge profile, HIL and update interruption, documented limitations |
 | G3 | AAOS/SDV/SOME-IP or relevant host adapter, VM isolation and IPC feasibility evidence |
 | G4 | Design partner pilot, hardware/product requirements, safety/cyber scope and independent gap review |

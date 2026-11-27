@@ -21,9 +21,9 @@ Research checked 27 November 2026. Public sources establish upstream capabilitie
 - <a id="s17"></a> **S17** — Eclipse LIBERSOM project: incubating modular embedded SOME/IP stack, evaluate compatibility and footprint. https://projects.eclipse.org/projects/automotive.libersom
 - <a id="s18"></a> **S18** — Eclipse OpenSOVD: open SOVD integration with S-CORE, host diagnostics candidate. https://projects.eclipse.org/projects/automotive.opensovd
 - <a id="s19"></a> **S19** — COVESA Vehicle Signal Specification: data semantics candidate at host/tooling boundary. https://github.com/COVESA/vehicle_signal_specification
-- <a id="s20"></a> **S20** — BMW Group public announcement: centralized computing and zonal architecture. https://www.press.bmwgroup.com/global/article/detail/T0448372EN/four-superbrains-for-the-neue-klasse%3A-more-intelligent-more-efficient-more-powerful
+- <a id="s20"></a> **S20** — BMW Group public announcement: centralized computing and zonal architecture. https://newsroom.bmwgroup.com/global/four-superbrains-for-the-neue-klasse-more-intelligent-more-efficient-more-powerful
 - <a id="s21"></a> **S21** — ISO/SAE 21434:2021 overview: cybersecurity engineering. https://www.iso.org/standard/70918.html
-- <a id="s22"></a> **S22** — ISO 24089:2023: software update engineering. https://www.iso.org/obp/ui/?_escaped_fragment_=iso%3Astd%3Aiso%3A24089%3Aed-1%3Av1%3Aen
+- <a id="s22"></a> **S22** — ISO 24089:2023: software update engineering. https://www.iso.org/standard/77796.html
 - <a id="s23"></a> **S23** — ISO November 2026 update: draft ISO 26262 revisions. https://www.iso.org/files/live/sites/isoorg/files/news/magazine/ISOupdate/EN/2026/iso_update_202611_en.pdf
 - <a id="s24"></a> **S24** — UK Vehicle Certification Agency: UN R155/R156 vehicle cybersecurity/software updating overview. https://www.vehicle-certification-agency.gov.uk/connected-and-automated-vehicles/cyber-security-and-software-updating/
 

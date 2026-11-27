@@ -6,7 +6,7 @@ ZARC defines a modular, Zephyr-native software foundation for the physical contr
 
 ## Desktop-first realization edition
 
-Start with [the realization specification](realization/16-Desktop-First-Realization.md) and [the development allocation](realization/17-Development-Allocation.csv). These documents supersede the board-first sequencing for development. RT-001 applies to embedded execution adapters. The 1.1 PDF and original requirements register are the reviewed target architecture snapshot.
+Start with [the realization specification](realization/16-Desktop-First-Realization.md) and [the development allocation](realization/17-Development-Allocation.csv). These documents supersede the board-first sequencing for development. RT-001 applies to embedded execution adapters. The reviewed architecture is maintained in the linked Markdown sources and requirements register. The earlier consolidated PDF is a historical local artifact and is not shipped in this repository.
 
 ## Document map
 
@@ -30,7 +30,7 @@ Start with [the realization specification](realization/16-Desktop-First-Realizat
 
 [Diagram atlas](diagrams/README.md) renders the editable Mermaid diagrams directly on GitHub. [Engineering templates](templates/) are also available.
 
-The PDF is the consolidated review copy; Markdown files are editable normative-candidate design sources, CSV is an editable requirements register, Mermaid files are editable diagrams. IDs remain stable across revisions. A requirement marked PROPOSED has not been implemented or verified. All targets are provisional unless stated as public upstream facts. Configuration-specific evidence is required before claiming support.
+Markdown files are editable normative-candidate design sources, CSV is an editable requirements register, Mermaid files are editable diagrams. IDs remain stable across revisions. A requirement marked PROPOSED has not been implemented or verified. All targets are provisional unless stated as public upstream facts. Configuration-specific evidence is required before claiming support.
 
 ## Baseline review and scope
 
@@ -42,4 +42,4 @@ IOC: I/O or companion controller. SDV: software-defined vehicle. OEM: original e
 
 ## Review status
 
-Version 1.1 supersedes v1.0 as a corrected architecture candidate. Z14 and Z15 document source-backed corrections and remaining decisions. No implementation tests were run; no vendor, timing, safety, security or qualification validation has been established. Use the release gate definitions and profiles in Z09 rather than treating all proposed requirements as currently applicable. The separate machine-readable findings register and requirements CSV are controlled review inputs.
+Version 1.1 supersedes v1.0 as a corrected architecture candidate. Z14 and Z15 document source-backed corrections and remaining decisions. The v1.1 architecture review did not execute implementation tests. The subsequent desktop starter has separate local and CI test evidence documented in [implementation status](../IMPLEMENTATION-STATUS.md). No target-specific vendor, timing, safety, security or qualification validation has been established. Use the release gate definitions and profiles in Z09 rather than treating all proposed requirements as currently applicable. The separate machine-readable findings register and requirements CSV are controlled review inputs.

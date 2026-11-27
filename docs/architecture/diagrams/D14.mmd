@@ -7,10 +7,10 @@ flowchart TD
   N2_0["ZARC Host policy / broker"]
   N3_0["Controller semantic service"]
   N4_0["Observed physical state"]
-  N0_0 --> N1_0
+  N0_0 <--> N1_0
   N0_1 --> N1_1
-  N1_0 --> N2_0
+  N1_0 <--> N2_0
   N1_1 --> N2_0
-  N2_0 --> N3_0
+  N2_0 <--> N3_0
   N3_0 --> N4_0
   %% VMCU to Android: AP_POWER_STATE_REQ. Android to VMCU: AP_POWER_STATE_REPORT. Physical authority remains local.

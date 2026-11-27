@@ -2,7 +2,7 @@
 
 ## Semantic interface first
 
-ZARC Connect defines one semantic service contract and transport-specific bindings. No protocol or codec is the fundamental product identity. Stable service, capability, method/event and field IDs are controlled in an OEM-coordinated registry. The canonical schema describes types, units, ranges, versions, roles, effects, idempotence, timeout, result, observed outcome and resource bounds. Generated artifacts or reviewed mappings produce compact MCU bindings and host VHAL, SDV, CommonAPI/SOME-IP adapters. No transport callback directly owns an actuator.
+The proposed ZARC Connect defines one semantic service contract and transport-specific bindings. No protocol or codec is the fundamental product identity. Stable service, capability, method/event and field IDs are controlled in an OEM-coordinated registry. The canonical schema describes types, units, ranges, versions, roles, effects, idempotence, timeout, result, observed outcome and resource bounds. Generated artifacts or reviewed mappings produce compact MCU bindings and host VHAL, SDV, CommonAPI/SOME-IP adapters. No transport callback directly owns an actuator.
 
 | Operation | Inputs | Output |
 |---|---|---|
@@ -30,10 +30,10 @@ Physical capabilities are product-approved. Do not expose arbitrary register/GPI
 | Generation | Monotonic state version within epoch | Controller |
 | Timestamp | Declared monotonic unit and clock domain | Producer |
 | Validity | Separate transit/age allocation and receiver-relative acceptance-to-execution bound; clock assumptions declared | Local policy |
-| Result | ACCEPTED, COMPLETED, REJECTED, BUSY, EXPIRED, INCOMPATIBLE, UNAVAILABLE, FAULT, UNKNOWN_OUTCOME | Responding authority |
+| Result | ACCEPTED, COMPLETED, REJECTED, DENIED, BUSY, CONFLICT, INVALID, EXPIRED, INCOMPATIBLE, UNAVAILABLE, FAULT, UNKNOWN_OUTCOME | Responding authority |
 | Build/config digest | Release and capability descriptor identity | Release manifest |
 
-Exact field widths and encoding belong to pinned ICD. Major mismatch blocks incompatible writes; minor changes additive only under explicit compatibility rules; unknown mandatory data or control enum rejected. No silent security downgrade. Define per-operation max payload, allowed role, deadline, request cache retention and rate bounds in approved schema. Idempotent desired state; duplicate within retention returns same result. On timeout, do not assume operation failed; query retained status/current snapshot. On reset or expiry reject stale work; client must resynchronize. D10 and D11 illustrate request/epoch semantics.
+Exact field widths and encoding belong to the future versioned interface control document (ICD). The current simulated reducer has a single caller/session, monotonically increasing IDs and a one-result cache. It is not the external contract. Major mismatch blocks incompatible writes; minor changes additive only under explicit compatibility rules; unknown mandatory data or control enum rejected. No silent security downgrade. Define per-operation max payload, allowed role, deadline, request cache retention and rate bounds in approved schema. Idempotent desired state; duplicate within retention returns same result. On timeout, do not assume operation failed; query retained status/current snapshot. On reset or expiry reject stale work; client must resynchronize. D10 and D11 illustrate request/epoch semantics.
 
 ## Provider contract
 
