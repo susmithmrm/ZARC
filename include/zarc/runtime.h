@@ -22,7 +22,7 @@ typedef struct {
  zarc_diagnostics diagnostics;
  zarc_observation_stream observations;
  zarc_periodic cycle;
- uint64_t health_sequence;
+ uint64_t health_sequence,sample_not_before;
  bool running,healthy,suspended;
  bool endpoint_healthy[ZARC_CONTROLLER_DOMAINS],reported_health[ZARC_CONTROLLER_DOMAINS];
 } zarc_runtime;
@@ -31,6 +31,7 @@ typedef struct {
  * and verified remote identity. This reference operates benign endpoints. */
 bool zarc_runtime_init(zarc_runtime *,const zarc_runtime_config *,uint64_t boot,uint64_t now);
 bool zarc_runtime_step(zarc_runtime *,uint64_t now,bool sample_present,uint64_t sequence,uint64_t sample_tick,zarc_value);
+bool zarc_runtime_refresh(zarc_runtime *,uint64_t now);
 bool zarc_runtime_step_batch(zarc_runtime *,uint64_t now,const zarc_runtime_sample *,size_t);
 zarc_conn_status zarc_runtime_local(zarc_runtime *,zarc_value,bool authorized,uint64_t now,uint64_t validity,bool reserved,zarc_controller_effect *);
 zarc_conn_status zarc_runtime_local_at(zarc_runtime *,uint32_t,zarc_value,bool authorized,uint64_t now,uint64_t validity,bool reserved,zarc_controller_effect *);

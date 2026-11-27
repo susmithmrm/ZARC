@@ -13,7 +13,7 @@ add_custom_target(zarc_manifest DEPENDS ${GENERATED})
 add_dependencies(app zarc_manifest)
 target_include_directories(app PRIVATE ${ZARC_ROOT}/include ${CMAKE_CURRENT_BINARY_DIR}/generated)
 target_sources(app PRIVATE src/main.c
- ${ZARC_ROOT}/src/runtime.c ${ZARC_ROOT}/src/composition.c
+ ${ZARC_ROOT}/src/runtime.c ${ZARC_ROOT}/src/runtime_wire.c ${ZARC_ROOT}/src/composition.c
  ${ZARC_ROOT}/src/domain.c ${ZARC_ROOT}/src/controller.c ${ZARC_ROOT}/src/connect.c
  ${ZARC_ROOT}/src/health.c ${ZARC_ROOT}/src/diagnostics.c
  ${ZARC_ROOT}/src/schedule.c ${ZARC_ROOT}/src/observations.c)

@@ -33,7 +33,7 @@ bool zarc_runtime_init(zarc_runtime *r,const zarc_runtime_config *cfg,uint64_t b
  const size_t n=cfg->count?cfg->count:1u;
  const zarc_endpoint_config *endpoints=cfg->count?cfg->endpoints:&cfg->endpoint;
  for(size_t i=0;i<n;++i)if(endpoints[i].feedback_max_age<=cfg->period)return false;
- *r=(zarc_runtime){0};r->config=*cfg;
+ *r=(zarc_runtime){0};r->config=*cfg;r->sample_not_before=now;
  if(!zarc_controller_init(&r->controller,endpoints,n,boot,cfg->max_validity,now)||
     !health_reset(r,now)||!zarc_periodic_init(&r->cycle,now,cfg->period,cfg->deadline)||
     !zarc_observation_stream_init(&r->observations,&r->controller))return false;
@@ -68,6 +68,9 @@ static bool update_health(zarc_runtime *r,uint64_t now){
  }
  return zarc_observation_stream_sync(&r->observations,&r->controller);
 }
+bool zarc_runtime_refresh(zarc_runtime *r,uint64_t now){
+ return r&&r->running&&!r->suspended&&zarc_controller_tick(&r->controller,now)&&update_health(r,now);
+}
 bool zarc_runtime_step_batch(zarc_runtime *r,uint64_t now,const zarc_runtime_sample *samples,size_t n){
  if(!r||!r->running||r->suspended||n>r->controller.count||(!samples&&n)||now<r->controller.last_tick)return false;
  /* Validate batch identity before changing runtime state. */
@@ -84,7 +87,7 @@ bool zarc_runtime_step_batch(zarc_runtime *r,uint64_t now,const zarc_runtime_sam
   bool valid[ZARC_CONTROLLER_DOMAINS]={0};
   for(size_t i=0;i<n;++i)for(size_t j=0;j<r->controller.count;++j)
    if(samples[i].id==r->controller.endpoints[j].config.id)
-    valid[j]=zarc_controller_feedback(&r->controller,samples[i].id,r->controller.link.boot,
+    valid[j]=samples[i].tick>=r->sample_not_before&&zarc_controller_feedback(&r->controller,samples[i].id,r->controller.link.boot,
      samples[i].sequence,samples[i].tick,now,samples[i].value)&&samples[i].value!=ZARC_FAULT;
   bool on_time=false;
   if(!zarc_periodic_complete(&r->cycle,release.release,now,&on_time)||r->health_sequence==UINT64_MAX)return false;
@@ -139,7 +142,7 @@ bool zarc_runtime_resume(zarc_runtime *r,uint64_t now){
  if(!zarc_controller_tick(&r->controller,now)||!health_reset(r,now)||
     !zarc_periodic_init(&r->cycle,now,r->config.period,r->config.deadline)||
     zarc_composition_resume(&r->composition)!=ZARC_COMPOSITION_OK)return false;
- r->suspended=false;return update_health(r,now);
+ r->suspended=false;r->sample_not_before=now;return update_health(r,now);
 }
 bool zarc_runtime_stop(zarc_runtime *r,uint64_t now,uint64_t deadline){
  if(!r||!r->running||now>=deadline||!zarc_controller_tick(&r->controller,now)||!idle(r))return false;
