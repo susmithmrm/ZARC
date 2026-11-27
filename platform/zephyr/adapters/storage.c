@@ -32,3 +32,24 @@ int zarc_native_update_journal_persist(void *context,const zarc_update *u){
  if(ret<0){j->writable=false;return ret;}
  j->store=next;j->revision=revision;return 0;
 }
+
+int zarc_native_diag_load(struct zarc_native_diag_store *j,zarc_diagnostics *d){
+ if(!j||!j->fs||!d)return -EINVAL;
+ j->writable=false;
+ uint8_t bytes[ZARC_DIAG_STORE_SIZE];
+ ssize_t n=nvs_read(j->fs,j->key,bytes,sizeof bytes);
+ if(n<0)return (int)n;
+ if((size_t)n!=sizeof bytes||!zarc_diag_store_decode(bytes,sizeof bytes,d,&j->revision))return -EBADMSG;
+ j->writable=true;return 0;
+}
+int zarc_native_diag_persist(struct zarc_native_diag_store *j,const zarc_diagnostics *d){
+ if(!j||!j->fs||!j->writable||j->revision==UINT64_MAX)return -EINVAL;
+ uint8_t bytes[ZARC_DIAG_STORE_SIZE],check[ZARC_DIAG_STORE_SIZE];
+ uint64_t rev=j->revision+1u;
+ if(!zarc_diag_store_encode(d,rev,bytes,sizeof bytes))return -EINVAL;
+ ssize_t n=nvs_write(j->fs,j->key,bytes,sizeof bytes);
+ if(n<0||(n!=0&&(size_t)n!=sizeof bytes)){j->writable=false;return n<0?(int)n:-EIO;}
+ n=nvs_read(j->fs,j->key,check,sizeof check);
+ if(n<0||(size_t)n!=sizeof check||memcmp(bytes,check,sizeof bytes)!=0){j->writable=false;return n<0?(int)n:-EIO;}
+ j->revision=rev;return 0;
+}

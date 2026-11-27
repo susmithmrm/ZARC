@@ -11,6 +11,7 @@ target_sources(app PRIVATE src/main.c
   ${ZARC_ROOT}/src/composition.c
   ${ZARC_ROOT}/src/health.c
   ${ZARC_ROOT}/src/diagnostics.c
+  ${ZARC_ROOT}/src/diag_store.c
   ${ZARC_ROOT}/src/config_store.c
   ${ZARC_ROOT}/src/schedule.c
   ${ZARC_ROOT}/src/traffic.c

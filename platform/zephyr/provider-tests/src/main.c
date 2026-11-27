@@ -119,6 +119,18 @@ ZTEST(zarc_providers,test_nvs_configuration_remount){
  zassert_equal(zarc_update_journal_load(&loaded,&policy,&recovered,&revision),ZARC_CONFIG_OK);
  zassert_equal(revision,1);
  zassert_equal(recovered.active.image_id,11);
+ struct zarc_native_diag_store diag_store={.fs=&remount,.key=125,.writable=true};
+ zarc_diagnostics faults={0},restored={0};
+ const zarc_fault fault={.version=1,.code=1,.service=1,.epoch=4,.timestamp=8,.quality=ZARC_DIAG_FAULT,.severity=ZARC_DIAG_ERROR};
+ zassert_equal(zarc_diag_record(&faults,&fault),ZARC_DIAG_STORED);
+ zassert_equal(zarc_native_diag_persist(&diag_store,&faults),0);
+ struct nvs_fs diag_remount={.offset=fs.offset,.sector_size=fs.sector_size,.sector_count=fs.sector_count,.flash_device=dev};
+ zassert_equal(nvs_mount(&diag_remount),0);
+ struct zarc_native_diag_store restored_store={.fs=&diag_remount,.key=125};
+ zassert_equal(zarc_native_diag_load(&restored_store,&restored),0);
+ zassert_equal(restored_store.revision,1);
+ zassert_equal(restored.count,1);
+ zassert_equal(restored.records[0].epoch,4);
  flash_area_close(area);
 }
 

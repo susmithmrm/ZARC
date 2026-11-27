@@ -6,6 +6,8 @@ target_include_directories(app PRIVATE ${ZARC_ROOT}/include)
 target_sources(app PRIVATE src/main.c
   ${ZARC_ROOT}/src/connect.c
   ${ZARC_ROOT}/src/config_store.c
+  ${ZARC_ROOT}/src/diagnostics.c
+  ${ZARC_ROOT}/src/diag_store.c
   ${ZARC_ROOT}/src/health.c
   ${ZARC_ROOT}/src/update_journal.c
   ${ZARC_ROOT}/src/update.c)
