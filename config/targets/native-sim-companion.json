@@ -4,7 +4,7 @@
   "target": "native-sim-companion-reference",
   "board": "native_sim/native/64",
   "soc": "host-sim",
-  "revision": "candidate-4",
+  "revision": "candidate-5",
   "zephyr": "v4.2.0",
   "toolchain": "host GCC candidate",
   "maintainer": "ZARC development",
@@ -65,7 +65,7 @@
     "can": false,
     "ipc": false,
     "watchdog": false,
-    "flash": false,
+    "flash": true,
     "mcuboot": false,
     "pm": true,
     "smp": false,
@@ -107,7 +107,8 @@
     "Native simulator profile; product-specific functions are laboratory application-owned providers, not qualified product services",
     "Lab-local framed queue; no production external transport",
     "Independent simulated provider worker; bounded synchronous fixture waits self-suspend the owner; no measured WCET or response-time proof",
-    "Native Zbus observer delivery and device runtime PM on a simulated device only; not measured observer/wake latency"
+    "Native Zbus observer delivery and device runtime PM on a simulated device only; not measured observer/wake latency",
+    "Boot counter and diagnostic journal in native simulator NVS at startup/quiescent shutdown; not rollback-resistant or power-cut qualified"
   ],
   "profile_runtime": {
     "period_ms": 10,

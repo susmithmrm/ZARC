@@ -28,7 +28,7 @@ static k_tid_t tid;
 /* Setup before starting the worker; never mutate while it is running. */
 static zarc_endpoint_config config[ZARC_CONTROLLER_DOMAINS];
 static size_t count;
-static uint64_t transaction;
+static uint64_t transaction,boot_epoch;
 static bool fault;
 static uint64_t ticks(void){return (uint64_t)k_uptime_get();}
 static void run(void *a,void *b,void *c){
@@ -56,7 +56,7 @@ static void run(void *a,void *b,void *c){
   }else if(q.kind==EFFECT){
    const zarc_controller_effect *e=&q.effect;size_t i=0;
    while(i<count&&config[i].id!=e->id)++i;
-   if(i==count||!e->emitted||e->boot!=1||!e->token||
+   if(i==count||!e->emitted||e->boot!=boot_epoch||!e->token||
       e->token<=tokens[i]||(e->desired!=ZARC_ON&&e->desired!=ZARC_OFF))r.ok=false;
    else {
     tokens[i]=e->token;
@@ -75,9 +75,9 @@ static bool exchange(struct command *q,struct reply *r){
     r->id!=q->id||!r->ok){fault=true;return false;}
  return true;
 }
-bool zarc_profile_provider_start(const zarc_endpoint_config *p,size_t n){
- if(tid||!p||!n||n>ZARC_CONTROLLER_DOMAINS)return false;
- memcpy(config,p,n*sizeof *p);count=n;transaction=0;fault=false;
+bool zarc_profile_provider_start(const zarc_endpoint_config *p,size_t n,uint64_t boot){
+ if(tid||!p||!n||n>ZARC_CONTROLLER_DOMAINS||!boot)return false;
+ memcpy(config,p,n*sizeof *p);count=n;transaction=0;boot_epoch=boot;fault=false;
  k_msgq_purge(&commands);k_msgq_purge(&replies);
  tid=k_thread_create(&worker,worker_stack,K_THREAD_STACK_SIZEOF(worker_stack),run,NULL,NULL,NULL,
    K_PRIO_PREEMPT(ZARC_RUNTIME_WORKER_PRIORITY),0,K_NO_WAIT);

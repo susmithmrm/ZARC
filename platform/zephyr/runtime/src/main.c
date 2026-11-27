@@ -6,6 +6,7 @@
 #include "zarc_manifest.h"
 #include "provider_fixture.h"
 #include "observation_fixture.h"
+#include "maintenance_fixture.h"
 /* Simulator-only device readback and lab-local trusted peer. */
 BUILD_ASSERT(CONFIG_MAIN_STACK_SIZE==ZARC_RUNTIME_MAIN_STACK,"manifest stack mismatch");
 BUILD_ASSERT(CONFIG_MAIN_THREAD_PRIORITY==ZARC_RUNTIME_MAIN_PRIORITY,"manifest priority mismatch");
@@ -106,11 +107,14 @@ int main(void){
   .count=ZARC_PROFILE_ENDPOINT_COUNT,.endpoints=ZARC_PROFILE_ENDPOINTS,
   .period=ZARC_RUNTIME_PERIOD_MS,.deadline=ZARC_RUNTIME_DEADLINE_MS,.health_limit=ZARC_RUNTIME_HEALTH_LIMIT_MS,
   .max_validity=ZARC_RUNTIME_MAX_VALIDITY_MS,.config_digest=ZARC_RUNTIME_CONFIG_DIGEST,.remote_enabled=ZARC_PROFILE_KIND!=0u};
+ uint64_t boot;zarc_diagnostics restored;
+ if(!zarc_profile_maintenance_open(&boot,&restored))return 1;
  uint64_t now=ticks();
  profile_boot_tick=now;
- if(!profile_setup()||!zarc_runtime_init(&runtime,&config,1,now))return 1;
+ if(!profile_setup()||!zarc_runtime_init(&runtime,&config,boot,now))return 1;
+ runtime.diagnostics=restored;
  if(!zarc_composition_required_ready(&runtime.composition))return 1;
- if(!zarc_profile_provider_start(config.endpoints,config.count)||
+ if(!zarc_profile_provider_start(config.endpoints,config.count,boot)||
     !zarc_profile_observer_barrier(&observer,&runtime.observations))return 1;
  printk("ZARC reference %s manifest %s\n",ZARC_PROFILE_NAME,ZARC_MANIFEST_SHA256);
  bool issued=false;
@@ -166,7 +170,8 @@ int main(void){
     if(!zarc_runtime_resume(&runtime,now)||runtime.healthy||
        !zarc_profile_observer_barrier(&observer,&runtime.observations)||
        !zarc_runtime_stop(&runtime,now,now+20))return 1;
-    if(ipc_opened||!zarc_profile_provider_stop())return 1;
+    if(ipc_opened||!zarc_profile_provider_stop()||
+       !zarc_profile_maintenance_close(&runtime.diagnostics))return 1;
     printk("ZARC runtime observed benign indicator and stopped\n");return 0;
    }
   }

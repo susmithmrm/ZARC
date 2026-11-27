@@ -16,9 +16,9 @@ class Tests(unittest.TestCase):
         self.assertEqual(validate(self.m),[1,2])
         self.assertEqual(generate(self.m),generate(copy.deepcopy(self.m)))
         with tempfile.TemporaryDirectory() as d:
-            p=Path(d)/".config";p.write_text("# CONFIG_CAN is not set\nCONFIG_ZBUS=y\nCONFIG_PM_DEVICE_RUNTIME=y\n")
+            p=Path(d)/".config";p.write_text("# CONFIG_CAN is not set\nCONFIG_ZBUS=y\nCONFIG_PM_DEVICE_RUNTIME=y\nCONFIG_NVS=y\n")
             reconcile_kconfig(self.m,p)
-            p.write_text("CONFIG_CAN=y\nCONFIG_ZBUS=y\nCONFIG_PM_DEVICE_RUNTIME=y\n")
+            p.write_text("CONFIG_CAN=y\nCONFIG_ZBUS=y\nCONFIG_PM_DEVICE_RUNTIME=y\nCONFIG_NVS=y\n")
             with self.assertRaises(ValueError):reconcile_kconfig(self.m,p)
     def test_invalid_profiles(self):
         for change in ("cycle","duplicate","unsupported","owner","profile","flash","uart"):

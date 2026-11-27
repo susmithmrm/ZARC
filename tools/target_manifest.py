@@ -116,8 +116,8 @@ def validate(m):
             raise ValueError("runtime/task allocation mismatch")
         if len(services)!=2 or {s["id"]:s["name"] for s in services}!={1:"core",2:"health"} or ordered!=[1,2]:
             raise ValueError("reference composition mismatch")
-        if any(v!=(k in {"zbus","pm"}) for k,v in features.items()):
-            raise ValueError("reference runtime requires simulated Zbus and device PM only")
+        if any(v!=(k in {"zbus","pm","flash"}) for k,v in features.items()):
+            raise ValueError("reference runtime requires simulated Zbus, device PM and NVS only")
     profile_runtime=m.get("profile_runtime")
     if profile_runtime is not None:
         if runtime is not None or profile=="edge" or m["board"]!="native_sim/native/64" or not isinstance(profile_runtime,dict):
@@ -135,7 +135,7 @@ def validate(m):
         expected={"companion":["core","health","power","broker"],"zonal":["core","health","endpoint"],"integrated":["core","health","ipc"]}[profile]
         if len(services)!=len(expected) or {s["id"]:s["name"] for s in services}!={i+1:name for i,name in enumerate(expected)} or ordered!=list(range(1,len(expected)+1)):
             raise ValueError("profile composition mismatch")
-        if any(v!=(k in {"zbus","pm"} or (k=="ipc" and profile=="integrated")) for k,v in features.items()):
+        if any(v!=(k in {"zbus","pm","flash"} or (k=="ipc" and profile=="integrated")) for k,v in features.items()):
             raise ValueError("unsupported simulator profile feature")
         if len(resources)!=len(ids):
             raise ValueError("simulator resource allocation mismatch")
