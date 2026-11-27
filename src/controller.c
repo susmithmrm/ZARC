@@ -61,7 +61,7 @@ bool zarc_controller_feedback(zarc_controller *c,uint32_t id,uint64_t boot,uint6
  if(!c||boot!=c->link.boot||!seq||sample>now||now<c->last_tick||
  (value!=ZARC_OFF&&value!=ZARC_ON&&value!=ZARC_FAULT))return false;
  zarc_endpoint *e=find_endpoint(c,id);if(!e||now-sample>=e->config.feedback_max_age)return false;
- if(e->observed&&(seq<=e->source_sequence||sample<e->source_tick))return false;
+ if(e->source_sequence&&(seq<=e->source_sequence||sample<e->source_tick))return false;
  if(!zarc_controller_tick(c,now))return false;
  if(e->domain.pending&&sample<e->admitted_tick){
   /* Delayed pre-admission observation may update the snapshot, but cannot
