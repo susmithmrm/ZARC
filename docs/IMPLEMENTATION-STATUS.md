@@ -30,13 +30,17 @@ Desktop CI and generated gRPC CI succeeded through b77e025a (runs 46056631426 an
 ## Current stabilization increments
 
 - [Session and lifecycle stabilization](STABILIZATION-INCREMENT.md): desktop CI passed on b52b8f70.
-- [UART simulator correction](UART-EMULATOR-CORRECTION.md): native CI on patched simulator pending.
-- [Effect ownership](EFFECT-OWNERSHIP-INCREMENT.md): identity, deadline and independent provider release. Initial CI exposed an incomplete desktop caller migration, corrected in the following revision; rerun required.
-- [Continuous runtime](CONTINUOUS-RUNTIME-INCREMENT.md): portable single-owner orchestration and separate non-ztest native simulator application, tests committed. No physical target support implied.
+- [UART simulator correction](UART-EMULATOR-CORRECTION.md): native CI passed on ef9d12ed (run 46061138833); physical driver unchanged.
+- [Effect ownership](EFFECT-OWNERSHIP-INCREMENT.md): identity, deadline and independent provider release. Initial CI exposed an incomplete desktop caller migration, corrected in fd3c8cd3; desktop, generated gRPC and local COVESA CI passed on that revision.
+- [Continuous runtime](CONTINUOUS-RUNTIME-INCREMENT.md): portable single-owner orchestration and separate non-ztest native simulator application, desktop CI passed on fd3c8cd3 and generated manifest revision 92190ba5; native continuous application CI remains unconfirmed. No physical target support implied.
+
+- [Versioned update journal](UPDATE-JOURNAL-INCREMENT.md): desktop CI passed on 00d6136a; native MCUboot/NVS verification pending.
+- [Native PM and Zbus](NATIVE-PM-ZBUS-INCREMENT.md): simulator candidate adapters and tests committed; CI pending.
+- [Measurement and change impact](MEASUREMENT-CHANGE-IMPACT.md): streaming offline trace evaluators and change impact inventory; CI pending; no physical measurements acquired.
 
 ## Remaining gates
 
-All 111 IDs are represented in the verification register. Candidate paths exist for 98; this is not requirement closure. Complete acceptance vectors, product manifests and independent accepted evidence remain mandatory.
+All 111 IDs are represented in the verification register. Candidate paths exist for 104; this is not requirement closure. Complete acceptance vectors, product manifests and independent accepted evidence remain mandatory.
 
 - Extend tested reference discovery and reconciliation to selected production transports and product schemas; integrate approved broker quotas, MCU authentication and identity delegation.
 - Compile selected native board/driver combinations, integrate board and product manifests, implement product-side provider owners, persistent update journal and boot reconciliation; qualify UART/CAN/IPC, watchdog, NVS, signed boot and reset behavior.
