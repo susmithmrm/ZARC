@@ -67,3 +67,6 @@ Zephyr offers polling, interrupt-driven and asynchronous driver APIs; support an
 ## Binding mapping and security ownership
 
 Transport providers may differ: byte stream, message, RPC or bus binding. Each publishes a mapping of delivery/ordering, size, backpressure, discovery and failure semantics. Separate transport availability from authenticated peer identity, then capability negotiation and authorization. Where broker terminates a client session and creates an MCU session, the approved delegation model must define how client identity and authority are asserted/limited and audited. Do not imply end-to-end identity preservation simply from two secure channels. Exact codec, cryptographic protocol and credential scheme remain open and require established vetted mechanisms and independent assessment.
+
+## Optional network technologies
+CAN XL, FlexRay, J1939, ISOBUS, hardware switch/offload, multi-gigabit Ethernet, PCIe and vendor IPC are selected bindings or external gateway integrations. SENT and PSI5 are native peripheral candidates. No additional mandatory transport stack.

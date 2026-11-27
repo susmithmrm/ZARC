@@ -73,3 +73,6 @@ Inventory C (execution bound), B (blocking), T (period/minimum interarrival), D 
 ## Runtime power management and shared resources
 
 Use native device runtime PM only where selected driver and dependencies support it [S28](13-References.md#s28). Balance device-use references and manage approved system-PM constraints; account for wake latency, clock transitions, interrupt availability and DMA completion. A Zephyr active/suspended device state does not establish vehicle rail state or safety. Do not allow automatic sleep to invalidate an allocated local deadline or retained protection. Validate idle-to-active and suspend/resume behavior under target conditions. On SMP or heterogeneous platforms, review cache/DMA ownership, noncoherent memory, per-core interrupts, barriers and bus interference with SoC provider. No claim that memory protection alone ensures temporal isolation.
+
+## Silicon execution conformance
+Use native target facilities for AMP/SMP, mailbox interrupts, DMA coherency and hardware timers. Review numerical precision, alignment, endian conversion and FPU context for selected algorithms. Hardware timing and clock-mode effects are measured against allocated budgets; no duplicate scheduler or generic accelerator runtime.

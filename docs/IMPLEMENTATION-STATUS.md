@@ -1,6 +1,6 @@
 # Implementation status — main branch
 
-The architecture baseline has 165 proposed requirements. The following increments extend the original desktop prototype; they are not accepted product evidence.
+The architecture baseline has 178 proposed requirements. The following increments extend the original desktop prototype; they are not accepted product evidence.
 
 | Component | Implementation and evidence |
 |---|---|
@@ -66,7 +66,7 @@ All four engineering lanes passed on 06ef2c1d (desktop 46068427184, generated se
 
 ## Remaining gates
 
-All 165 IDs are represented in the verification register. Candidate paths were previously recorded for 104 of the original 111; the 54 adoption requirements are open; this is not requirement closure. Complete acceptance vectors, product manifests and independent accepted evidence remain mandatory.
+All 178 IDs are represented in the verification register. Candidate paths were previously recorded for 104 of the original 111; the 54 adoption requirements are open; this is not requirement closure. Complete acceptance vectors, product manifests and independent accepted evidence remain mandatory.
 
 - Extend tested reference discovery and reconciliation to selected production transports and product schemas; integrate approved broker quotas, MCU authentication and identity delegation. Guest-side retained outcomes are now exposed; complete multi-client event reconciliation, mode allocation and production update-status publisher remain open.
 - Complete selected physical board and driver configurations, integrate physical UART/CAN/Ethernet and IPC transport owners with the continuous runtime, connect the tested simulator PM, Zbus and journal lifecycle paths to approved physical product services, and qualify signed boot, trusted metadata, watchdog, NVS and reset behavior. The new simulator compositions do not constitute physical ports.
@@ -74,3 +74,5 @@ All 165 IDs are represented in the verification register. Candidate paths were p
 - Run real HIL, physical feedback, timing/resource, reset, power interruption and second-vendor qualification; review safety and security analyses with responsible integrators.
 
 The desktop controller operates only a benign simulated indicator. No physical vehicle commands or production credentials are included. Keep the branch in review until evidence is accepted; no automotive safety or production cybersecurity claim.
+
+The unified baseline now contains 178 proposed requirements. New silicon-related obligations are open; refined acceptance criteria require renewed evidence review. Existing candidate paths are not accepted evidence.

@@ -65,3 +65,6 @@ Kconfig selects features; devicetree identifies physical device topology and bin
 | Assessed scope | Separately defined independent safety/cyber evidence; not implied by support |
 
 The target manifest must publish actual level and limitations. Do not make support contingent on unsupported vendor peripheral behavior; substitute an approved driver/provider or mark capability unavailable.
+
+## Worldwide target admission
+Evaluate Arm Cortex-M/R/A, RISC-V and vendor-specific architectures (TriCore, RH850, Power Architecture, C28x) by actual maintained Zephyr port, toolchain, licensing and vendor support. Candidate families include NXP S32, ST Stellar, Infineon AURIX/TRAVEO, Renesas RH850/R-Car, TI AM26x/Jacinto, GigaDevice GD32A and SemiDrive E3; application SoCs from Qualcomm, Samsung, Telechips, NVIDIA and others are host/companion candidates unless an eligible RT domain is demonstrated. No blanket native support. Record lockstep/split-lock, TCM, ECC, external memory and boot dependencies in target-specific evidence.

@@ -10,6 +10,10 @@ assert len(req)==len(alloc) and len(req)>0
 assert len({r['ID'] for r in req})==len({r['Verification_ID'] for r in req})==len(req)
 assert {r['ID'] for r in req}=={r['Requirement'] for r in alloc}
 assert all(r['Status']=='PROPOSED' for r in req)
+assert all('shall' in r['Requirement'] and r['Acceptance'] and r['Profiles'] for r in req)
+assert len({r['Requirement'].casefold().strip() for r in req})==len(req)
+by_id={r['ID']:r for r in req}
+assert all((a['Design'],a['Acceptance condition'],a['Verification ID'])==(by_id[a['Requirement']]['Design_ref'],by_id[a['Requirement']]['Acceptance'],by_id[a['Requirement']]['Verification_ID']) for a in alloc)
 ids={r['ID'] for r in req}
 assert all('ZARC-'+k in ids for f in findings for k in f['Requirement_suffixes'].split(';'))
 assert len(findings)==28

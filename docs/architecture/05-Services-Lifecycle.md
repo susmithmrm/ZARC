@@ -47,3 +47,6 @@ Separate immutable defaults, approved calibrations, runtime retained state and d
 | Fault/degraded | Fault detected within allocation | Function-specific response, reason, availability; recovery via approved path |
 
 Define service-specific cancellation semantics: cancel request acknowledgment is not proof an already started physical operation was reversed. Completion must reflect actual outcome or UNKNOWN_OUTCOME; on host restart do not overwrite authoritative local status. Establish service lifecycle completion timeout, readiness and failure reporting. A mandatory fail does not automatically stop unrelated functions with independent allocations.
+
+## Silicon-dependent lifecycle
+Reconcile reset cause and retained data validity before service readiness. Use native storage with approved technology-specific endurance and interruption assumptions. Engineering calibration interfaces such as XCP/A2L are optional and subject to allocated authority.

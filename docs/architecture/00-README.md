@@ -1,6 +1,6 @@
 # ZARC architecture baseline
 
-**Zephyr Automotive Real-Time Control | Version 1.1 | 27 November 2026**
+**Zephyr Automotive Real-Time Control | Version 1.2 | 28 November 2026**
 
 ZARC defines a modular, Zephyr-native software foundation for the physical control layer of software-defined vehicles. The proposed architecture is intended for OEM, Tier 1, Tier 2 and semiconductor partners. It is an engineering design baseline, not a product release or qualification claim.
 
@@ -51,3 +51,5 @@ IOC: I/O or companion controller. SDV: software-defined vehicle. OEM: original e
 ## Review status
 
 Version 1.1 supersedes v1.0 as a corrected architecture candidate. Z14 and Z15 document source-backed corrections and remaining decisions. The v1.1 architecture review did not execute implementation tests. The subsequent desktop starter has separate local and CI test evidence documented in [implementation status](../IMPLEMENTATION-STATUS.md). No target-specific vendor, timing, safety, security or qualification validation has been established. Use the release gate definitions and profiles in Z09 rather than treating all proposed requirements as currently applicable. The separate machine-readable findings register and requirements CSV are controlled review inputs.
+
+Requirements are grouped by engineering objective in Z12; legacy ADOPT identifiers remain stable for traceability and do not constitute an extension. Platform portfolio and supplier deliverables are assessed at platform scope, not as mandatory firmware modules. Refined acceptance criteria require renewed evidence review.

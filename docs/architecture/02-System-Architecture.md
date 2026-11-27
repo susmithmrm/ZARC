@@ -88,3 +88,6 @@ One native Zephyr application per MCU, one composition root, one owner per physi
 - Maintain all requirements in Z12; allocate by product and avoid duplicate obligations.
 
 Acceptance: independent developer builds a minimal edge sample, adds a sensor without changing generic core, and demonstrates same service contract on second target. Report actual commands, changes, resource budget, limitations and evidence. This document does not claim these tests have passed.
+
+## Deployment eligibility
+Native Zephyr execution, isolated integrated execution and external interoperability are integration paths within the existing four profiles. Unsupported ISA or vendor-controlled islands remain external peers. Delegated accelerators have explicitly allocated authority and budgets; no additional universal execution layer.
