@@ -33,6 +33,7 @@ static void virtual_device(void *a, void *b, void *c)
   return;
  }
  k_sleep(K_MSEC(30));
+ if(ticks()>=effect.deadline){atomic_set(&device_error,1);return;}
  struct observation sample={
   .id=effect.id,.boot=101,.sequence=2,.sample_tick=ticks(),.value=effect.desired
  };
@@ -74,6 +75,7 @@ ZTEST(zarc_native_lab, test_disconnected_feedback)
  now=ticks();
  zassert_true(zarc_controller_feedback(&controller,sample.id,sample.boot,
   sample.sequence,sample.sample_tick,now,sample.value));
+ zassert_true(zarc_controller_effect_released(&controller,&effect,now));
  zassert_equal(zarc_controller_open(&controller,2,1,1,0,now),ZARC_CONN_COMPLETED);
  zarc_observation observation;
  zassert_true(zarc_controller_snapshot(&controller,1,&observation));

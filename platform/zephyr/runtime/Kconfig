@@ -1,0 +1,5 @@
+mainmenu "ZARC continuous benign reference"
+source "Kconfig.zephyr"
+config ZARC_RUNTIME_SMOKE
+ bool "Exit after observed reference result"
+ default n

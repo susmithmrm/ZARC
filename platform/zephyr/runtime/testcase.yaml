@@ -1,0 +1,16 @@
+tests:
+  zarc.native.runtime:
+    platform_allow:
+      - native_sim/native/64
+    integration_platforms:
+      - native_sim/native/64
+    harness: console
+    harness_config:
+      type: one_line
+      regex:
+        - "ZARC runtime observed benign indicator and stopped"
+    extra_configs:
+      - CONFIG_ZARC_RUNTIME_SMOKE=y
+    tags:
+      - zarc
+      - runtime
