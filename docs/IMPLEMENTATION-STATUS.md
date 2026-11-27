@@ -25,7 +25,7 @@ The architecture baseline has 111 proposed requirements. The following increment
 | Build provenance and supplier admission | [Release engineering](RELEASE-ENGINEERING-INCREMENT.md) |
 | Requirement-level trace and evidence gate | [Verification register](REQUIREMENT-TRACE.csv) and [HIL procedure](HIL-AND-EVIDENCE.md) |
 
-All four CI lanes passed on 65d47614 (desktop 46061895128, generated service 46061895108, COVESA 46061895124, native 46061895160). Desktop CI passed on multi-endpoint, dispatcher, profile manifest, session renewal, diagnostic store, profile lifecycle and migration/boot reconciliation revisions through e3de9ef1 (run 46063781031). Native core/provider CI also passed through 05dc4631 (run 46063258049). The four-profile native matrix, durable NVS snapshot and independent native worker require completed runs on their own revisions. See [Actions](https://github.com/susmithmrm/ZARC/actions).
+All four CI lanes passed on 65d47614 (desktop 46061895128, generated service 46061895108, COVESA 46061895124, native 46061895160). Desktop CI passed on multi-endpoint, dispatcher, profile manifest, session renewal, diagnostic store, profile lifecycle and migration/boot reconciliation revisions through e3de9ef1 (run 46063781031). Native core/provider CI also passed through 05dc4631 (run 46063258049). All four engineering lanes also passed on 24466c77 (desktop 46064087185, generated service 46064087101, COVESA 46064087117, native 46064087065). The preceding native worker revision 8cd3fb1b executed all 12 selected runnable cases successfully (6 configurations); the remaining MCUboot configuration was compiled only. This is simulator evidence, not physical qualification. See [Actions](https://github.com/susmithmrm/ZARC/actions).
 
 ## Current stabilization increments
 
@@ -44,11 +44,11 @@ All four CI lanes passed on 65d47614 (desktop 46061895128, generated service 460
 |---|---|
 | [Multi-endpoint runtime](MULTI-RUNTIME-INCREMENT.md) | Up to four independent endpoints, local/remote ownership, logical suspend/resume; desktop and earlier native CI passed |
 | [Shared runtime dispatcher](RUNTIME-WIRE-INCREMENT.md) | Scoped discovery, observations, typed admission and retained results; desktop CI passed |
-| [Four simulator product profiles](PROFILE-RUNTIME-INCREMENT.md) | Manifest-selected edge, companion, zonal and integrated builds; profile lifecycle and IPC fixture; desktop validation passed, native matrix pending |
+| [Four simulator product profiles](PROFILE-RUNTIME-INCREMENT.md) | Manifest-selected edge, companion, zonal and integrated builds; profile lifecycle and IPC fixture; desktop and native simulator matrix passed |
 | [Explicit session renewal](SESSION-RENEWAL-INCREMENT.md) | Bounded result retention and no automatic replay; process saturation test passed desktop CI |
-| [Durable diagnostic snapshot](DURABLE-DIAGNOSTICS-INCREMENT.md) | Versioned CRC snapshot and NVS readback; desktop codec test passed, native extension pending |
-| [Config migration and boot recovery](CONFIG-BOOT-RECOVERY-INCREMENT.md) | Exact migration ticket and verified boot phase reconciliation; desktop CI passed, MCUboot compile/native extension pending |
-| [Independent native worker](NATIVE-WORKER-INCREMENT.md) | Separate simulated device owner, immutable queue exchanges and later readback; latest CI pending |
+| [Durable diagnostic snapshot](DURABLE-DIAGNOSTICS-INCREMENT.md) | Versioned CRC snapshot and NVS readback; desktop codec and native simulator remount tests passed |
+| [Config migration and boot recovery](CONFIG-BOOT-RECOVERY-INCREMENT.md) | Exact migration ticket and verified boot phase reconciliation; desktop CI and native compile coverage passed; boot execution remains pending |
+| [Independent native worker](NATIVE-WORKER-INCREMENT.md) | Separate simulated device owner, immutable queue exchanges and later readback; native simulator CI passed |
 
 ## Remaining gates
 

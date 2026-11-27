@@ -8,6 +8,7 @@ on:
       - '.github/workflows/pages.yml'
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 concurrency:
@@ -48,8 +49,38 @@ jobs:
           PY
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
+        id: upload
         with:
+          name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
           path: site
+      - name: Confirm uploaded artifact is visible to deployment API
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_NAME: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$ARTIFACT_ID"
+          for attempt in $(seq 1 12); do
+            if response=$(gh api --method GET "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" -f name="$ARTIFACT_NAME"); then
+              if jq -e --arg name "$ARTIFACT_NAME" --arg id "$ARTIFACT_ID" '
+                [.artifacts[] | select(.name == $name)] as $matches |
+                ($matches | length) == 1 and
+                ($matches[0].id | tostring) == $id and
+                ($matches[0].expired == false)
+              ' <<< "$response" > /dev/null; then
+                echo "Confirmed unique artifact $ARTIFACT_ID for this attempt."
+                exit 0
+              fi
+            fi
+            echo "Artifact metadata not yet available (check $attempt/12)."
+            if [ "$attempt" -lt 12 ]; then sleep 5; fi
+          done
+          echo "::error::Expected unique, unexpired Pages artifact was not visible."
+          exit 1
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
