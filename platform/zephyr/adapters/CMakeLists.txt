@@ -1,8 +1,17 @@
-# Selected board application enables only the approved native providers.
+# Selected board application enables only approved native providers.
 target_include_directories(app PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 if(CONFIG_WATCHDOG)
   target_sources(app PRIVATE watchdog.c)
 endif()
 if(CONFIG_NVS)
   target_sources(app PRIVATE storage.c)
+endif()
+if(CONFIG_UART_ASYNC_API)
+  target_sources(app PRIVATE uart.c)
+endif()
+if(CONFIG_CAN)
+  target_sources(app PRIVATE can.c)
+endif()
+if(CONFIG_IPC_SERVICE)
+  target_sources(app PRIVATE ipc.c)
 endif()

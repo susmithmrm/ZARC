@@ -1,0 +1,7 @@
+# Candidate native transport bindings
+
+These bindings call the actual Zephyr APIs for UART asynchronous transfer, CAN frames and IPC service endpoints. Enable only the selected native Kconfig options and pass the exclusive, reviewed devicetree device. Queue storage is supplied by the product configuration. UART and IPC RX queue items are zarc_native_bytes; CAN RX items are native can_frame. RX callbacks copy bounded data and latch any overflow. Consumers must invalidate the connection and reconcile after fault; no silent valid-cache claim.
+
+UART owns two fixed RX buffers and a single TX buffer until driver completion or cancellation. Use an exclusive non-console peripheral supporting the async API. The binding does not automatically reopen after loss, and stop does not release storage until the driver has quiesced. CAN uses nonblocking send admission and asynchronous completion; target mapping must supply OEM-approved IDs and signal semantics, not arbitrary remote frames. IPC copies the canonical envelope and requires backend-specific delivery, reset and memory-ownership review. IPC names and context storage must remain valid until deregistration and callback quiescence.
+
+These are candidate API bindings, not an enabled physical configuration. No physical UART, CAN or shared-memory peer is available in CI. Native API compile coverage depends on selected board and Kconfig; actual transfer, timeout, resource, electrical, reset and peer interop evidence remains outstanding. No production authentication or transport safety mechanism is implied.
