@@ -50,12 +50,26 @@ All four CI lanes passed on 65d47614 (desktop 46061895128, generated service 460
 | [Config migration and boot recovery](CONFIG-BOOT-RECOVERY-INCREMENT.md) | Exact migration ticket and verified boot phase reconciliation; desktop CI and native compile coverage passed; boot execution remains pending |
 | [Independent native worker](NATIVE-WORKER-INCREMENT.md) | Separate simulated device owner, immutable queue exchanges and later readback; native simulator CI passed |
 
+## Runtime and host service realization
+
+All four engineering lanes passed on 06ef2c1d (desktop 46068427184, generated service 46068427186, COVESA 46068427234, native 46068427164). The website and all engineering lanes passed on 1bb24f16. Later increments require their own CI evidence; the following entries report implementation and observed results separately.
+
+| Increment | Scope and evidence |
+|---|---|
+| [Runtime telemetry](RUNTIME-TELEMETRY-INCREMENT.md) | Scoped health and bounded counters; desktop and native CI passed on 06ef2c1d |
+| [Native runtime providers](NATIVE-RUNTIME-PROVIDERS.md) | Zbus subscriber reconciliation and device PM integrated into all four simulator profiles; native CI passed on 06ef2c1d |
+| [Shared desktop runtime](SHARED-DESKTOP-RUNTIME.md) | Desktop uses common dispatcher; generated health service; desktop, gRPC and COVESA CI passed on cefa324a |
+| [Retained host outcome](HOST-RETAINED-OUTCOME.md) | Bounded authenticated principal/capability ownership; desktop, gRPC and COVESA CI passed on 496f5325 |
+| [Native maintenance](NATIVE-MAINTENANCE-INCREMENT.md) | Simulator NVS startup boot counter and quiescent journal persistence/remount; desktop/gRPC passed on 17211517; native verification not yet confirmed |
+| [Update status interface](UPDATE-STATUS-INTERFACE.md) | Scoped fresh local snapshot, explicit unavailable when no provider; generated gRPC passed on 210e93e6; other lanes pending |
+| [SOME/IP health](SOMEIP-HEALTH-INCREMENT.md) | Executable read-only local method and independent peer regression committed on ab2b77f9; verification pending |
+
 ## Remaining gates
 
 All 111 IDs are represented in the verification register. Candidate paths exist for 104; this is not requirement closure. Complete acceptance vectors, product manifests and independent accepted evidence remain mandatory.
 
-- Extend tested reference discovery and reconciliation to selected production transports and product schemas; integrate approved broker quotas, MCU authentication and identity delegation.
-- Complete selected physical board and driver configurations, integrate physical UART/CAN/Ethernet and IPC transport owners with the continuous runtime, connect native PM, Zbus and durable journals to approved product services, and qualify signed boot, trusted metadata, watchdog, NVS and reset behavior. The new simulator compositions do not constitute physical ports.
+- Extend tested reference discovery and reconciliation to selected production transports and product schemas; integrate approved broker quotas, MCU authentication and identity delegation. Guest-side retained outcomes are now exposed; complete multi-client event reconciliation, mode allocation and production update-status publisher remain open.
+- Complete selected physical board and driver configurations, integrate physical UART/CAN/Ethernet and IPC transport owners with the continuous runtime, connect the tested simulator PM, Zbus and journal lifecycle paths to approved physical product services, and qualify signed boot, trusted metadata, watchdog, NVS and reset behavior. The new simulator compositions do not constitute physical ports.
 - Integrate actual AAOS VHAL Binder/gRPC, OEM VSIDL/SDV, CommonAPI, independent Ethernet peer and hypervisor IPC with approved identities and configuration. Local COVESA and ZARC gRPC runs do not qualify these deployments.
 - Run real HIL, physical feedback, timing/resource, reset, power interruption and second-vendor qualification; review safety and security analyses with responsible integrators.
 
