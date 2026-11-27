@@ -32,7 +32,7 @@ The current desktop CMake build has CI jobs for Windows and Linux in Debug and R
 | Gate | Acceptance |
 |---|---|
 | G0 | Architecture baseline, owners, benign scope and desktop contract allocations; select boards before native bring-up |
-| G1 | Desktop behavior and two-process integration first; then native MCU demo, pinned build, target contract tests and nominal resource/timing evidence |
+| G1 | Portable behavioral and two-process integration tests, native MCU demo, pinned build, target contract tests and nominal resource/timing evidence |
 | G2 | Second vendor/edge profile, HIL and update interruption, documented limitations |
 | G3 | AAOS/SDV/SOME-IP or relevant host adapter, VM isolation and IPC feasibility evidence |
 | G4 | Design partner pilot, hardware/product requirements, safety/cyber scope and independent gap review |

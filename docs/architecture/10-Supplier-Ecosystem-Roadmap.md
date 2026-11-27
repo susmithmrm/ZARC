@@ -25,7 +25,7 @@ Open generic interoperable foundations subject to legal review. Support paid int
 | Stage | Relative window | Work and exit |
 |---|---|---|
 | G0 | 0–2 months | Stakeholder workshops, benign desktop scope, contract and ownership freeze; candidate board discovery in parallel |
-| G1 | 2–5 months | Portable desktop core, service composition and two-process simulator first; then native Zephyr, selected UART and target fixtures |
+| G1 | 2–5 months | Portable core, service composition, two-process simulator, native Zephyr, selected UART and target fixtures |
 | G2 | 5–9 months | Smart edge second vendor, target admission, update recovery and measured HIL |
 | G3 | 9–15 months | Host VM, VHAL/SDV, CommonAPI/SOME-IP, Ethernet and IPC feasibility |
 | G4 | 15–24 months | Zonal subset, OEM/Tier 1 pilot, allocated safety/cyber gap and support plan |

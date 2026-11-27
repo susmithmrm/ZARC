@@ -1,18 +1,17 @@
 # ZARC realization specification
 
-27 November 2026 • Desktop-first engineering edition • Companion to architecture 1.1
+27 November 2026 • Engineering implementation specification • Companion to architecture 1.1
 
 ## Engineering decision
 
-Build the controller's behavioral core once as a portable, bounded C17 library. Link that library into ordinary Windows and Linux processes first. Later link the same sources into the Zephyr firmware. Build the broker as a separate process so it can genuinely disappear, reset and fall behind. Windows and Linux here are development hosts. ZARC Host is the in-vehicle broker role. These meanings are independent.
+Build the controller's behavioral core once as a portable, bounded C17 library. The same behavioral sources support native Zephyr firmware and host-based verification on Windows and Linux. Build the broker as a separate process so it can genuinely disappear, reset and fall behind. Windows and Linux here are development hosts. ZARC Host is the in-vehicle broker role. These meanings are independent.
 
-This edition proposes C17 for the shared controller and CMake for portable builds. The first target is a single simulated indicator with independent feedback. These are reversible implementation choices. All design and product verification rows remain proposed. The parent architecture supplies the vehicle deployment and assurance obligations. This document governs the order of development and the boundary between shared logic and target-specific execution.
+This edition proposes C17 for the shared controller and CMake for portable builds. The first target is a single simulated indicator with independent feedback. These are reversible implementation choices. All design and product verification rows remain proposed. The parent architecture supplies the vehicle deployment and assurance obligations. This document defines the implementation and verification boundaries between shared logic and target-specific execution.
 
-## Fresh review of the starting assumptions
+## Implementation and verification principles
 
 | Starting assumption | Consequence | Revised design decision |
 |---|---|---|
-| A board must be picked at G0 | Service and lifecycle work is delayed by procurement | Start G0 with a host compiler, manifest and virtual clock. Select boards before the hardware phase. |
 | All applications use native Zephyr primitives (RT-001) | Core cannot compile as an ordinary Windows library | Allocate RT-001 to the Zephyr execution adapter. Portable policy receives events and emits effects. |
 | Native simulation covers desktop development | Toolchain and host support become accidental dependencies | Supply two ordinary desktop build jobs. Zephyr native simulation is an additional later lane. |
 | One executable can simulate the whole system | Shared memory can hide disconnect, ownership and restart errors | Retain an in-process deterministic harness and a separate two-process integration fixture. |
@@ -94,15 +93,15 @@ Separate tests delay feedback past the exact deadline, saturate result capacity,
 
 ## Bringing up Zephyr and physical targets
 
-First compile the unchanged behavioral sources with the chosen Zephyr toolchain. Bind the dispatcher to an owned thread and bounded native queues. Translate timer/driver observations into the existing contracts. Share golden vectors with the PC jobs. Next bind native UART with reviewed buffer ownership, map devicetree devices and power management, and repeat the indicator scenario with an independent measurement channel. Compare event order and results before tuning timing. Then measure stack, flash, RAM, CPU, IRQ and bus interference, deadline and wake behavior. Extend to a second vendor and record any core change the port required.
+Compile the shared behavioral sources with the chosen Zephyr toolchain. Bind the dispatcher to an owned thread and bounded native queues. Translate timer/driver observations into the existing contracts. Share golden vectors with the PC jobs. Next bind native UART with reviewed buffer ownership, map devicetree devices and power management, and repeat the indicator scenario with an independent measurement channel. Compare event order and results before tuning timing. Then measure stack, flash, RAM, CPU, IRQ and bus interference, deadline and wake behavior. Extend to a second vendor and record any core change the port required.
 
 The PC update model covers decisions and interruption ordering. Boot trust, key provisioning, flash behavior, hardware watchdog, current draw, rail sequencing, reset domains and EMC require the appropriate board or vehicle evidence. AAOS power state direction, service discovery, actual SOME/IP serialization and hypervisor partitioning require the chosen external implementations. Link the evidence to the same configuration-specific requirement IDs.
 
-## Delivery gates and handoffs
+## Implementation workstreams and handoffs
 
-1. Desktop contracts. Architect signs the reference manifest, owners, time model, domain transitions and golden vectors. Developers can start without a Zephyr checkout.
-2. Portable behavior. Developers deliver domain, composition and test runner. Test lead compares Windows and Linux results across nominal, saturation, restart and expiry fixtures.
-3. Desktop system. Integrator delivers two-process controller and broker plus simulated device, update, diagnostic and VM clients. Test lead reviews independent failure traces and coverage against the allocation CSV.
+1. Interface contracts. Architect signs the reference manifest, owners, time model, domain transitions and golden vectors. Target-independent contracts are validated with host-based fixtures.
+2. Shared behavior and verification. Developers deliver domain, composition and test runner. Test lead compares Windows and Linux results across nominal, saturation, restart and expiry fixtures.
+3. System integration fixtures. Integrator delivers two-process controller and broker plus simulated device, update, diagnostic and VM clients. Test lead reviews independent failure traces and coverage against the allocation CSV.
 4. Native bring-up. BSP supplier selects the board, pins dependencies, binds hardware and reruns conformance. RT engineer supplies target timing analysis and measurements.
 5. Product integration. Tier 1 delivers chosen host/network stacks, second-vendor conformance, recovery results and bounded resource evidence. OEM closes vehicle allocations and accepts residual risk.
 

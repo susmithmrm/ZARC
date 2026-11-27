@@ -19,7 +19,7 @@ Residuals: review diagram semantics with responsible architects, choose branch g
 
 ## Documentation content review
 
-All Markdown specifications, templates, navigation pages and diagram sources were reviewed against the desktop starter and the architecture register. Corrections include the MIT license decision, desktop-first sequencing, actual versus proposed APIs and repository paths, target-only RTOS requirement scope, lifecycle return paths, source dependency and feedback directions, and internal citations.
+All Markdown specifications, templates, navigation pages and diagram sources were reviewed against the desktop starter and the architecture register. Corrections include the MIT license decision, actual versus proposed APIs and repository paths, target-only RTOS requirement scope, lifecycle return paths, source dependency and feedback directions, and internal citations.
 
 The source register contains 34 unique external URLs. Thirty returned HTTP 200 to direct checks (including a BMW redirect); four blocked the automated HEAD request and were confirmed using the authoritative ISO and VCA pages. The BMW and software-update-standard URLs were updated to their canonical destination. Availability and source scope checks are distinct from formal technical standards compliance.
 

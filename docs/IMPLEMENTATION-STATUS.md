@@ -16,4 +16,4 @@ The current API is zarc_init, zarc_request, zarc_feedback and zarc_tick. It supp
 
 The service registry, independent broker, transport providers, persistence, diagnostics, update workflow and native Zephyr adapters remain planned. All 111 architecture requirements are proposed, with no accepted product evidence. Desktop tests do not establish hardware timing or qualification.
 
-[Architecture baseline](architecture/00-README.md) · [Realization plan](architecture/realization/16-Desktop-First-Realization.md)
+[Architecture baseline](architecture/00-README.md) · [Realization plan](architecture/realization/16-Implementation-Realization.md)

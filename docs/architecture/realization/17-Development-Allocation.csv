@@ -1,4 +1,4 @@
-﻿Requirement,Design,Responsible role,Implementation unit,Acceptance condition,First PC deliverable,Final evidence environment,Verification ID,Status
+Requirement,Design,Responsible role,Implementation unit,Acceptance condition,Host-based verification work product,Final evidence environment,Verification ID,Status
 ZARC-SYS-001,Z02,System,domain and product policy,Agreed benign local function continues through host restart/outage.,Implement shared behavior and run acceptance fixture on Windows and Linux,Both PC builds; repeat on selected deployment and apply original verification method,T-SYS-001,Planned
 ZARC-SYS-002,Z02,System,domain and product policy,Manifest maps each resource to exactly one owner or approved arbitration.,"Prepare design, applicability and evidence record",Configuration-specific engineering review and applicable evidence,T-SYS-002,Planned
 ZARC-SYS-003,Z02,System,domain and product policy,Public schema contains only approved semantic operations.,Implement shared behavior and run acceptance fixture on Windows and Linux,Both PC builds; repeat on selected deployment and apply original verification method,T-SYS-003,Planned

@@ -4,9 +4,9 @@
 
 ZARC defines a modular, Zephyr-native software foundation for the physical control layer of software-defined vehicles. The proposed architecture is intended for OEM, Tier 1, Tier 2 and semiconductor partners. It is an engineering design baseline, not a product release or qualification claim.
 
-## Desktop-first realization edition
+## Implementation realization
 
-Start with [the realization specification](realization/16-Desktop-First-Realization.md) and [the development allocation](realization/17-Development-Allocation.csv). These documents supersede the board-first sequencing for development. RT-001 applies to embedded execution adapters. The reviewed architecture is maintained in the linked Markdown sources and requirements register. The earlier consolidated PDF is a historical local artifact and is not shipped in this repository.
+Start with [the realization specification](realization/16-Implementation-Realization.md) and [the development allocation](realization/17-Development-Allocation.csv). RT-001 applies to embedded execution adapters. The reviewed architecture is maintained in the linked Markdown sources and requirements register. The earlier consolidated PDF is a historical local artifact and is not shipped in this repository.
 
 ## Document map
 
