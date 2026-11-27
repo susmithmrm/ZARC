@@ -1,0 +1,52 @@
+name: COVESA runtime CI
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  someip:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libboost-all-dev libgrpc++-dev protobuf-compiler protobuf-compiler-grpc libprotobuf-dev
+          python -m pip install -r host/requirements-grpc.txt
+          python -m pip freeze > someip-python-dependencies.txt
+      - name: Build pinned COVESA stack
+        run: |
+          git clone --depth 1 --branch 3.5.11 https://github.com/COVESA/vsomeip.git "$RUNNER_TEMP/vsomeip"
+          git -C "$RUNNER_TEMP/vsomeip" rev-parse HEAD > someip-revision.txt
+          cmake -S "$RUNNER_TEMP/vsomeip" -B "$RUNNER_TEMP/vsomeip-build" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/vsomeip-install" -DENABLE_SIGNAL_HANDLING=1
+          cmake --build "$RUNNER_TEMP/vsomeip-build" --parallel 2
+          cmake --install "$RUNNER_TEMP/vsomeip-build"
+          echo "LD_LIBRARY_PATH=$RUNNER_TEMP/vsomeip-install/lib:$RUNNER_TEMP/vsomeip-install/lib64" >> "$GITHUB_ENV"
+      - name: Build independent peer and service
+        run: |
+          cmake -S host/someip -B build/someip -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/vsomeip-install"
+          cmake --build build/someip --parallel 2
+          cmake -S . -B build/desktop -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/desktop --target zarc_controller_lab_pc
+          mkdir -p build/generated
+          python -m grpc_tools.protoc -I interfaces --python_out=build/generated --grpc_python_out=build/generated interfaces/zarc_service.proto
+      - name: Run middleware fixture
+        env:
+          PYTHONPATH: ${{ github.workspace }}/build/generated
+        run: |
+          set -o pipefail
+          python tests/someip_integration_test.py build/desktop/zarc_controller_lab_pc build/someip/zarc_someip_service build/someip/zarc_someip_peer | tee someip-test.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: someip-runtime-evidence
+          path: |
+            someip-revision.txt
+            someip-python-dependencies.txt
+            someip-test.log
+          if-no-files-found: warn

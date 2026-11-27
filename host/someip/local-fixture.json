@@ -1,0 +1,33 @@
+{
+  "unicast": "127.0.0.1",
+  "logging": {
+    "level": "warning",
+    "console": true,
+    "dlt": false,
+    "file": {
+      "enable": false,
+      "path": "/tmp/zarc-someip.log"
+    }
+  },
+  "applications": [
+    {
+      "name": "zarc_someip_service",
+      "id": "0x4411"
+    },
+    {
+      "name": "zarc_someip_peer",
+      "id": "0x4412"
+    }
+  ],
+  "services": [
+    {
+      "service": "0x1234",
+      "instance": "0x0001",
+      "reliable": "30501"
+    }
+  ],
+  "routing": "zarc_someip_service",
+  "service-discovery": {
+    "enable": false
+  }
+}
