@@ -70,7 +70,9 @@ int main(int argc,char **argv){
   uint64_t now=zarc_net_milliseconds()-start;
   if(!zarc_controller_tick(&c,now))break;
   if(device.pending&&now>=device.due){
-   if(!zarc_controller_feedback(&c,1,c.link.boot,++device.sequence,now,now,device.desired))break;
+   if(now<device.effect.deadline&&
+      !zarc_controller_feedback(&c,1,c.link.boot,++device.sequence,now,now,device.effect.desired))break;
+   if(!zarc_controller_effect_released(&c,&device.effect,now))break;
    device.pending=false;
   }
   if(!zarc_observation_stream_sync(&observations,&c))break;

@@ -27,6 +27,13 @@ The architecture baseline has 111 proposed requirements. The following increment
 
 Desktop CI and generated gRPC CI succeeded through b77e025a (runs 46056631426 and 46056640681). Native CI passed on the earlier b29607b4 revision (run 46056122910). Actual COVESA local middleware integration passed on 0356573d (run 46056390381). Expanded native provider fixtures and later provenance changes require their own completed CI results. See [Actions](https://github.com/susmithmrm/ZARC/actions).
 
+## Current stabilization increments
+
+- [Session and lifecycle stabilization](STABILIZATION-INCREMENT.md): desktop CI passed on b52b8f70.
+- [UART simulator correction](UART-EMULATOR-CORRECTION.md): native CI on patched simulator pending.
+- [Effect ownership](EFFECT-OWNERSHIP-INCREMENT.md): identity, deadline and independent provider release. Initial CI exposed an incomplete desktop caller migration, corrected in the following revision; rerun required.
+- [Continuous runtime](CONTINUOUS-RUNTIME-INCREMENT.md): portable single-owner orchestration and separate non-ztest native simulator application, tests committed. No physical target support implied.
+
 ## Remaining gates
 
 All 111 IDs are represented in the verification register. Candidate paths exist for 98; this is not requirement closure. Complete acceptance vectors, product manifests and independent accepted evidence remain mandatory.

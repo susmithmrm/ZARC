@@ -1,5 +1,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
+#include <zephyr/sys/util.h>
 #include "zarc/runtime.h"
 #include "zarc_manifest.h"
 /* Simulator only: memory-backed device state, no physical GPIO/rail access.
