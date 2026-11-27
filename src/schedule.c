@@ -19,10 +19,10 @@ bool zarc_periodic_poll(zarc_periodic *s,uint64_t now,zarc_release *out){
  uint64_t deadline=release+s->deadline;
  if(now>=deadline){s->missed=add_sat(s->missed,1);return true;}
  out->due=true;out->release=release;out->deadline=deadline;
- s->pending=true;s->current_deadline=deadline;return true;
+ s->pending=true;s->current_release=release;s->current_deadline=deadline;return true;
 }
-bool zarc_periodic_complete(zarc_periodic *s,uint64_t now,bool *on_time){
- if(!s||!on_time||!s->configured||!s->pending||now<s->last_tick)return false;
+bool zarc_periodic_complete(zarc_periodic *s,uint64_t release,uint64_t now,bool *on_time){
+ if(!s||!on_time||!s->configured||!s->pending||release!=s->current_release||now<s->last_tick)return false;
  s->last_tick=now;s->pending=false;*on_time=now<s->current_deadline;
  if(*on_time)s->completed=add_sat(s->completed,1);else s->missed=add_sat(s->missed,1);
  return true;

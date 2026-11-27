@@ -32,10 +32,11 @@ int main(void){
  CHECK(zarc_periodic_init(&s,10,10,8));
  CHECK(zarc_periodic_poll(&s,9,&r)&&!r.due);
  CHECK(zarc_periodic_poll(&s,10,&r)&&r.due&&r.deadline==18);
- CHECK(zarc_periodic_complete(&s,12,&on_time)&&on_time);
+ CHECK(zarc_periodic_complete(&s,10,12,&on_time)&&on_time);
  CHECK(zarc_periodic_poll(&s,34,&r)&&r.due&&r.release==30&&r.skipped==1);
  CHECK(zarc_periodic_poll(&s,40,&r)&&r.due&&s.missed==1);
- CHECK(zarc_periodic_complete(&s,48,&on_time)&&!on_time&&s.missed==2);
+ CHECK(!zarc_periodic_complete(&s,30,41,&on_time)&&s.pending);
+ CHECK(zarc_periodic_complete(&s,40,48,&on_time)&&!on_time&&s.missed==2);
  CHECK(!zarc_periodic_poll(&s,47,&r));
  zarc_traffic t={0};zarc_frame f={.operation=ZARC_OP_EVENT},out;bool core;
  for(uint64_t i=0;i<ZARC_BULK_QUEUE;++i){f.request_id=i;CHECK(zarc_traffic_push(&t,&f,false));}
