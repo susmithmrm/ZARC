@@ -5,14 +5,18 @@
 #include "zarc_manifest.h"
 /* Simulator only: memory-backed device state, no physical GPIO/rail access.
  * A product provider must independently establish actual feedback and ownership. */
+BUILD_ASSERT(CONFIG_MAIN_STACK_SIZE==ZARC_RUNTIME_MAIN_STACK,"manifest stack mismatch");
+BUILD_ASSERT(CONFIG_MAIN_THREAD_PRIORITY==ZARC_RUNTIME_MAIN_PRIORITY,"manifest priority mismatch");
 static zarc_runtime runtime;
 static zarc_value device_value=ZARC_OFF;
 static uint64_t ticks(void){return (uint64_t)k_uptime_get();}
 int main(void){
  if(ZARC_MANIFEST_SERVICE_COUNT!=2u||zarc_manifest_service_order[0]!=1u||
     zarc_manifest_service_order[1]!=2u)return 1;
- const zarc_runtime_config config={.endpoint={1,50},.period=10,.deadline=8,
-  .health_limit=40,.max_validity=100};
+ const zarc_runtime_config config={.endpoint={ZARC_RUNTIME_ENDPOINT_ID,ZARC_RUNTIME_FEEDBACK_MAX_AGE_MS},
+  .period=ZARC_RUNTIME_PERIOD_MS,.deadline=ZARC_RUNTIME_DEADLINE_MS,
+  .health_limit=ZARC_RUNTIME_HEALTH_LIMIT_MS,.max_validity=ZARC_RUNTIME_MAX_VALIDITY_MS,
+  .config_digest=ZARC_RUNTIME_CONFIG_DIGEST};
  uint64_t now=ticks(),sequence=0;
  if(!zarc_runtime_init(&runtime,&config,1,now))return 1;
  printk("ZARC reference manifest %s\n",ZARC_MANIFEST_SHA256);
@@ -31,7 +35,7 @@ int main(void){
   }
   if(IS_ENABLED(CONFIG_ZARC_RUNTIME_SMOKE)&&issued){
    zarc_observation observation;
-   if(zarc_controller_snapshot(&runtime.controller,1,&observation)&&
+   if(zarc_controller_snapshot(&runtime.controller,config.endpoint.id,&observation)&&
       observation.value==ZARC_ON&&observation.quality==ZARC_QUALITY_VALID){
     now=ticks();
     if(!zarc_runtime_stop(&runtime,now,now+20))return 1;

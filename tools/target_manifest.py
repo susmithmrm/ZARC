@@ -103,6 +103,21 @@ def validate(m):
             raise ValueError("missing resource budget "+k)
     if sum(t["stack_bytes"] for t in tasks)>=budgets["ram_bytes"]:
         raise ValueError("stack allocation exceeds RAM budget")
+    runtime=m.get("benign_runtime")
+    if runtime is not None:
+        if profile!="edge" or m["board"]!="native_sim/native/64" or not isinstance(runtime,dict):
+            raise ValueError("benign runtime is restricted to the simulator edge profile")
+        fields=("endpoint_id","period_ms","deadline_ms","feedback_max_age_ms","health_limit_ms","max_validity_ms")
+        if set(runtime)!=set(fields) or any(not number(runtime[k]) for k in fields):
+            raise ValueError("invalid benign runtime allocation")
+        if runtime["deadline_ms"]>runtime["period_ms"] or min(runtime["health_limit_ms"],runtime["feedback_max_age_ms"])<=runtime["period_ms"]:
+            raise ValueError("invalid reference timing relationship")
+        if len(tasks)!=1 or tasks[0]["name"]!="controller_owner" or tasks[0]["context"]!="R1" or tasks[0]["period_us"]!=runtime["period_ms"]*1000 or tasks[0]["deadline_us"]!=runtime["deadline_ms"]*1000:
+            raise ValueError("runtime/task allocation mismatch")
+        if len(services)!=2 or {s["id"]:s["name"] for s in services}!={1:"core",2:"health"} or ordered!=[1,2]:
+            raise ValueError("reference composition mismatch")
+        if any(features.values()):
+            raise ValueError("reference runtime has no native transport or physical driver")
     limitations=m.get("limitations")
     if not isinstance(limitations,list) or not limitations or any(not isinstance(v,str) or not v for v in limitations):
         raise ValueError("explicit limitations required")
@@ -124,10 +139,18 @@ def generate(m):
     ordered=validate(m)
     canonical=json.dumps(m,sort_keys=True,separators=(",",":"),ensure_ascii=True).encode()
     digest=hashlib.sha256(canonical).hexdigest()
+    runtime_macros=""
+    if "benign_runtime" in m:
+        for key,value in m["benign_runtime"].items():
+            runtime_macros+=f"#define ZARC_RUNTIME_{key.upper()} {value}u\n"
+        runtime_macros+=f'#define ZARC_RUNTIME_MAIN_STACK {m["tasks"][0]["stack_bytes"]}u\n'
+        runtime_macros+=f'#define ZARC_RUNTIME_MAIN_PRIORITY {m["tasks"][0]["priority"]}u\n'
+        runtime_macros+=f"#define ZARC_RUNTIME_CONFIG_DIGEST UINT64_C(0x{digest[:16]})\n"
     return ("#ifndef ZARC_GENERATED_MANIFEST_H\n#define ZARC_GENERATED_MANIFEST_H\n"
             "#include <stdint.h>\n"
             f'#define ZARC_MANIFEST_SHA256 "{digest}"\n'
             f'#define ZARC_MANIFEST_SERVICE_COUNT {len(ordered)}u\n'
+            +runtime_macros+
             "static const uint32_t zarc_manifest_service_order[] = {"+
             ",".join(str(x)+"u" for x in ordered)+"};\n#endif\n")
 

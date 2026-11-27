@@ -31,12 +31,22 @@ class Tests(unittest.TestCase):
             elif change=="flash":m["features"]["mcuboot"]=True
             elif change=="uart":m["features"]["uart"]=m["uart_console_shared"]=True
             with self.subTest(change=change),self.assertRaises(ValueError):validate(m)
+    def test_runtime_allocation(self):
+        header=generate(self.m)
+        self.assertIn("#define ZARC_RUNTIME_PERIOD_MS 10u",header)
+        self.assertIn("#define ZARC_RUNTIME_MAIN_STACK 8192u",header)
+        for key,value in (("deadline_ms",11),("period_ms",12),("health_limit_ms",10)):
+            m=copy.deepcopy(self.m);m["benign_runtime"][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):validate(m)
+        m=copy.deepcopy(self.m);m["tasks"][0]["deadline_us"]=9000
+        with self.assertRaises(ValueError):validate(m)
     def test_timing(self):
         assumptions=dict(uniprocessor=True,fully_preemptive=True,no_self_suspension=True)
-        tasks=self.m["tasks"]
+        tasks=copy.deepcopy(self.m["tasks"])
+        tasks.append(dict(name="virtual_device",context="R2",period_us=10000,deadline_us=10000,execution_us=500,blocking_us=0,jitter_us=100,priority=5,stack_bytes=2048))
         result=analyze(tasks,**assumptions)
         self.assertTrue(all(x["admitted"] for x in result.values()))
-        tasks[0]["execution_us"]=9500
+        tasks[0]["execution_us"]=9800
         self.assertFalse(analyze(tasks,**assumptions)["virtual_device"]["admitted"])
         with self.assertRaises(ValueError):analyze(tasks,**{**assumptions,"uniprocessor":False})
 

@@ -4,7 +4,7 @@
   "target": "native-sim-edge-reference",
   "board": "native_sim/native/64",
   "soc": "host-sim",
-  "revision": "candidate-1",
+  "revision": "candidate-2",
   "zephyr": "v4.2.0",
   "toolchain": "host GCC candidate",
   "maintainer": "ZARC development",
@@ -56,23 +56,12 @@
       "name": "controller_owner",
       "context": "R1",
       "period_us": 10000,
-      "deadline_us": 10000,
+      "deadline_us": 8000,
       "execution_us": 1000,
       "blocking_us": 0,
       "jitter_us": 100,
       "priority": 1,
       "stack_bytes": 8192
-    },
-    {
-      "name": "virtual_device",
-      "context": "R2",
-      "period_us": 10000,
-      "deadline_us": 10000,
-      "execution_us": 500,
-      "blocking_us": 0,
-      "jitter_us": 100,
-      "priority": 5,
-      "stack_bytes": 2048
     }
   ],
   "budgets": {
@@ -83,6 +72,15 @@
   },
   "limitations": [
     "Illustrative allocations only; not measured WCET or board memory evidence",
-    "Simulator only; no physical devices or production support"
-  ]
+    "Simulator only; no physical devices or production support",
+    "Single owner synchronous simulated provider; task allocations are candidate assumptions, not measured execution bounds"
+  ],
+  "benign_runtime": {
+    "endpoint_id": 1,
+    "period_ms": 10,
+    "deadline_ms": 8,
+    "feedback_max_age_ms": 50,
+    "health_limit_ms": 40,
+    "max_validity_ms": 100
+  }
 }
