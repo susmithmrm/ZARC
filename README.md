@@ -25,6 +25,10 @@ Use the preset matching your host. Windows requires MSVC and CMake available in 
 
 See [implementation status](docs/IMPLEMENTATION-STATUS.md) for the current scope and [implementation realization](docs/architecture/realization/16-Implementation-Realization.md) for planned work. Future increments include independent broker processes, service registry, session contracts, diagnostics, persistence, target adapters and target evidence. No real automotive hardware is operated by this starter.
 
+## Suggested modern vehicle architecture
+
+[Rendered reference design on GitHub Pages](https://susmithmrm.github.io/ZARC/modern-architecture.html) · [Engineering topology and authority boundaries](docs/architecture/18-Modern-SDV-Reference-Architecture.md). This proposed topology is informative and does not change the controlled requirements baseline.
+
 ## Documentation
 
 [Architecture index](docs/architecture/00-README.md) · [Diagram atlas](docs/architecture/diagrams/README.md) · [Project site](https://susmithmrm.github.io/ZARC/) · [Review findings](docs/REPOSITORY-AUDIT.md)

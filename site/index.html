@@ -7,13 +7,14 @@
   <meta name="theme-color" content="#071b25">
   <title>ZARC — Zephyr Automotive Real-Time Control</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="reference.css">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="header">
   <div class="shell nav">
     <a class="brand" href="#main" aria-label="ZARC home"><span class="brand-mark" aria-hidden="true">Z</span><span>ZARC<small>REAL-TIME CONTROL</small></span></a>
-    <nav aria-label="Main navigation"><a href="#architecture">Architecture</a><a href="#profiles">Deployment</a><a href="#ecosystem">Ecosystem</a><a href="#documentation">Documentation</a></nav>
+    <nav aria-label="Main navigation"><a href="#architecture">Architecture</a><a href="modern-architecture.html">Modern SDV</a><a href="#profiles">Deployment</a><a href="#ecosystem">Ecosystem</a><a href="#documentation">Documentation</a></nav>
     <a class="repo-link" href="https://github.com/susmithmrm/ZARC">GitHub <span aria-hidden="true">↗</span></a>
   </div>
 </header>
@@ -54,6 +55,7 @@
       </div>
       <aside class="architecture-aside"><p class="eyebrow">DESIGN PRINCIPLES</p><h3>Built for independent integration</h3><ul class="checks"><li>Physical ownership is explicitly allocated.</li><li>Native Zephyr execution and device APIs.</li><li>Product policy remains separate from board configuration.</li><li>Interfaces are versioned and selected by profile.</li><li>Safety and cybersecurity evidence is configuration-specific.</li></ul><a class="text-link" href="https://github.com/susmithmrm/ZARC/blob/main/docs/architecture/02-System-Architecture.md">Read system architecture ↗</a></aside>
     </div>
+    <div class="reference-promo"><div><h3>Suggested modern vehicle architecture</h3><p>See how central compute, AAOS SDV, companion IOC, zonal controllers and intelligent edge nodes work together.</p></div><a class="button primary" href="modern-architecture.html">Explore reference design ↗</a></div>
     <h3 class="subhead">Platform domains</h3>
     <div class="domain-grid">
       <article><b>Core</b><p>Composition, policy, lifecycle and supervision.</p></article><article><b>Services</b><p>Reusable automotive physical-domain services.</p></article>

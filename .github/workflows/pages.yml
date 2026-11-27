@@ -1,6 +1,11 @@
 name: Publish ZARC Pages
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - '.github/workflows/pages.yml'
 permissions:
   contents: read
   pages: write
@@ -19,6 +24,28 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Validate static reference assets
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          from xml.etree import ElementTree
+          from urllib.parse import urlsplit
+          class Links(HTMLParser):
+              def handle_starttag(self, tag, attrs):
+                  for key, value in attrs:
+                      if key in ('href', 'src') and value:
+                          parsed = urlsplit(value)
+                          if not parsed.scheme and not parsed.netloc and parsed.path:
+                              assert (self.page.parent / parsed.path).is_file(), (self.page, value)
+          for page in Path('site').rglob('*.html'):
+              parser = Links()
+              parser.page = page
+              parser.feed(page.read_text(encoding='utf-8'))
+          for svg in Path('site').rglob('*.svg'):
+              ElementTree.parse(svg)
+          print('Static HTML links and SVG XML passed')
+          PY
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:

@@ -1,7 +1,7 @@
 # Pages publishing
 
-The static landing page is in site/. Only that directory is included in the manual Pages deployment workflow. Architecture, code, requirements and other repository documentation are excluded. The workflow is manually triggered to prevent accidental publication.
+The static landing page is in site/. The public [modern SDV reference architecture](https://susmithmrm.github.io/ZARC/modern-architecture.html) uses locally hosted SVG and responsive HTML/CSS, with no external rendering script. Only site/ is included in the Pages deployment artifact; the remainder of the repository is excluded.
 
 Preview locally with python -m http.server --directory site 8000 and open http://localhost:8000.
 
-The repository and Pages site are public. GitHub Actions is the configured publishing source. Review changes to site/ and manually run Publish ZARC Pages. Do not add private material to site/.
+GitHub Actions is the configured publishing source. The workflow can be manually triggered and also runs on main when site/ or the Pages workflow changes. Local HTML links and SVG XML are checked before deployment. Review public site changes before pushing. Do not add private material to site/.
