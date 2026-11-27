@@ -18,6 +18,7 @@ flowchart TD
 One host, three physical MCUs initially. Edge profile runs independently on fourth optional board. Standard Ethernet via switch is not automotive Ethernet; introduce matched 100BASE-T1 media hardware only later. Use two CAN terminations at bus ends, common reference as appropriate, short bench cable, compatible transceivers and verified voltage levels. No pin numbers frozen until schematic and DTS review.
 
 ## Functional allocation
+
 | Node | Inputs | Outputs | Demonstration |
 |---|---|---|---|
 | Companion | supply current/voltage, wake switch, host health | status LEDs, benign enable output | host restart, local policy |
