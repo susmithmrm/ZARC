@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "api_major": 1,
+  "target": "native-sim-edge-reference",
+  "board": "native_sim/native/64",
+  "soc": "host-sim",
+  "revision": "candidate-1",
+  "zephyr": "v4.2.0",
+  "toolchain": "host GCC candidate",
+  "maintainer": "ZARC development",
+  "profile": "edge",
+  "maturity": "CANDIDATE",
+  "services": [
+    {
+      "id": 1,
+      "name": "core",
+      "required": true,
+      "supported": true,
+      "dependencies": []
+    },
+    {
+      "id": 2,
+      "name": "health",
+      "required": true,
+      "supported": true,
+      "dependencies": [
+        1
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "name": "virtual_indicator",
+      "owners": {
+        "reset": "simulator",
+        "boot": "simulator",
+        "run": "core",
+        "maintenance": "simulator",
+        "shutdown": "simulator"
+      }
+    }
+  ],
+  "features": {
+    "uart": false,
+    "can": false,
+    "ipc": false,
+    "watchdog": false,
+    "flash": false,
+    "mcuboot": false,
+    "pm": false,
+    "smp": false,
+    "zbus": false
+  },
+  "tasks": [
+    {
+      "name": "controller_owner",
+      "context": "R1",
+      "period_us": 10000,
+      "deadline_us": 10000,
+      "execution_us": 1000,
+      "blocking_us": 0,
+      "jitter_us": 100,
+      "priority": 1,
+      "stack_bytes": 8192
+    },
+    {
+      "name": "virtual_device",
+      "context": "R2",
+      "period_us": 10000,
+      "deadline_us": 10000,
+      "execution_us": 500,
+      "blocking_us": 0,
+      "jitter_us": 100,
+      "priority": 5,
+      "stack_bytes": 2048
+    }
+  ],
+  "budgets": {
+    "ram_bytes": 65536,
+    "flash_bytes": 262144,
+    "core_queue": 4,
+    "bulk_queue": 2
+  },
+  "limitations": [
+    "Illustrative allocations only; not measured WCET or board memory evidence",
+    "Simulator only; no physical devices or production support"
+  ]
+}
