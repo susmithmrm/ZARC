@@ -37,12 +37,18 @@ def inventory(root,build_dir,configuration):
         if p.is_file() and (p.name in {"CMakeCache.txt",".config","zephyr.dts","zephyr.map","zephyr.elf",
            "zephyr.hex","zephyr.bin","ctest.xml","twister.json","twister.log"}
            or p.name.startswith("CMakeCCompiler.") or p.name.startswith("CMakeCXXCompiler.")
-           or p.name.startswith("zarc_") and p.suffix in {"",".exe",".lib",".a"}):
+           or p.name.startswith(("zarc_","libzarc_")) and p.suffix in {"",".exe",".lib",".a"}):
             artifacts.append(file_record(root,p))
     if not artifacts:
         raise ValueError("no build outputs found")
+    changes=git("status","--porcelain","--untracked-files=no").decode("utf-8")
+    # The repository declares text normalization; only CR-at-EOL differences
+    # may be tolerated, while actual source bytes are still hashed above.
+    diff=subprocess.run(["git","-C",str(root),"diff","--ignore-cr-at-eol","--quiet","HEAD","--"],check=False)
+    if diff.returncode not in (0,1):
+        raise ValueError("git diff failed")
     return {"schema":1,"configuration":configuration,"commit":commit,
-        "tracked_source_clean":not bool(git("status","--porcelain","--untracked-files=no").strip()),
+        "tracked_source_clean":diff.returncode==0,"tracked_checkout_status":changes,
         "host":platform.platform(),"python":platform.python_version(),"source":source,"build_artifacts":artifacts,
         "scope":"candidate provenance and tracked-source inventory; external dependency and license review required"}
 
@@ -56,7 +62,7 @@ def main():
     record=inventory(a.root,a.build,a.configuration)
     a.out.write_text(json.dumps(record,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     if not record["tracked_source_clean"]:
-        raise SystemExit("tracked source modified; evidence not admissible")
+        raise SystemExit("tracked source modified; evidence not admissible:\n"+record["tracked_checkout_status"])
 
 if __name__=="__main__":
     main()
