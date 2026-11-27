@@ -13,7 +13,7 @@ struct zarc_native_bytes { size_t len; uint8_t data[ZARC_NATIVE_FRAME_MAX]; };
 struct zarc_native_uart {
  const struct device *dev;
  struct k_msgq *rx;
- atomic_t tx_busy, fault, rx_active;
+ atomic_t tx_busy, fault, rx_active, stopping;
  uint8_t rx_buf[2][ZARC_NATIVE_FRAME_MAX];
  uint8_t tx_buf[ZARC_NATIVE_FRAME_MAX];
  atomic_t rx_owned[2];

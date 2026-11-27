@@ -21,6 +21,7 @@ static void receive(const struct device *dev,struct uart_event *event,void *user
   if(n&&k_msgq_put(u->rx,&chunk,K_NO_WAIT)!=0)atomic_set(&u->fault,1);
   break;}
  case UART_RX_BUF_REQUEST:
+  if(atomic_get(&u->stopping))break;
   for(size_t i=0;i<2;++i){
    if(atomic_cas(&u->rx_owned[i],0,1)){
     if(uart_rx_buf_rsp(dev,u->rx_buf[i],sizeof u->rx_buf[i])<0){
@@ -64,8 +65,10 @@ int zarc_native_uart_send(struct zarc_native_uart *u,const zarc_frame *f){
 int zarc_native_uart_stop(struct zarc_native_uart *u){
  if(!u||!u->dev)return -EINVAL;
  atomic_set(&u->fault,1);
- if(atomic_get(&u->tx_busy))(void)uart_tx_abort(u->dev);
- if(atomic_get(&u->rx_active)){int ret=uart_rx_disable(u->dev);if(ret<0)return ret;}
+ if(atomic_cas(&u->stopping,0,1)){
+  if(atomic_get(&u->tx_busy))(void)uart_tx_abort(u->dev);
+  if(atomic_get(&u->rx_active)){int ret=uart_rx_disable(u->dev);if(ret<0){atomic_clear(&u->stopping);return ret;}}
+ }
  /* State remains allocated until driver-specific callback quiescence. */
  return atomic_get(&u->rx_active)||atomic_get(&u->tx_busy)||atomic_get(&u->rx_owned[0])||atomic_get(&u->rx_owned[1])?-EINPROGRESS:0;
 }

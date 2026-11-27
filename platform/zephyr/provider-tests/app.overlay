@@ -1,0 +1,10 @@
+/ {
+    zarc_uart: zarc_uart {
+        compatible = "zephyr,uart-emul";
+        status = "okay";
+        current-speed = <115200>;
+        loopback;
+        tx-fifo-size = <512>;
+        rx-fifo-size = <512>;
+    };
+};
