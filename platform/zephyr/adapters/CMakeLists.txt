@@ -15,3 +15,7 @@ endif()
 if(CONFIG_IPC_SERVICE)
   target_sources(app PRIVATE ipc.c)
 endif()
+
+if(CONFIG_MCUBOOT_IMG_MANAGER)
+  target_sources(app PRIVATE boot_update.c)
+endif()
