@@ -50,6 +50,7 @@ jobs:
       - name: Verify sedan renderer and controls
         run: |
           node --check site/sedan.js
+          node --check site/sedan-webgl.mjs
           node tests/sedan_renderer_test.cjs
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

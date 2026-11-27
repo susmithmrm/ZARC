@@ -176,7 +176,7 @@ function render(){
  svg.append(el("text",{x:18,y:24,fill:"#a8c9d2","font-size":12,"font-family":"Arial,sans-serif"},"CONCEPT SEDAN  /  FRONT → +X  /  NOT A WIRING DIAGRAM"));
 }
 function select(id){selected=id;const c=byId[id],detail=$("sedan-detail");detail.replaceChildren();for(const [tag,content] of [["h3",c.name],["p",c.description],["small",c.maturity]]){const e=document.createElement(tag);e.textContent=content;detail.append(e);}
- for(const b of $("sedan-components").querySelectorAll("button"))b.setAttribute("aria-pressed",String(b.dataset.id===id));render();globalThis.zarcSedan3D?.select(id);}
+ for(const b of $("sedan-components").querySelectorAll("button"))b.setAttribute("aria-pressed",String(b.dataset.id===id));if(globalThis.zarcSedan3D)globalThis.zarcSedan3D.select(id);else render();}
 for(const c of components){const b=document.createElement("button");b.type="button";b.textContent=c.name;b.dataset.id=c.id;b.style.borderLeft="3px solid "+kindColor[c.kind];b.addEventListener("click",()=>select(c.id));$("sedan-components").append(b);}
 for(const [kind,color] of Object.entries(colors)){const label=document.createElement("label"),input=document.createElement("input"),name=document.createElement("span");input.type="checkbox";input.checked=true;input.style.accentColor=color;name.textContent=({Services:"SOME/IP / SDV services",CAN:"CAN / CAN FD",Sensor:"Sensor links",Cloud:"Fleet link"})[kind]||kind;name.style.color=color;label.append(input,name);$("sedan-layers").append(label);input.addEventListener("change",()=>{if(input.checked)visible.add(kind);else visible.delete(kind);render();});}
 function view(a,b,z=1,f=[0,.45,0]){yaw=a;pitch=b;zoom=z;focus=f;$("sedan-zoom").value=Math.round(z*100);render();}
