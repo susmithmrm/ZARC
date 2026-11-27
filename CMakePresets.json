@@ -1,1 +1,59 @@
-{"version":3,"configurePresets":[{"name":"desktop-linux","generator":"Ninja","binaryDir":"${sourceDir}/build/linux","cacheVariables":{"CMAKE_BUILD_TYPE":"Debug"}},{"name":"desktop-windows","generator":"Visual Studio 18 2026","architecture":"x64","binaryDir":"${sourceDir}/build/windows"}],"buildPresets":[{"name":"desktop-linux","configurePreset":"desktop-linux"},{"name":"desktop-windows","configurePreset":"desktop-windows","configuration":"Debug"}],"testPresets":[{"name":"desktop-linux","configurePreset":"desktop-linux","output":{"outputOnFailure":true}},{"name":"desktop-windows","configurePreset":"desktop-windows","configuration":"Debug","output":{"outputOnFailure":true}}]}
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "desktop-linux",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/linux",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "desktop-windows",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "binaryDir": "${sourceDir}/build/windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "desktop-linux",
+      "configurePreset": "desktop-linux"
+    },
+    {
+      "name": "desktop-windows",
+      "configurePreset": "desktop-windows",
+      "configuration": "Debug"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "desktop-linux",
+      "configurePreset": "desktop-linux",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "desktop-windows",
+      "configurePreset": "desktop-windows",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

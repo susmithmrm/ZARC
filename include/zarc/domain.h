@@ -11,6 +11,9 @@ typedef struct {
     zarc_status result;
 } zarc_domain;
 typedef struct { bool emitted; zarc_value desired; } zarc_effect;
+/* Single-owner simulated domain. Request IDs increase within the prototype session.
+ * The most recent ID is retained; older IDs are refused. Deadline is exclusive.
+ * A retry does not alter the original deadline. */
 void zarc_init(zarc_domain *domain);
 zarc_status zarc_request(zarc_domain *domain, bool allowed, uint64_t id, zarc_value desired, uint64_t tick, uint64_t deadline, zarc_effect *effect);
 zarc_status zarc_feedback(zarc_domain *domain, zarc_value value, uint64_t tick);

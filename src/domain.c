@@ -25,6 +25,7 @@ zarc_status zarc_request(zarc_domain *d, bool allowed, uint64_t id, zarc_value d
     (void)zarc_tick(d, tick);
     if (d->retained && id == d->request_id)
         return desired == d->desired ? d->result : ZARC_CONFLICT;
+    if (d->retained && id < d->request_id) return ZARC_CONFLICT;
     if (d->pending) return ZARC_BUSY;
     if (deadline <= tick) return ZARC_INVALID;
     d->retained = true;
