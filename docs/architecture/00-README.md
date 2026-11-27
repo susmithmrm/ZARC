@@ -12,6 +12,8 @@ Start with [the realization specification](realization/16-Implementation-Realiza
 
 [Suggested modern SDV vehicle architecture](18-Modern-SDV-Reference-Architecture.md) · [Rendered public page](https://susmithmrm.github.io/ZARC/modern-architecture.html). This extension is not a change to the normative-candidate requirements baseline.
 
+[Platform capability and partner adoption guide](19-Platform-Capabilities-and-Partner-Adoption.md) · [Public onboarding page](https://susmithmrm.github.io/ZARC/platform-adoption.html).
+
 ## Document map
 
 | ID | Document | Primary audience |

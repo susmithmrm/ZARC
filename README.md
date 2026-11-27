@@ -29,6 +29,10 @@ See [implementation status](docs/IMPLEMENTATION-STATUS.md) for the current scope
 
 [Rendered reference design on GitHub Pages](https://susmithmrm.github.io/ZARC/modern-architecture.html) · [Engineering topology and authority boundaries](docs/architecture/18-Modern-SDV-Reference-Architecture.md). This proposed topology is informative and does not change the controlled requirements baseline.
 
+## Integrate with ZARC
+
+[Platform capabilities and partner adoption](https://susmithmrm.github.io/ZARC/platform-adoption.html) · [Engineering adoption guide](docs/architecture/19-Platform-Capabilities-and-Partner-Adoption.md). Choose a deployment profile, target and role; follow candidate scope and evidence gates.
+
 ## Documentation
 
 [Architecture index](docs/architecture/00-README.md) · [Diagram atlas](docs/architecture/diagrams/README.md) · [Project site](https://susmithmrm.github.io/ZARC/) · [Review findings](docs/REPOSITORY-AUDIT.md)

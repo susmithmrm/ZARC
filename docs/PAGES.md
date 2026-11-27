@@ -1,6 +1,6 @@
 # Pages publishing
 
-The static landing page is in site/. The public [modern SDV reference architecture](https://susmithmrm.github.io/ZARC/modern-architecture.html) uses locally hosted SVG and responsive HTML/CSS, with no external rendering script. Only site/ is included in the Pages deployment artifact; the remainder of the repository is excluded.
+The static landing page is in site/. The public [modern SDV reference architecture](https://susmithmrm.github.io/ZARC/modern-architecture.html) uses locally hosted SVG and responsive HTML/CSS, with no external rendering script. The [platform capability and partner guide](https://susmithmrm.github.io/ZARC/platform-adoption.html) publishes maturity, integration paths and development quick starts. Only site/ is included in the Pages deployment artifact; the remainder of the repository is excluded.
 
 Preview locally with python -m http.server --directory site 8000 and open http://localhost:8000.
 
