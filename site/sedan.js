@@ -1,7 +1,7 @@
 (()=>{"use strict";
 const svg=document.getElementById("sedan-model");if(!svg)return;
 const ns="http://www.w3.org/2000/svg", $=id=>document.getElementById(id);
-const colors={Ethernet:"#43e0ee",Services:"#ca8cff",CAN:"#ffcb69",LIN:"#7de79a",IPC:"#81aaff",Sensor:"#b8dce6",Cloud:"#8bceff"};
+const colors={Ethernet:"#43e0ee",Services:"#ca8cff",CAN:"#ffcb69",LIN:"#7de79a",IPC:"#81aaff",UART:"#b6a3ff",Sensor:"#b8dce6",Cloud:"#8bceff"};
 const components=[
 ["host","Central SoC / ZARC Host",[0,0.40,0],"host","AAOS / SDV applications run on the application processor; trusted ZARC Host mediates typed intent, identity and observed outcomes.","Reference broker / generated gRPC tested; OEM host deployment open."],
 ["ioc","ZARC companion IOC",[.65,.35,0],"zarc","Independent MCU with native Zephyr for allocated local policy, health, wake and power coordination.","Simulator profile; physical power/reset integration open."],
@@ -32,12 +32,26 @@ const components=[
 ["battery","Battery management",[-.15,.14,.40],"legacy","Independently allocated battery supervision and energy management.","Not a qualified ZARC function."],
 ["brake","Brake ECU",[1.69,.25,.33],"legacy","Retains independently approved braking authority.","Not a qualified ZARC function."],
 ["steer","Steering ECU",[1.51,.25,-.33],"legacy","Retains independently approved steering authority.","Not a qualified ZARC function."],
+["switch","Automotive Ethernet switch",[0.05,0.29,-0.55],"host","Selected switched backbone connecting application compute and zone controllers; isolation and QoS require an approved configuration.","Architecture candidate."],
+["gateway","Vehicle network gateway",[0.84,0.26,-0.12],"legacy","Approved gateway separates legacy and independently allocated domains from high-level service intent.","Product-specific gateway required."],
+["charge","Charging / onboard charger",[-1.85,0.35,0.23],"legacy","Independent charging and high-voltage energy domain.","Not a qualified ZARC function."],
+["restraint","Restraint / airbag ECU",[0.48,0.24,0],"legacy","Independent occupant protection ECU; no ZARC actuation path is claimed.","Not a qualified ZARC function."],
+["suspension","Chassis / suspension ECU",[-1.65,0.27,-0.28],"legacy","Separate chassis and suspension control allocation.","Not a qualified ZARC function."],
+["seat","Seat / comfort controller",[-0.25,0.42,0.46],"device","Selected comfort endpoint, potentially hosted on a local intelligent edge node.","Candidate local service."],
+["mirror","Mirror controller",[0.72,0.8,-0.99],"device","Local mirror and convenience functions; distinct from camera perception.","Candidate local service."],
+["wiper","Wiper / washer ECU",[1.22,0.73,0.35],"device","Allocated visibility service; safety and availability require product validation.","Candidate local service."],
+["tpms","Tire pressure receiver",[-1.53,0.5,0.34],"sensor","Receiver for wheel-mounted pressure measurements.","Illustrative sensor interface."],
+["rearEdge","ZARC rear smart edge",[-1.92,0.46,-0.52],"zarc","Optional Zephyr-native local endpoint for allocated rear-body behavior.","Candidate smart-edge placement."],
+["frontEdge","ZARC front smart edge",[1.92,0.55,0.46],"zarc","Optional Zephyr-native local endpoint near front peripherals.","Candidate smart-edge placement."],
+["thermal","Thermal management ECU",[1.54,0.38,0.44],"legacy","Independent thermal control for battery/powertrain, where allocated.","Not a qualified ZARC function."],
+["dcdc","DC/DC converter ECU",[-0.93,0.3,-0.37],"legacy","Independent low-voltage power supply and conversion domain.","Not a qualified ZARC function."],
+["access","Access / keyless ECU",[-0.55,0.78,-0.83],"device","Approved access and authentication boundary; not raw actuator access.","Candidate body interface."],
 ["cloud","Fleet / cloud",[-2.75,1.95,-.2],"host","Managed OTA campaigns and telemetry via telematics, not a direct actuator command path.","Production fleet deployment open."]
 ].map(([id,name,pos,kind,description,maturity])=>({id,name,pos,kind,description,maturity}));
 const byId=Object.fromEntries(components.map(c=>[c.id,c]));
 const links=[
-["host","fl","Ethernet"],["host","fr","Ethernet"],["host","rl","Ethernet"],["host","rr","Ethernet"],["host","adas","Ethernet"],["host","gnss","Ethernet"],["host","ioc","IPC"],["host","rt","IPC"],["host","cockpit","Services"],["host","fl","Services"],["host","rr","Services"],
-["fl","drive","CAN"],["fr","brake","CAN"],["fl","steer","CAN"],["rl","battery","CAN"],["fr","hvac","LIN"],["fl","doorl","LIN"],["rr","edge","LIN"],["edge","doorr","LIN"],["fl","lightf","LIN"],["rr","lightr","LIN"],
+["host","switch","Ethernet"],["switch","fl","Ethernet"],["switch","fr","Ethernet"],["switch","rl","Ethernet"],["switch","rr","Ethernet"],["switch","gateway","Ethernet"],["host","adas","Ethernet"],["host","gnss","Ethernet"],["host","ioc","UART"],["host","rt","IPC"],["host","cockpit","Services"],["host","fl","Services"],["host","rr","Services"],
+["gateway","drive","CAN"],["gateway","brake","CAN"],["gateway","steer","CAN"],["gateway","battery","CAN"],["gateway","charge","CAN"],["gateway","suspension","CAN"],["gateway","thermal","CAN"],["gateway","dcdc","CAN"],["gateway","restraint","CAN"],["rl","rearEdge","LIN"],["fr","frontEdge","LIN"],["edge","seat","LIN"],["fl","mirror","LIN"],["frontEdge","wiper","LIN"],["rearEdge","access","LIN"],["rl","tpms","Sensor"],["fr","hvac","LIN"],["fl","doorl","LIN"],["rr","edge","LIN"],["edge","doorr","LIN"],["fl","lightf","LIN"],["rr","lightr","LIN"],
 ["adas","fc","Sensor"],["adas","rc","Sensor"],["adas","lc","Sensor"],["adas","sc","Sensor"],["adas","radar","Sensor"],["adas","lidar","Sensor"],["adas","imu","Sensor"],["fr","usf","Sensor"],["rl","usr","Sensor"],["gnss","cloud","Cloud"]];
 const visible=new Set(Object.keys(colors));let yaw=-.62,pitch=.34,opacity=.18,zoom=1,focus=[0,.45,0],showInterior=true,cutaway=true,showLabels=true,selected="host",drag=null;
 const kindColor={zarc:"#7bf6d7",host:"#65d9ff",sensor:"#d5ecf4",legacy:"#f2b971",device:"#a8b9cc"};
@@ -153,7 +167,7 @@ function render(){
  const g=el("g",{cursor:"pointer","data-component":c.id});g.append(el("title",{},c.name));
  g.append(el("circle",{cx:x,cy:y,r:active?12:large?8:5,fill:color,"fill-opacity":.15,stroke:color,"stroke-width":active?2.5:1.3}));
  g.append(el("rect",{x:x-(large?6:3),y:y-(large?5:3),width:large?12:6,height:large?10:6,rx:2,fill:color}));
- if(showLabels&&c.kind==="zarc"&&!active){const short={ioc:"IOC",rt:"RT island",fl:"FL zone",fr:"FR zone",rl:"RL zone",rr:"RR zone",edge:"Edge"}[c.id];g.append(el("text",{x:x+10,y:y-10,fill:color,stroke:"#081c29","stroke-width":3,"paint-order":"stroke","font-size":11,"font-weight":700,"font-family":"Arial,sans-serif"},short));}
+ if(showLabels&&c.kind==="zarc"&&!active){const short={ioc:"IOC",rt:"RT island",fl:"FL zone",fr:"FR zone",rl:"RL zone",rr:"RR zone",edge:"Edge",frontEdge:"Front edge",rearEdge:"Rear edge"}[c.id];g.append(el("text",{x:x+10,y:y-10,fill:color,stroke:"#081c29","stroke-width":3,"paint-order":"stroke","font-size":11,"font-weight":700,"font-family":"Arial,sans-serif"},short));}
  g.addEventListener("click",()=>{if(!drag?.moved)select(c.id);});svg.append(g);
  }
  const chosen=byId[selected],[x,y]=project(chosen.pos),labelX=Math.max(12,Math.min(720,x+24)),labelY=Math.max(22,Math.min(490,y-42));
@@ -162,7 +176,7 @@ function render(){
  svg.append(el("text",{x:18,y:24,fill:"#a8c9d2","font-size":12,"font-family":"Arial,sans-serif"},"CONCEPT SEDAN  /  FRONT → +X  /  NOT A WIRING DIAGRAM"));
 }
 function select(id){selected=id;const c=byId[id],detail=$("sedan-detail");detail.replaceChildren();for(const [tag,content] of [["h3",c.name],["p",c.description],["small",c.maturity]]){const e=document.createElement(tag);e.textContent=content;detail.append(e);}
- for(const b of $("sedan-components").querySelectorAll("button"))b.setAttribute("aria-pressed",String(b.dataset.id===id));render();}
+ for(const b of $("sedan-components").querySelectorAll("button"))b.setAttribute("aria-pressed",String(b.dataset.id===id));render();globalThis.zarcSedan3D?.select(id);}
 for(const c of components){const b=document.createElement("button");b.type="button";b.textContent=c.name;b.dataset.id=c.id;b.style.borderLeft="3px solid "+kindColor[c.kind];b.addEventListener("click",()=>select(c.id));$("sedan-components").append(b);}
 for(const [kind,color] of Object.entries(colors)){const label=document.createElement("label"),input=document.createElement("input"),name=document.createElement("span");input.type="checkbox";input.checked=true;input.style.accentColor=color;name.textContent=({Services:"SOME/IP / SDV services",CAN:"CAN / CAN FD",Sensor:"Sensor links",Cloud:"Fleet link"})[kind]||kind;name.style.color=color;label.append(input,name);$("sedan-layers").append(label);input.addEventListener("change",()=>{if(input.checked)visible.add(kind);else visible.delete(kind);render();});}
 function view(a,b,z=1,f=[0,.45,0]){yaw=a;pitch=b;zoom=z;focus=f;$("sedan-zoom").value=Math.round(z*100);render();}
@@ -172,4 +186,5 @@ $("sedan-reset").onclick=()=>{opacity=.18;showInterior=true;cutaway=true;showLab
 $("sedan-opacity").oninput=e=>{opacity=Number(e.target.value)/100;render();};$("sedan-zoom").oninput=e=>{zoom=Number(e.target.value)/100;render();};
 $("sedan-interior").onchange=e=>{showInterior=e.target.checked;render();};$("sedan-cutaway").onchange=e=>{cutaway=e.target.checked;render();};$("sedan-labels").onchange=e=>{showLabels=e.target.checked;render();};
 svg.addEventListener("pointerdown",e=>{drag={x:e.clientX,y:e.clientY,moved:false};});svg.addEventListener("pointermove",e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>2){drag.moved=true;svg.setPointerCapture(e.pointerId);yaw+=dx*.008;pitch=Math.max(.08,Math.min(1.56,pitch+dy*.008));drag.x=e.clientX;drag.y=e.clientY;render();}});svg.addEventListener("pointerup",()=>{drag=null;});svg.addEventListener("pointercancel",()=>{drag=null;});svg.addEventListener("pointerleave",()=>{if(!drag?.moved)drag=null;});select("host");
+globalThis.zarcSedanData={components,links,colors,kindColor,select};
 })();

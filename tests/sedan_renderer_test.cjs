@@ -12,8 +12,8 @@ const ids=["sedan-model","sedan-components","sedan-detail","sedan-layers","sedan
 const elements=Object.fromEntries(ids.map(id=>[id,new Element(id)]));
 const document={getElementById:id=>elements[id],createElement:tag=>new Element(tag),createElementNS:(_,tag)=>new Element(tag)};
 vm.runInNewContext(fs.readFileSync("site/sedan.js","utf8"),{document});
-assert.equal(elements["sedan-components"].children.length,30);
-assert.equal(elements["sedan-layers"].children.length,7);
+assert.equal(elements["sedan-components"].children.length,44);
+assert.equal(elements["sedan-layers"].children.length,8);
 const model=elements["sedan-model"];
 assert.ok(model.children.filter(e=>e.tagName==="polygon").length>300);
 for(const id of ["sedan-left","sedan-right","sedan-top","sedan-side","sedan-cabin","sedan-reset"])elements[id].onclick();
