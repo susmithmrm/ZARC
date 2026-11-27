@@ -28,6 +28,13 @@ jobs:
           west zephyr-export
           pip install -r zephyr/scripts/requirements.txt
           west manifest --freeze --active-only > "$GITHUB_WORKSPACE/zephyr-manifest-frozen.yml"
+      - name: Apply simulator-only UART ownership correction
+        working-directory: ${{ runner.temp }}/zephyr-workspace
+        run: |
+          python "$GITHUB_WORKSPACE/tools/patch_uart_emulator.py" zephyr
+          git -C zephyr diff --check
+          git -C zephyr diff -- drivers/serial/uart_emul.c > "$GITHUB_WORKSPACE/zephyr-simulator.patch"
+          test -s "$GITHUB_WORKSPACE/zephyr-simulator.patch"
       - name: Run native simulator tests
         working-directory: ${{ runner.temp }}/zephyr-workspace
         run: west twister -T "$GITHUB_WORKSPACE/platform/zephyr" -p native_sim/native/64 --inline-logs -O "$GITHUB_WORKSPACE/twister-out"
@@ -41,6 +48,7 @@ jobs:
           path: |
             native-build-evidence.json
             zephyr-revision.txt
+            zephyr-simulator.patch
             zephyr-manifest-frozen.yml
             twister-out/twister.json
             twister-out/twister.log

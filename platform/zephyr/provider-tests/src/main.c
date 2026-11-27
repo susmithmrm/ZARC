@@ -47,7 +47,11 @@ ZTEST(zarc_providers,test_uart_loopback){
  int result=zarc_native_uart_stop(&uart_adapter);
  deadline=k_uptime_get()+500;
  while(result==-EINPROGRESS&&k_uptime_get()<deadline){k_sleep(K_MSEC(5));result=zarc_native_uart_stop(&uart_adapter);}
- zassert_equal(result,0);
+ zassert_equal(result,0,"shutdown result %d; rx=%ld tx=%ld owners=%ld,%ld",result,
+  (long)atomic_get(&uart_adapter.rx_active),(long)atomic_get(&uart_adapter.tx_busy),
+  (long)atomic_get(&uart_adapter.rx_owned[0]),(long)atomic_get(&uart_adapter.rx_owned[1]));
+ zassert_equal(atomic_get(&uart_adapter.rx_owned[0]),0);
+ zassert_equal(atomic_get(&uart_adapter.rx_owned[1]),0);
  zassert_equal(zarc_native_uart_send(&uart_adapter,&sample),-ENOTCONN);
 }
 
