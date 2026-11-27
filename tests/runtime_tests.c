@@ -20,7 +20,13 @@ int main(void){
  CHECK(r.diagnostics.count>=1);
  CHECK(zarc_runtime_local(&r,ZARC_OFF,true,21,20,true,&effect)==ZARC_CONN_UNAVAILABLE);
  CHECK(zarc_runtime_step(&r,30,true,3,30,ZARC_ON)&&r.healthy);
- CHECK(zarc_runtime_stop(&r,31,40)&&!r.running);
- CHECK(!zarc_runtime_step(&r,40,true,4,40,ZARC_OFF));
+ zarc_runtime_metrics metrics;zarc_runtime_health_view health;
+ CHECK(zarc_runtime_metrics_read(&r,&metrics)&&metrics.completed==4&&metrics.missed==0&&metrics.skipped==0);
+ CHECK(metrics.effect_highwater==1&&metrics.diagnostic_highwater>=1);
+ CHECK(zarc_runtime_health_read(&r,1,&health)&&health.ready&&!health.failures&&!health.effect_owned);
+ CHECK(zarc_runtime_step(&r,59,true,4,59,ZARC_ON));
+ CHECK(zarc_runtime_metrics_read(&r,&metrics)&&metrics.skipped==1&&metrics.missed==1);
+ CHECK(zarc_runtime_stop(&r,60,70)&&!r.running);
+ CHECK(!zarc_runtime_step(&r,70,true,5,70,ZARC_OFF));
  puts("Continuous reference runtime contracts passed");return 0;
 }

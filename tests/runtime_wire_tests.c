@@ -37,6 +37,11 @@ int main(void){
  CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_COMPLETED);
  q.operation=ZARC_OP_SNAPSHOT;q.length=4;q.request_id=5;q.payload[0]=2;
  CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_DENIED);
+ q.operation=ZARC_OP_HEALTH;q.request_id=6;
+ CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_DENIED);
+ q.payload[0]=1;
+ CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_COMPLETED&&out.length==28);
+ CHECK(out.payload[1]==1&&out.payload[2]==1&&out.payload[6]==0&&out.payload[10]==1&&out.payload[11]==0);
  CHECK(zarc_runtime_dispatch(&r,&peer,&renew,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_COMPLETED&&out.session==2);
  CHECK(r.controller.link.count==0);
  CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_UNAVAILABLE);

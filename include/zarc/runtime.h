@@ -17,6 +17,15 @@ typedef struct {
 } zarc_runtime_config;
 typedef struct {uint32_t id;uint64_t sequence,tick;zarc_value value;} zarc_runtime_sample;
 typedef struct {
+ uint64_t completed,missed,skipped,max_release_to_completion;
+ uint32_t retained_highwater,effect_highwater,diagnostic_highwater;
+} zarc_runtime_metrics;
+typedef struct {
+ uint32_t id,failures;
+ bool ready,pending,effect_owned;
+ uint64_t sample_tick,source_sequence;
+} zarc_runtime_health_view;
+typedef struct {
  zarc_runtime_config config;
  zarc_composition composition;
  zarc_controller controller;
@@ -24,6 +33,8 @@ typedef struct {
  zarc_diagnostics diagnostics;
  zarc_observation_stream observations;
  zarc_periodic cycle;
+ zarc_runtime_metrics metrics;
+ zarc_health_snapshot health_snapshot;
  uint64_t health_sequence,sample_not_before;
  bool running,healthy,suspended;
  bool endpoint_healthy[ZARC_CONTROLLER_DOMAINS],reported_health[ZARC_CONTROLLER_DOMAINS];
@@ -33,6 +44,10 @@ typedef struct {
  * and verified remote identity. This reference operates benign endpoints. */
 bool zarc_runtime_init(zarc_runtime *,const zarc_runtime_config *,uint64_t boot,uint64_t now);
 bool zarc_runtime_step(zarc_runtime *,uint64_t now,bool sample_present,uint64_t sequence,uint64_t sample_tick,zarc_value);
+/* Owner-side read-only snapshots. Metrics count observed runtime work,
+ * not a WCET proof or physical resource measurement. */
+bool zarc_runtime_health_read(const zarc_runtime *,uint32_t id,zarc_runtime_health_view *);
+bool zarc_runtime_metrics_read(const zarc_runtime *,zarc_runtime_metrics *);
 bool zarc_runtime_remote_ready(const zarc_runtime *);
 bool zarc_runtime_refresh(zarc_runtime *,uint64_t now);
 bool zarc_runtime_step_batch(zarc_runtime *,uint64_t now,const zarc_runtime_sample *,size_t);

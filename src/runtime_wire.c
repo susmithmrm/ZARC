@@ -51,6 +51,16 @@ bool zarc_runtime_dispatch(zarc_runtime *r,const zarc_wire_peer *p,const zarc_fr
     if(q->operation==ZARC_OP_SNAPSHOT){out->length=11;out->payload[1]=(uint8_t)o.value;out->payload[2]=(uint8_t)o.quality;put(out->payload+3,8,o.generation);}
     else{out->length=40;observation(out->payload+1,&o,seq);}
    }
+  }else if(q->operation==ZARC_OP_HEALTH&&q->length==4){
+   uint32_t id=(uint32_t)get(q->payload,4);zarc_runtime_health_view v;
+   if(!allowed(p,ZARC_OP_HEALTH,id))status=ZARC_CONN_DENIED;
+   else if(zarc_runtime_health_read(r,id,&v)){
+    status=ZARC_CONN_COMPLETED;out->length=28;
+    out->payload[1]=1;put(out->payload+2,4,v.id);put(out->payload+6,4,v.failures);
+    out->payload[10]=v.ready?1u:0u;
+    out->payload[11]=(uint8_t)((v.pending?1u:0u)|(v.effect_owned?2u:0u));
+    put(out->payload+12,8,v.sample_tick);put(out->payload+20,8,v.source_sequence);
+   }
   }else if(q->operation==ZARC_OP_EVENT&&q->length==8){
    zarc_observation_event e;
    if(!allowed(p,ZARC_OP_EVENT,0))status=ZARC_CONN_DENIED;
