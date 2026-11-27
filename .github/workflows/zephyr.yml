@@ -31,16 +31,22 @@ jobs:
       - name: Run native simulator tests
         working-directory: ${{ runner.temp }}/zephyr-workspace
         run: west twister -T "$GITHUB_WORKSPACE/platform/zephyr" -p native_sim/native/64 --inline-logs -O "$GITHUB_WORKSPACE/twister-out"
+      - name: Collect exact source and build inventory
+        run: python tools/build_evidence.py --build twister-out --configuration native_sim-native-64 --out native-build-evidence.json
       - name: Archive raw test evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: zephyr-native-evidence
           path: |
+            native-build-evidence.json
             zephyr-revision.txt
             zephyr-manifest-frozen.yml
             twister-out/twister.json
             twister-out/twister.log
             twister-out/**/handler.log
             twister-out/**/build.log
+            twister-out/**/zephyr/.config
+            twister-out/**/zephyr/zephyr.dts
+            twister-out/**/zephyr/zephyr.map
           if-no-files-found: warn

@@ -16,7 +16,10 @@ class Tests(unittest.TestCase):
         commit="a"*40
         with tempfile.TemporaryDirectory() as directory:
             directory=Path(directory)
-            manifest={"configuration":"bench","commit":commit,"manifest_sha256":"b"*64,
+            config=directory/"manifest.json"
+            config.write_text('{"fixture":true}',encoding="utf-8")
+            manifest={"configuration":"bench","commit":commit,
+                      "manifest_artifact":"manifest.json","manifest_sha256":hashlib.sha256(config.read_bytes()).hexdigest(),
                       "toolchain":"fixture","reviewer":"fixture","approval_record":"fixture","requirements":[]}
             self.assertTrue(evidence_errors(base,manifest,directory,"bench",commit))
             row={"id":"X","verification":"T-X","method":"HIL","applicability":"NOT_APPLICABLE",
@@ -28,6 +31,9 @@ class Tests(unittest.TestCase):
                        procedure="fixture",expected="fixture",actual="fixture",artifact="raw.log",
                        sha256=hashlib.sha256(raw.read_bytes()).hexdigest())
             self.assertFalse(evidence_errors(base,manifest,directory,"bench",commit))
+            config.write_text("changed",encoding="utf-8")
+            self.assertTrue(evidence_errors(base,manifest,directory,"bench",commit))
+            config.write_text('{"fixture":true}',encoding="utf-8")
             raw.write_bytes(b"changed")
             self.assertTrue(evidence_errors(base,manifest,directory,"bench",commit))
 

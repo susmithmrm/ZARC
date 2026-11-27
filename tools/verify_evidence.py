@@ -47,6 +47,15 @@ def evidence_errors(base, record, directory, configuration, commit):
             errors.append(f"missing {key}")
     if not re.fullmatch(r"[0-9a-f]{64}",str(record.get("manifest_sha256",""))):
         errors.append("invalid manifest digest")
+    manifest_path = record.get("manifest_artifact","")
+    if not isinstance(manifest_path,str) or not manifest_path:
+        errors.append("missing configuration manifest artifact")
+    else:
+        p = (directory / manifest_path).resolve()
+        if not p.is_relative_to(directory.resolve()) or not p.is_file():
+            errors.append("missing configuration manifest artifact")
+        elif hashlib.sha256(p.read_bytes()).hexdigest() != record.get("manifest_sha256"):
+            errors.append("configuration manifest hash mismatch")
     items = record.get("requirements",[])
     if not isinstance(items,list) or any(not isinstance(x,dict) for x in items):
         return errors+["invalid requirements collection"]
