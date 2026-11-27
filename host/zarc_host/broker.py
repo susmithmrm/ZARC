@@ -13,6 +13,10 @@ from .security import Policy
 
 MAX_REQUEST = 512
 MAX_RESPONSE = 512
+MAX_RETAINED = 16
+
+def identity(value):
+    return type(value) is int and 1 <= value <= 0xFFFFFFFFFFFFFFFF
 
 @dataclass(frozen=True)
 class Command:
@@ -20,6 +24,9 @@ class Command:
     capability: int
     desired: int | None = None
     validity: int | None = None
+    boot: int | None = None
+    session: int | None = None
+    request_id: int | None = None
 
 def parse_command(data):
     def pairs(items):
@@ -40,6 +47,9 @@ def parse_command(data):
         raise ValueError("capability")
     if op in ("snapshot","health") and set(obj) == {"operation", "capability"}:
         return Command(op, domain)
+    if op == "request_status" and set(obj) == {"operation","capability","boot","session","request_id"}:
+        if all(identity(obj[k]) for k in ("boot","session","request_id")):
+            return Command(op,domain,boot=obj["boot"],session=obj["session"],request_id=obj["request_id"])
     if op == "request" and set(obj) == {"operation", "capability", "desired", "validity"}:
         desired, validity = obj["desired"], obj["validity"]
         if type(desired) is int and desired in (1, 2) and type(validity) is int and 1 <= validity <= 1000:
@@ -51,6 +61,8 @@ class Gateway:
     def __init__(self, policy: Policy, backend):
         self.policy = policy
         self.backend = backend
+        self._epoch = None
+        self._owners = {}
 
     def dispatch(self, principal, raw):
         try:
@@ -60,15 +72,46 @@ class Gateway:
         if not self.policy.authorize(principal, cmd.operation, cmd.capability):
             return {"status": "DENIED"}
         try:
+            if cmd.operation == "request_status":
+                key=(cmd.boot,cmd.session,cmd.request_id)
+                # Do not connect/replay an old request or disclose its owner.
+                if self._owners.get(key)!=(principal.name,cmd.capability):
+                    return {"status":"UNKNOWN_OUTCOME"}
+                return self.backend.request_status(cmd.request_id,boot=cmd.boot,session=cmd.session)
             if cmd.operation == "health":
                 return self.backend.health(cmd.capability)
             if cmd.operation == "snapshot":
                 return self.backend.snapshot(cmd.capability)
-            return self.backend.request(cmd.capability, cmd.desired, cmd.validity)
+            result=self.backend.request(cmd.capability,cmd.desired,cmd.validity)
+            if result.get("status")=="ACCEPTED":
+                boot,session,rid=(result.get(k) for k in ("boot","session","request_id"))
+                if all(identity(x) for x in (boot,session,rid)):
+                    epoch=(boot,session)
+                    if epoch!=self._epoch:
+                        self._owners.clear()
+                        self._epoch=epoch
+                    key=(boot,session,rid)
+                    owner=(principal.name,cmd.capability)
+                    if key in self._owners and self._owners[key]!=owner:
+                        self.backend.invalidate()
+                        self._owners.clear()
+                        self._epoch=None
+                        return {"status":"UNKNOWN_OUTCOME"}
+                    if key not in self._owners and len(self._owners)>=MAX_RETAINED:
+                        # Unexpected backend violation: an admission may have
+                        # occurred, but cannot safely expose its retained result.
+                        self.backend.invalidate()
+                        self._owners.clear()
+                        self._epoch=None
+                        return {"status":"UNKNOWN_OUTCOME"}
+                    self._owners[key]=owner
+            return result
         except (OSError, TimeoutError, ValueError):
             self.backend.invalidate()
+            self._owners.clear()
+            self._epoch=None
             # Never assert an admitted request was not executed after link loss.
-            return {"status": "UNKNOWN_OUTCOME" if cmd.operation == "request" else "UNAVAILABLE"}
+            return {"status": "UNKNOWN_OUTCOME" if cmd.operation in ("request","request_status") else "UNAVAILABLE"}
 
     def serve_connection(self, raw: socket.socket, context: ssl.SSLContext):
         # One bounded request per TLS session, then close; no guest-selected identity.

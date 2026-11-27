@@ -61,6 +61,14 @@ class Service(rpc.IndicatorServiceServicer):
         except (KeyError,TypeError,ValueError):
             return pb.Health(status=pb.UNAVAILABLE)
 
+    def GetRequestStatus(self,request,context):
+        principal=_principal(self.gateway,context)
+        if not context.is_active():
+            context.abort(grpc.StatusCode.CANCELLED,"request no longer active")
+        result=self.gateway.dispatch(principal,json.dumps(dict(operation="request_status",
+              capability=request.capability,request_id=request.request_id,boot=request.boot,session=request.session)).encode())
+        return pb.RequestOutcome(status=_status(result))
+
     def RequestState(self,request,context):
         principal=_principal(self.gateway,context)
         if not context.is_active():
@@ -71,7 +79,11 @@ class Service(rpc.IndicatorServiceServicer):
         rid=result.get("request_id",0)
         if status==pb.ACCEPTED and (type(rid) is not int or not 1<=rid<=0xffffffffffffffff):
             return pb.Admission(status=pb.UNKNOWN_OUTCOME)
-        return pb.Admission(status=status,request_id=rid if status==pb.ACCEPTED else 0)
+        if status!=pb.ACCEPTED:return pb.Admission(status=status)
+        boot,session=result.get("boot"),result.get("session")
+        if any(type(x) is not int or not 1<=x<=0xffffffffffffffff for x in (boot,session)):
+            return pb.Admission(status=pb.UNKNOWN_OUTCOME)
+        return pb.Admission(status=status,request_id=rid,boot=boot,session=session)
 
 def start(gateway, *, certificate, key, trust_roots, port=0):
     if type(port) is not int or not 0<=port<=65535:

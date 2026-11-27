@@ -32,7 +32,19 @@ message Intent {
   Indicator desired = 2;
   uint32 validity_ms = 3;
 }
-message Admission { optional Status status = 1; uint64 request_id = 2; }
+message Admission {
+  optional Status status = 1;
+  uint64 request_id = 2;
+  uint64 boot = 3;
+  uint64 session = 4;
+}
+message RequestStatusQuery {
+  uint32 capability = 1;
+  uint64 request_id = 2;
+  uint64 boot = 3;
+  uint64 session = 4;
+}
+message RequestOutcome { optional Status status = 1; }
 message Observation {
   optional Status status = 1;
   Indicator value = 2;
@@ -53,6 +65,7 @@ message Health {
   uint64 session = 10;
 }
 service IndicatorService {
+  rpc GetRequestStatus(RequestStatusQuery) returns (RequestOutcome);
   rpc GetHealth(SnapshotRequest) returns (Health);
   rpc GetSnapshot(SnapshotRequest) returns (Observation);
   rpc RequestState(Intent) returns (Admission);

@@ -69,6 +69,11 @@ with tempfile.TemporaryDirectory() as directory:
         assert reader.RequestState(intent,timeout=5).status==pb.DENIED
         accepted=writer.RequestState(intent,timeout=5)
         assert accepted.HasField("status") and accepted.status==pb.ACCEPTED and accepted.request_id
+        assert accepted.boot==first.boot and accepted.session
+        query=pb.RequestStatusQuery(capability=1,request_id=accepted.request_id,
+                                    boot=accepted.boot,session=accepted.session)
+        assert reader.GetRequestStatus(query,timeout=3).status==pb.DENIED
+        assert writer.GetRequestStatus(query,timeout=3).status in (pb.ACCEPTED,pb.COMPLETED)
         end=time.monotonic()+3
         while True:
             observed=reader.GetSnapshot(snapshot,timeout=3)
@@ -77,6 +82,9 @@ with tempfile.TemporaryDirectory() as directory:
                 break
             assert time.monotonic()<end
             time.sleep(.05)
+        assert writer.GetRequestStatus(query,timeout=3).status==pb.COMPLETED
+        query.session+=1
+        assert writer.GetRequestStatus(query,timeout=3).status==pb.UNKNOWN_OUTCOME
         for unauthorized in (stub(unknown_cert,unknown_key),stub()):
             try:
                 unauthorized.GetSnapshot(snapshot,timeout=3)

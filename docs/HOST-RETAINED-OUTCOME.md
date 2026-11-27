@@ -1,0 +1,5 @@
+# Authenticated retained request outcome
+
+The TLS JSON and generated gRPC adapters expose a bounded retained-status query. An admission identifies the backend boot, session and request ID; the gateway tracks at most 16 admitted request owners within a backend epoch. Queries require the same authorized principal and capability; unknown or other-owner identities do not disclose their history or trigger backend reconnection. On backend loss the mapping is discarded. No write is replayed. A backend capacity/identity violation returns UNKNOWN_OUTCOME rather than presenting a possibly incorrect result.
+
+This adds status reconciliation to the selected benign indicator contract. The in-memory ownership mapping is not a durable multi-tenant production ledger. It assumes the existing serialized gateway owner; downstream MCU authentication, durable guest identity and negotiated production retention remain open. Tests exercise same-scope different-principal denial and real generated gRPC admission/status/feedback.

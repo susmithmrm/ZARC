@@ -76,7 +76,7 @@ class Policy:
         if principal not in self._entries.values():
             return False
         scope = principal.read if operation in ("snapshot","health") else (
-            principal.write if operation == "request" else frozenset())
+            principal.write if operation in ("request","request_status") else frozenset())
         if type(capability) is not int or capability not in scope:
             return False
         now = self._clock()

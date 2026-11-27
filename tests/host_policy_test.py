@@ -44,6 +44,25 @@ class Tests(unittest.TestCase):
         self.assertEqual(gateway.dispatch(operator, write)["status"], "UNKNOWN_OUTCOME")
         self.assertTrue(backend.invalidated)
         self.assertRaises(PermissionError, policy.identify, object())
+    def test_retained_request_ownership(self):
+        a=Principal("a",frozenset({1}),frozenset({1}),100)
+        b=Principal("b",frozenset({1}),frozenset({1}),100)
+        class Retained(Backend):
+            def request(self,cap,desired,validity):
+                return dict(status="ACCEPTED",boot=10,session=11,request_id=12)
+            def request_status(self,rid,*,boot,session):
+                self.calls.append((rid,boot,session))
+                return dict(status="COMPLETED")
+        backend=Retained()
+        gateway=Gateway(Policy({"1"*64:a,"2"*64:b}),backend)
+        write=b'{"operation":"request","capability":1,"desired":2,"validity":100}'
+        query=b'{"operation":"request_status","capability":1,"boot":10,"session":11,"request_id":12}'
+        self.assertEqual(gateway.dispatch(a,write)["status"],"ACCEPTED")
+        self.assertEqual(gateway.dispatch(b,query)["status"],"UNKNOWN_OUTCOME")
+        self.assertFalse(backend.calls)
+        self.assertEqual(gateway.dispatch(a,query)["status"],"COMPLETED")
+        self.assertEqual(backend.calls,[(12,10,11)])
+        self.assertEqual(gateway.dispatch(a,query.replace(b'"session":11',b'"session":12'))["status"],"UNKNOWN_OUTCOME")
     def test_strict_schema(self):
         for raw in [b'{}', b'[]', b'{"operation":"snapshot","capability":true}',
                     b'{"operation":"snapshot","capability":1,"capability":2}',
