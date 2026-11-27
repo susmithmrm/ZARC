@@ -11,6 +11,10 @@
 #include "transport.h"
 #include "storage.h"
 #include "watchdog.h"
+#include "observation_bus.h"
+#include "device_pm.h"
+#include <zephyr/pm/device.h>
+#include <zephyr/pm/device_runtime.h>
 
 K_MSGQ_DEFINE(uart_rx,sizeof(struct zarc_native_bytes),8,8);
 K_MSGQ_DEFINE(can_rx_queue,sizeof(struct can_frame),4,4);
@@ -105,6 +109,16 @@ ZTEST(zarc_providers,test_nvs_configuration_remount){
  zassert_equal(zarc_native_config_read(&remount,123,&store),0);
  zassert_equal(zarc_config_load(&store,1,&config),ZARC_CONFIG_OK);
  zassert_equal(config.revision,2);
+ struct zarc_native_update_journal journal={.fs=&remount,.key=124,.writable=true};
+ zarc_update update,recovered;uint64_t revision;
+ const zarc_update_policy policy={1,2,3,1};
+ const zarc_image image={11,1,1,2,3};
+ zassert_true(zarc_update_init(&update,&policy,&image,true));
+ zassert_equal(zarc_native_update_journal_persist(&journal,&update),0);
+ zassert_equal(zarc_native_config_read(&remount,124,&loaded),0);
+ zassert_equal(zarc_update_journal_load(&loaded,&policy,&recovered,&revision),ZARC_CONFIG_OK);
+ zassert_equal(revision,1);
+ zassert_equal(recovered.active.image_id,11);
  flash_area_close(area);
 }
 
@@ -184,5 +198,49 @@ ZTEST(zarc_providers,test_watchdog_gated_feed){
  zassert_equal(wdt_state.feeds,1);
  zassert_equal(zarc_native_watchdog_supervise(&watchdog_adapter,&health,11),-EAGAIN);
  zassert_equal(wdt_state.feeds,1);
+}
+ZTEST(zarc_providers,test_zbus_observation_overflow){
+ zarc_native_observation_reset();
+ zarc_observation_event event={.observation={.id=1,.boot=7,.value=ZARC_OFF,.quality=ZARC_QUALITY_VALID}};
+ zarc_observation_event out;
+ for(uint64_t i=1;i<=4;++i){event.sequence=i;zassert_equal(zarc_native_observation_publish(&event),0);}
+ for(uint64_t i=1;i<=4;++i){zassert_equal(zarc_native_observation_read(&out),0);zassert_equal(out.sequence,i);}
+ for(uint64_t i=5;i<=8;++i){event.sequence=i;zassert_equal(zarc_native_observation_publish(&event),0);}
+ event.sequence=9;zassert_equal(zarc_native_observation_publish(&event),-EOVERFLOW);
+ zassert_equal(zarc_native_observation_read(&out),-EOVERFLOW);
+ zarc_native_observation_reset();
+ event.sequence=10;zassert_equal(zarc_native_observation_publish(&event),0);
+ zassert_equal(zarc_native_observation_read(&out),0);zassert_equal(out.sequence,10);
+}
+struct pm_fixture {unsigned resumes,suspends;bool fail_resume;};
+static struct pm_fixture pm_state;
+static int test_pm_action(const struct device *dev,enum pm_device_action action){
+ struct pm_fixture *f=dev->data;
+ if(action==PM_DEVICE_ACTION_RESUME){
+  if(f->fail_resume)return -EIO;
+  ++f->resumes;return 0;
+ }
+ if(action==PM_DEVICE_ACTION_SUSPEND){++f->suspends;return 0;}
+ return -ENOTSUP;
+}
+PM_DEVICE_DEFINE(zarc_test_pm,test_pm_action);
+DEVICE_DEFINE(zarc_test_pm,"zarc_test_pm",NULL,PM_DEVICE_GET(zarc_test_pm),&pm_state,NULL,POST_KERNEL,
+              CONFIG_KERNEL_INIT_PRIORITY_DEVICE,NULL);
+ZTEST(zarc_providers,test_runtime_pm_balance){
+ const struct device *dev=DEVICE_GET(zarc_test_pm);
+ struct zarc_native_pm pm={0};
+ zassert_equal(zarc_native_pm_open(&pm,dev),0);
+ zassert_equal(pm_device_runtime_usage(dev),0);
+ zassert_equal(zarc_native_pm_acquire(&pm),0);
+ zassert_equal(zarc_native_pm_acquire(&pm),-EALREADY);
+ zassert_equal(pm_device_runtime_usage(dev),1);
+ zassert_equal(pm_state.resumes,1);
+ zassert_equal(zarc_native_pm_release(&pm),0);
+ zassert_equal(pm_device_runtime_usage(dev),0);
+ zassert_equal(zarc_native_pm_release(&pm),-EINVAL);
+ pm_state.fail_resume=true;
+ zassert_equal(zarc_native_pm_acquire(&pm),-EIO);
+ zassert_true(pm.fault);zassert_false(pm.held);
+ zassert_equal(pm_device_runtime_usage(dev),0);
 }
 ZTEST_SUITE(zarc_providers,NULL,NULL,NULL,NULL,NULL);
