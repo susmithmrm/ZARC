@@ -13,3 +13,5 @@ target_sources(app PRIVATE src/main.c
   ${ZARC_ROOT}/src/config_store.c
   ${ZARC_ROOT}/src/power.c
   ${ZARC_ROOT}/src/update.c)
+
+add_subdirectory(adapters)
