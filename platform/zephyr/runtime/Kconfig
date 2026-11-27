@@ -3,3 +3,7 @@ source "Kconfig.zephyr"
 config ZARC_RUNTIME_SMOKE
  bool "Exit after observed reference result"
  default n
+
+config ZARC_REFERENCE_PROFILE
+ string "Simulator product profile"
+ default "edge"

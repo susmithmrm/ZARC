@@ -1,0 +1,7 @@
+# Four simulator profile compositions
+
+One native application and the same portable runtime support four candidate manifests: edge (one local endpoint, no host), companion (guest readiness model and framed remote admission), zonal (three independently supervised endpoints), integrated (two endpoints and actual Zephyr IPC service API with a simulated backend). The generated header selects endpoint count/IDs and timing allocations; profile-specific application setup checks the declared service order. The extra profile functions are application-owned reference providers rather than fully composed production services.
+
+Twister builds each independently on native_sim/native/64. Smoke mode checks benign local or remote admission, later observed feedback after disconnect, logical suspend/resume, and stop. Integrated mode sends the request through the actual native IPC adapter with a simulated endpoint. Companion readiness is a policy notification only; no rail action is performed. Normal mode samples the simulated devices and does not issue commands or expose a physical interface.
+
+Build a profile with west build -b native_sim/native/64 /path/to/ZARC/platform/zephyr/runtime -- -DCONFIG_ZARC_REFERENCE_PROFILE=zonal, or run all Twister scenarios. Integrated additionally needs CONFIG_IPC_SERVICE=y. These are simulator compositions, not four physical board ports. Actual native external transports, full service graph generation, independent worker timing and all OEM allocation remain open. CI must verify the new variants.

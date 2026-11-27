@@ -118,6 +118,27 @@ def validate(m):
             raise ValueError("reference composition mismatch")
         if any(features.values()):
             raise ValueError("reference runtime has no native transport or physical driver")
+    profile_runtime=m.get("profile_runtime")
+    if profile_runtime is not None:
+        if runtime is not None or profile=="edge" or m["board"]!="native_sim/native/64" or not isinstance(profile_runtime,dict):
+            raise ValueError("profile runtime restricted to non-edge simulator fixtures")
+        fields={"endpoint_ids","period_ms","deadline_ms","feedback_max_age_ms","health_limit_ms","max_validity_ms"}
+        ids=profile_runtime.get("endpoint_ids")
+        if set(profile_runtime)!=fields or not isinstance(ids,list) or not 1<=len(ids)<=4 or any(not number(x) for x in ids) or len(set(ids))!=len(ids):
+            raise ValueError("invalid profile endpoints")
+        if any(not number(profile_runtime[k]) for k in fields-{"endpoint_ids"}):
+            raise ValueError("invalid profile timing")
+        if profile_runtime["deadline_ms"]>profile_runtime["period_ms"] or min(profile_runtime["health_limit_ms"],profile_runtime["feedback_max_age_ms"])<=profile_runtime["period_ms"]:
+            raise ValueError("invalid profile timing relationship")
+        if len(tasks)!=1 or tasks[0]["name"]!="controller_owner" or tasks[0]["context"]!="R1" or tasks[0]["period_us"]!=profile_runtime["period_ms"]*1000 or tasks[0]["deadline_us"]!=profile_runtime["deadline_ms"]*1000:
+            raise ValueError("profile/task allocation mismatch")
+        expected={"companion":["core","health","power","broker"],"zonal":["core","health","endpoint"],"integrated":["core","health","ipc"]}[profile]
+        if len(services)!=len(expected) or {s["id"]:s["name"] for s in services}!={i+1:name for i,name in enumerate(expected)} or ordered!=list(range(1,len(expected)+1)):
+            raise ValueError("profile composition mismatch")
+        if any(v!=(k=="ipc" and profile=="integrated") for k,v in features.items()):
+            raise ValueError("unsupported simulator profile feature")
+        if len(resources)!=len(ids):
+            raise ValueError("simulator resource allocation mismatch")
     limitations=m.get("limitations")
     if not isinstance(limitations,list) or not limitations or any(not isinstance(v,str) or not v for v in limitations):
         raise ValueError("explicit limitations required")
@@ -140,8 +161,16 @@ def generate(m):
     canonical=json.dumps(m,sort_keys=True,separators=(",",":"),ensure_ascii=True).encode()
     digest=hashlib.sha256(canonical).hexdigest()
     runtime_macros=""
-    if "benign_runtime" in m:
-        for key,value in m["benign_runtime"].items():
+    if "benign_runtime" in m or "profile_runtime" in m:
+        runtime=m.get("benign_runtime",m.get("profile_runtime"))
+        ids=runtime.get("endpoint_ids",[runtime.get("endpoint_id")])
+        kind={"edge":0,"companion":1,"zonal":2,"integrated":3}[m["profile"]]
+        runtime_macros+=f"#define ZARC_PROFILE_KIND {kind}u\n"
+        runtime_macros+=f'#define ZARC_PROFILE_NAME "{m["profile"]}"\n'
+        runtime_macros+=f"#define ZARC_PROFILE_ENDPOINT_COUNT {len(ids)}u\n"
+        runtime_macros+="#define ZARC_PROFILE_ENDPOINTS {"+",".join("{"+str(id)+"u,"+str(runtime["feedback_max_age_ms"])+"u}" for id in ids)+"}\n"
+        for key,value in runtime.items():
+            if key=="endpoint_ids":continue
             runtime_macros+=f"#define ZARC_RUNTIME_{key.upper()} {value}u\n"
         runtime_macros+=f'#define ZARC_RUNTIME_MAIN_STACK {m["tasks"][0]["stack_bytes"]}u\n'
         runtime_macros+=f'#define ZARC_RUNTIME_MAIN_PRIORITY {m["tasks"][0]["priority"]}u\n'

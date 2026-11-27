@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "api_major": 1,
+  "target": "native-sim-companion-reference",
+  "board": "native_sim/native/64",
+  "soc": "host-sim",
+  "revision": "candidate-2",
+  "zephyr": "v4.2.0",
+  "toolchain": "host GCC candidate",
+  "maintainer": "ZARC development",
+  "profile": "companion",
+  "maturity": "CANDIDATE",
+  "services": [
+    {
+      "id": 1,
+      "name": "core",
+      "required": true,
+      "supported": true,
+      "dependencies": []
+    },
+    {
+      "id": 2,
+      "name": "health",
+      "required": true,
+      "supported": true,
+      "dependencies": [
+        1
+      ]
+    },
+    {
+      "id": 3,
+      "name": "power",
+      "required": true,
+      "supported": true,
+      "dependencies": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": 4,
+      "name": "broker",
+      "required": true,
+      "supported": true,
+      "dependencies": [
+        1,
+        2
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "name": "virtual_indicator_1",
+      "owners": {
+        "reset": "simulator",
+        "boot": "simulator",
+        "run": "core",
+        "maintenance": "simulator",
+        "shutdown": "simulator"
+      }
+    }
+  ],
+  "features": {
+    "uart": false,
+    "can": false,
+    "ipc": false,
+    "watchdog": false,
+    "flash": false,
+    "mcuboot": false,
+    "pm": false,
+    "smp": false,
+    "zbus": false
+  },
+  "tasks": [
+    {
+      "name": "controller_owner",
+      "context": "R1",
+      "period_us": 10000,
+      "deadline_us": 8000,
+      "execution_us": 1000,
+      "blocking_us": 0,
+      "jitter_us": 100,
+      "priority": 1,
+      "stack_bytes": 8192
+    }
+  ],
+  "budgets": {
+    "ram_bytes": 65536,
+    "flash_bytes": 262144,
+    "core_queue": 4,
+    "bulk_queue": 2
+  },
+  "limitations": [
+    "Illustrative allocations only; not measured WCET or board memory evidence",
+    "Simulator only; no physical devices or production support",
+    "Single owner synchronous simulated provider; task allocations are candidate assumptions, not measured execution bounds",
+    "Native simulator profile; product-specific functions are laboratory application-owned providers, not qualified product services",
+    "Lab-local framed queue; no production external transport"
+  ],
+  "profile_runtime": {
+    "period_ms": 10,
+    "deadline_ms": 8,
+    "feedback_max_age_ms": 50,
+    "health_limit_ms": 40,
+    "max_validity_ms": 100,
+    "endpoint_ids": [
+      1
+    ]
+  }
+}

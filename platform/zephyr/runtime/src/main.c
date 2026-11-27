@@ -1,46 +1,111 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
 #include <zephyr/sys/util.h>
-#include "zarc/runtime.h"
+#include "zarc/runtime_wire.h"
+#include "zarc/power.h"
 #include "zarc_manifest.h"
-/* Simulator only: memory-backed device state, no physical GPIO/rail access.
- * A product provider must independently establish actual feedback and ownership. */
+/* Simulator-only device readback and lab-local trusted peer. */
 BUILD_ASSERT(CONFIG_MAIN_STACK_SIZE==ZARC_RUNTIME_MAIN_STACK,"manifest stack mismatch");
 BUILD_ASSERT(CONFIG_MAIN_THREAD_PRIORITY==ZARC_RUNTIME_MAIN_PRIORITY,"manifest priority mismatch");
+BUILD_ASSERT(ZARC_PROFILE_ENDPOINT_COUNT<=ZARC_CONTROLLER_DOMAINS,"endpoint allocation");
 static zarc_runtime runtime;
-static zarc_value device_value=ZARC_OFF;
+static zarc_power power;
+static zarc_value device[ZARC_PROFILE_ENDPOINT_COUNT];
+static uint64_t seq[ZARC_PROFILE_ENDPOINT_COUNT];
+struct encoded {size_t n;uint8_t data[ZARC_FRAME_HEADER+ZARC_PAYLOAD_MAX];};
+K_MSGQ_DEFINE(lab_queue,sizeof(struct encoded),2,8);
+#if defined(CONFIG_IPC_SERVICE)
+int zarc_profile_ipc_open(void);
+int zarc_profile_ipc_exchange(const zarc_frame *,zarc_frame *);
+int zarc_profile_ipc_close(void);
+#endif
 static uint64_t ticks(void){return (uint64_t)k_uptime_get();}
+static bool scope(void *ctx,uint64_t principal,uint8_t op,uint32_t id){
+ ARG_UNUSED(ctx);ARG_UNUSED(op);ARG_UNUSED(id);
+ return principal==1; /* fixed simulation identity only */
+}
+static bool wire(const zarc_frame *q,uint64_t now,zarc_frame *reply,zarc_controller_effect *effect){
+ zarc_frame received;
+#if defined(CONFIG_IPC_SERVICE)
+ if(ZARC_PROFILE_KIND==3u){
+  if(zarc_profile_ipc_exchange(q,&received)!=0)return false;
+ }else
+#endif
+ {
+  struct encoded bytes={0},copy;
+  if(!zarc_frame_encode(q,bytes.data,sizeof bytes.data,&bytes.n)||
+     k_msgq_put(&lab_queue,&bytes,K_NO_WAIT)!=0||k_msgq_get(&lab_queue,&copy,K_NO_WAIT)!=0||
+     !zarc_frame_decode(copy.data,copy.n,&received))return false;
+ }
+ const zarc_wire_peer p={.principal=1,.age_known=true,.allow=scope};
+ return zarc_runtime_dispatch(&runtime,&p,&received,now,true,reply,effect);
+}
+static bool profile_setup(uint64_t now){
+ size_t expected=ZARC_PROFILE_KIND==1u?4u:ZARC_PROFILE_KIND==0u?2u:3u;
+ if(ZARC_MANIFEST_SERVICE_COUNT!=expected)return false;
+ for(size_t i=0;i<expected;++i)if(zarc_manifest_service_order[i]!=i+1u)return false;
+ if(ZARC_PROFILE_KIND==1u&&!zarc_power_init(&power,3,1,now))return false;
+#if defined(CONFIG_IPC_SERVICE)
+ if(ZARC_PROFILE_KIND==3u&&zarc_profile_ipc_open()!=0)return false;
+#else
+ if(ZARC_PROFILE_KIND==3u)return false;
+#endif
+ return true;
+}
 int main(void){
- if(ZARC_MANIFEST_SERVICE_COUNT!=2u||zarc_manifest_service_order[0]!=1u||
-    zarc_manifest_service_order[1]!=2u)return 1;
- const zarc_runtime_config config={.endpoint={ZARC_RUNTIME_ENDPOINT_ID,ZARC_RUNTIME_FEEDBACK_MAX_AGE_MS},
-  .period=ZARC_RUNTIME_PERIOD_MS,.deadline=ZARC_RUNTIME_DEADLINE_MS,
-  .health_limit=ZARC_RUNTIME_HEALTH_LIMIT_MS,.max_validity=ZARC_RUNTIME_MAX_VALIDITY_MS,
-  .config_digest=ZARC_RUNTIME_CONFIG_DIGEST};
- uint64_t now=ticks(),sequence=0;
- if(!zarc_runtime_init(&runtime,&config,1,now))return 1;
- printk("ZARC reference manifest %s\n",ZARC_MANIFEST_SHA256);
+ const zarc_runtime_config config={.count=ZARC_PROFILE_ENDPOINT_COUNT,.endpoints=ZARC_PROFILE_ENDPOINTS,
+  .period=ZARC_RUNTIME_PERIOD_MS,.deadline=ZARC_RUNTIME_DEADLINE_MS,.health_limit=ZARC_RUNTIME_HEALTH_LIMIT_MS,
+  .max_validity=ZARC_RUNTIME_MAX_VALIDITY_MS,.config_digest=ZARC_RUNTIME_CONFIG_DIGEST,.remote_enabled=ZARC_PROFILE_KIND!=0u};
+ uint64_t now=ticks();
+ if(!profile_setup(now)||!zarc_runtime_init(&runtime,&config,1,now))return 1;
+ for(size_t i=0;i<config.count;++i)device[i]=ZARC_OFF;
+ printk("ZARC reference %s manifest %s\n",ZARC_PROFILE_NAME,ZARC_MANIFEST_SHA256);
  bool issued=false;
  for(;;){
-  now=ticks();
-  if(!zarc_runtime_step(&runtime,now,true,++sequence,now,device_value))return 1;
+  now=ticks();zarc_runtime_sample samples[ZARC_PROFILE_ENDPOINT_COUNT];
+  for(size_t i=0;i<config.count;++i)samples[i]=(zarc_runtime_sample){config.endpoints[i].id,++seq[i],now,device[i]};
+  if(!zarc_runtime_step_batch(&runtime,now,samples,config.count))return 1;
+  if(ZARC_PROFILE_KIND==1u&&!zarc_power_tick(&power,now))return 1;
   if(IS_ENABLED(CONFIG_ZARC_RUNTIME_SMOKE)&&!issued&&runtime.healthy){
-   zarc_controller_effect effect;
-   if(zarc_runtime_local(&runtime,ZARC_ON,true,now,50,true,&effect)!=ZARC_CONN_ACCEPTED)return 1;
-   /* Synchronous simulated provider: no queued work after returning. */
-   if(ticks()>=effect.deadline)return 1;
-   device_value=effect.desired;
-   if(!zarc_runtime_release(&runtime,&effect,ticks()))return 1;
-   issued=true;
+   if(ZARC_PROFILE_KIND==1u){
+    if(!zarc_power_request(&power,1,now,now+50,true)||
+       !zarc_power_report(&power,1,1,0,true,now)||!zarc_power_report(&power,1,1,1,true,now)||
+       power.phase!=ZARC_POWER_READY||!zarc_power_cancel(&power,1,now,true))return 1;
+   }
+   zarc_frame reply,q={.operation=ZARC_OP_HELLO,.request_id=1};zarc_controller_effect effect;
+   if(config.remote_enabled){
+    if(!wire(&q,now,&reply,&effect)||reply.payload[0]!=ZARC_CONN_COMPLETED)return 1;
+    q.boot=reply.boot;q.session=reply.session;q.request_id=2;q.operation=ZARC_OP_CAPABILITIES;
+    if(!wire(&q,now,&reply,&effect)||reply.payload[0]!=ZARC_CONN_COMPLETED||reply.payload[1]!=config.count)return 1;
+   }
+   for(size_t i=0;i<config.count;++i){
+    uint32_t id=config.endpoints[i].id;
+    if(config.remote_enabled){
+     q.operation=ZARC_OP_DOMAIN;q.length=9;q.request_id=3u+i;
+     for(size_t k=0;k<4;++k)q.payload[k]=(uint8_t)(id>>(8u*k));
+     q.payload[4]=ZARC_ON;
+     for(size_t k=0;k<4;++k)q.payload[5u+k]=(uint8_t)(50u>>(8u*k));
+     if(!wire(&q,now,&reply,&effect)||reply.payload[0]!=ZARC_CONN_ACCEPTED||!effect.emitted)return 1;
+    }else if(zarc_runtime_local_at(&runtime,id,ZARC_ON,true,now,50,true,&effect)!=ZARC_CONN_ACCEPTED)return 1;
+    if(ticks()>=effect.deadline)return 1;
+    device[i]=effect.desired;
+    if(!zarc_runtime_release(&runtime,&effect,now))return 1;
+   }
+   zarc_runtime_disconnect(&runtime);issued=true;
   }
   if(IS_ENABLED(CONFIG_ZARC_RUNTIME_SMOKE)&&issued){
-   zarc_observation observation;
-   if(zarc_controller_snapshot(&runtime.controller,config.endpoint.id,&observation)&&
-      observation.value==ZARC_ON&&observation.quality==ZARC_QUALITY_VALID){
-    now=ticks();
-    if(!zarc_runtime_stop(&runtime,now,now+20))return 1;
-    printk("ZARC runtime observed benign indicator and stopped\n");
-    return 0;
+   bool observed=true;
+   for(size_t i=0;i<config.count;++i){
+    zarc_observation o;
+    if(!zarc_controller_snapshot(&runtime.controller,config.endpoints[i].id,&o)||o.value!=ZARC_ON||o.quality!=ZARC_QUALITY_VALID)observed=false;
+   }
+   if(observed){
+    now=ticks();if(!zarc_runtime_suspend(&runtime,now,now+20)||!zarc_runtime_resume(&runtime,now))return 1;
+    if(runtime.healthy||!zarc_runtime_stop(&runtime,now,now+20))return 1;
+#if defined(CONFIG_IPC_SERVICE)
+    if(ZARC_PROFILE_KIND==3u&&zarc_profile_ipc_close()!=0)return 1;
+#endif
+    printk("ZARC runtime observed benign indicator and stopped\n");return 0;
    }
   }
   k_sleep(K_MSEC(1));

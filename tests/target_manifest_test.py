@@ -40,6 +40,15 @@ class Tests(unittest.TestCase):
             with self.subTest(key=key),self.assertRaises(ValueError):validate(m)
         m=copy.deepcopy(self.m);m["tasks"][0]["deadline_us"]=9000
         with self.assertRaises(ValueError):validate(m)
+    def test_profile_variants(self):
+        for name,count in (("companion",1),("zonal",3),("integrated",2)):
+            m=json.loads((ROOT/f"config/targets/native-sim-{name}.json").read_text())
+            self.assertEqual(validate(m),list(range(1,len(m["services"])+1)))
+            self.assertIn(f"#define ZARC_PROFILE_ENDPOINT_COUNT {count}u",generate(m))
+            bad=copy.deepcopy(m);bad["profile_runtime"]["endpoint_ids"]=[1,1]
+            with self.assertRaises(ValueError):validate(bad)
+            bad=copy.deepcopy(m);bad["services"].pop()
+            with self.assertRaises(ValueError):validate(bad)
     def test_timing(self):
         assumptions=dict(uniprocessor=True,fully_preemptive=True,no_self_suspension=True)
         tasks=copy.deepcopy(self.m["tasks"])
