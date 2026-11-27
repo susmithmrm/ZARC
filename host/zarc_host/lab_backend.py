@@ -43,9 +43,14 @@ class LabBackend:
         if data[0] >= len(STATUS):
             raise ValueError("invalid status")
         if op == HELLO:
-            if STATUS[data[0]] != "COMPLETED" or not boot or not session or length != 1:
-                raise OSError("session unavailable")
-            self.boot, self.session = boot, session
+            if length != 1:
+                raise ValueError("invalid hello")
+            if STATUS[data[0]] == "COMPLETED":
+                if not boot or not session or (self.session and (boot != self.boot or session <= self.session)):
+                    raise ValueError("invalid session transition")
+                self.boot, self.session = boot, session
+            elif (boot, session) != (self.boot, self.session) and self.session:
+                raise OSError("epoch changed")
         elif (boot, session) != (self.boot, self.session):
             raise OSError("epoch changed")
         return data
@@ -54,20 +59,40 @@ class LabBackend:
         if self.sock is None:
             try:
                 self.sock = socket.create_connection(("127.0.0.1", self.port), timeout=1)
-                self._exchange(HELLO, b"")
-                data = self._exchange(CAPABILITIES, b"")
-                if len(data)<2 or data[0]!=1 or not 1<=data[1]<=4 or len(data)!=2+5*data[1]:
-                    raise ValueError("invalid capability registry")
-                discovered = {}
-                for offset in range(2,len(data),5):
-                    cap,ready=struct.unpack_from("<IB",data,offset)
-                    if not cap or cap in discovered or ready not in (0,1):
-                        raise ValueError("invalid capability descriptor")
-                    discovered[cap]=bool(ready)
-                self.capabilities=discovered
+                if self._exchange(HELLO, b"")[0] != 1:
+                    raise OSError("session unavailable")
+                self._discover()
             except (OSError, ValueError):
                 self.invalidate()
                 raise
+
+    def _discover(self):
+        data = self._exchange(CAPABILITIES, b"")
+        if len(data)<2 or data[0]!=1 or not 1<=data[1]<=4 or len(data)!=2+5*data[1]:
+            raise ValueError("invalid capability registry")
+        discovered = {}
+        for offset in range(2,len(data),5):
+            cap,ready=struct.unpack_from("<IB",data,offset)
+            if not cap or cap in discovered or ready not in (0,1):
+                raise ValueError("invalid capability descriptor")
+            discovered[cap]=bool(ready)
+        self.capabilities=discovered
+
+    def renew_session(self):
+        """Explicit owner decision to retire all old result retention.
+        No request is automatically replayed. Callers must establish a fresh
+        snapshot/event barrier; a BUSY response preserves the existing session.
+        """
+        self._connect()
+        try:
+            status=STATUS[self._exchange(HELLO,b"")[0]]
+            if status=="COMPLETED":
+                self.capabilities.clear()
+                self._discover()
+            return dict(status=status,boot=self.boot,session=self.session)
+        except (OSError,ValueError):
+            self.invalidate()
+            raise
 
     def snapshot(self, capability):
         self._connect()
@@ -91,7 +116,7 @@ class LabBackend:
         data = self._exchange(DOMAIN, struct.pack("<IBI", capability, desired, validity))
         if len(data) != 1:
             raise ValueError("invalid admission")
-        return {"status": STATUS[data[0]], "request_id": self.request_id}
+        return {"status": STATUS[data[0]], "request_id": self.request_id, "boot": self.boot, "session": self.session}
 
     def request_status(self, request_id, *, boot, session):
         if self.sock is None or (boot,session)!=(self.boot,self.session):

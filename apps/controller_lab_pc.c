@@ -16,6 +16,8 @@ static bool reply(zarc_controller *c,zarc_observation_stream *stream,virtual_dev
   if(c->link.session==UINT64_MAX)return false;
   /* Fixed, explicitly lab-only principal. Never trust peer-supplied roles. */
   status=zarc_controller_open(c,c->link.session+1u,1,1,0,now);r.session=c->link.session;
+ }else if(q->operation==ZARC_OP_HELLO&&q->length==0&&q->boot==c->link.boot&&q->session!=0){
+  status=zarc_controller_renew(c,q->session,1,now);r.session=c->link.session;
  }else if(!c->link.connected||q->boot!=c->link.boot||q->session!=c->link.session){
   status=ZARC_CONN_UNAVAILABLE;
  }else if(q->operation==ZARC_OP_CAPABILITIES&&q->length==0){

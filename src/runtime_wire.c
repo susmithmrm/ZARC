@@ -21,6 +21,10 @@ bool zarc_runtime_dispatch(zarc_runtime *r,const zarc_wire_peer *p,const zarc_fr
   else if(r->controller.link.session==UINT64_MAX)status=ZARC_CONN_UNAVAILABLE;
   else status=zarc_runtime_open(r,r->controller.link.session+1u,p->principal,1,0,now);
   out->session=r->controller.link.session;
+ }else if(q->operation==ZARC_OP_HELLO&&q->length==0&&q->boot==r->controller.link.boot&&q->session!=0){
+  if(!allowed(p,ZARC_OP_HELLO,0))status=ZARC_CONN_DENIED;
+  else status=zarc_controller_renew(&r->controller,q->session,p->principal,now);
+  out->session=r->controller.link.session;
  }else if(!r->controller.link.connected||q->boot!=r->controller.link.boot||
            q->session!=r->controller.link.session||p->principal!=r->controller.link.principal){
   status=ZARC_CONN_UNAVAILABLE;

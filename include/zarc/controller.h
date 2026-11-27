@@ -29,6 +29,9 @@ bool zarc_controller_init(zarc_controller *, const zarc_endpoint_config *, size_
 bool zarc_controller_ready(zarc_controller *, uint32_t id, bool ready);
 bool zarc_controller_tick(zarc_controller *, uint64_t now);
 zarc_conn_status zarc_controller_open(zarc_controller *, uint64_t session, uint64_t verified_principal, uint8_t major, uint8_t minor, uint64_t now);
+/* Explicit authenticated session renewal. Refuses unresolved provider work;
+ * successful renewal ends old-session retention and requires reconciliation. */
+zarc_conn_status zarc_controller_renew(zarc_controller *,uint64_t current_session,uint64_t principal,uint64_t now);
 void zarc_controller_disconnect(zarc_controller *);
 zarc_conn_status zarc_controller_request(zarc_controller *, const zarc_intent *, bool allowed, bool age_known, uint64_t age, uint64_t now, bool effect_slot_reserved, zarc_controller_effect *);
 /* Immutable effect identity is owned until provider proves no future execution.

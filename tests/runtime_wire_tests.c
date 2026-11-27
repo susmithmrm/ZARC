@@ -24,6 +24,10 @@ int main(void){
  CHECK(zarc_runtime_dispatch(&r,&peer,&q,0,true,&out,&effect)&&out.payload[0]==ZARC_CONN_UNAVAILABLE);
  peer.principal=7;
  CHECK(zarc_runtime_dispatch(&r,&peer,&q,0,true,&out,&effect)&&out.payload[0]==ZARC_CONN_ACCEPTED&&effect.emitted);
+ zarc_frame renew={.operation=ZARC_OP_HELLO,.boot=q.boot,.session=q.session,.request_id=99};
+ zarc_controller_effect none;
+ CHECK(zarc_runtime_dispatch(&r,&peer,&renew,0,false,&out,&none)&&out.payload[0]==ZARC_CONN_BUSY);
+ CHECK(out.session==q.session);
  CHECK(zarc_runtime_release(&r,&effect,1));
  const zarc_runtime_sample newer[]={{1,2,10,ZARC_ON},{2,2,10,ZARC_OFF}};
  CHECK(zarc_runtime_step_batch(&r,10,newer,2));
@@ -33,6 +37,9 @@ int main(void){
  CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_COMPLETED);
  q.operation=ZARC_OP_SNAPSHOT;q.length=4;q.request_id=5;q.payload[0]=2;
  CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_DENIED);
+ CHECK(zarc_runtime_dispatch(&r,&peer,&renew,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_COMPLETED&&out.session==2);
+ CHECK(r.controller.link.count==0);
+ CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_UNAVAILABLE);
  zarc_runtime_disconnect(&r);
  CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_UNAVAILABLE);
  puts("Runtime wire scope, freshness and retained results passed");return 0;

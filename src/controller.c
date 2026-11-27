@@ -37,6 +37,17 @@ zarc_conn_status zarc_controller_open(zarc_controller *c,uint64_t session,uint64
  if(!zarc_controller_tick(c,now))return ZARC_CONN_INVALID;
  return zarc_link_open(&c->link,session,principal,major,minor,now);
 }
+zarc_conn_status zarc_controller_renew(zarc_controller *c,uint64_t session,uint64_t principal,uint64_t now){
+ if(!c||!c->link.connected||c->link.session!=session||c->link.principal!=principal)return ZARC_CONN_UNAVAILABLE;
+ if(!zarc_controller_tick(c,now))return ZARC_CONN_INVALID;
+ if(session==UINT64_MAX)return ZARC_CONN_UNAVAILABLE;
+ for(size_t i=0;i<c->count;++i)
+  if(c->endpoints[i].effect_outstanding||c->endpoints[i].domain.pending)return ZARC_CONN_BUSY;
+ zarc_link next=c->link;zarc_link_disconnect(&next);
+ zarc_conn_status status=zarc_link_open(&next,session+1u,principal,ZARC_CONNECT_MAJOR,ZARC_CONNECT_MINOR,now);
+ if(status==ZARC_CONN_COMPLETED)c->link=next;
+ return status;
+}
 void zarc_controller_disconnect(zarc_controller *c){if(c)zarc_link_disconnect(&c->link);}
 zarc_conn_status zarc_controller_request(zarc_controller *c,const zarc_intent *q,bool allowed,bool age_known,uint64_t age,uint64_t now,bool reserved,zarc_controller_effect *effect){
  if(!effect)return ZARC_CONN_INVALID;

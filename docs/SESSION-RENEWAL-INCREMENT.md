@@ -1,0 +1,5 @@
+# Explicit bounded session renewal
+
+The selected lab protocol permits an explicit Hello with the existing boot/session identity to request a new session. The trusted transport supplies the same principal. Renewal refuses pending domain work, outstanding provider ownership and any remaining accepted ledger entry. The existing session and result retention survive a refusal. On success the next session is created and old-session results are no longer available. The host must establish new snapshot/event barriers and must not automatically replay an old request. The LabBackend exposes a separate renew_session decision; there is no silent automatic renewal or write retry.
+
+The original finite ledger is unchanged: it returns BUSY at capacity. A process test fills all 16 entries, verifies retention, explicitly renews and performs another request. The runtime dispatcher test also checks refusal while work remains owned. Production capability versions, retention agreement, multi-client broker coordination and authenticated MCU deployment remain open. Trace candidates CON-005/006/008/009.
