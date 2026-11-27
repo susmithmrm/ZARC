@@ -7,6 +7,7 @@ target_sources(app PRIVATE src/main.c
   ${ZARC_ROOT}/src/domain.c
   ${ZARC_ROOT}/src/connect.c
   ${ZARC_ROOT}/src/controller.c
+  ${ZARC_ROOT}/src/observations.c
   ${ZARC_ROOT}/src/composition.c
   ${ZARC_ROOT}/src/health.c
   ${ZARC_ROOT}/src/diagnostics.c

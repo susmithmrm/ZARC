@@ -3,7 +3,7 @@ import socket
 import struct
 
 HEADER = struct.Struct("<2sBBBBHQQQ")
-HELLO, SNAPSHOT, DOMAIN, RESULT = 1, 3, 4, 10
+HELLO, CAPABILITIES, SNAPSHOT, DOMAIN, REQUEST_STATUS, SUBSCRIBE, RESULT, EVENT = 1, 2, 3, 4, 6, 7, 10, 11
 STATUS = ("ACCEPTED", "COMPLETED", "DENIED", "BUSY", "CONFLICT",
           "INVALID", "EXPIRED", "INCOMPATIBLE", "UNAVAILABLE", "UNKNOWN_OUTCOME")
 
@@ -13,6 +13,7 @@ class LabBackend:
             raise ValueError("invalid port")
         self.port = port
         self.sock = None
+        self.capabilities = {}
         self.boot = self.session = self.request_id = 0
 
     def invalidate(self):
@@ -52,9 +53,19 @@ class LabBackend:
         if self.sock is None:
             self.sock = socket.create_connection(("127.0.0.1", self.port), timeout=1)
             self._exchange(HELLO, b"")
+            data = self._exchange(CAPABILITIES, b"")
+            if len(data)<2 or data[0]!=1 or not 1<=data[1]<=4 or len(data)!=2+5*data[1]:
+                raise ValueError("invalid capability registry")
+            for offset in range(2,len(data),5):
+                cap,ready=struct.unpack_from("<IB",data,offset)
+                if not cap or cap in self.capabilities or ready not in (0,1):
+                    raise ValueError("invalid capability descriptor")
+                self.capabilities[cap]=bool(ready)
 
     def snapshot(self, capability):
         self._connect()
+        if capability not in self.capabilities:
+            return {"status":"UNAVAILABLE"}
         data = self._exchange(SNAPSHOT, struct.pack("<I", capability))
         result = {"status": STATUS[data[0]]}
         if data[0] == 1:
@@ -68,7 +79,37 @@ class LabBackend:
 
     def request(self, capability, desired, validity):
         self._connect()
+        if capability not in self.capabilities:
+            return {"status":"UNAVAILABLE"}
         data = self._exchange(DOMAIN, struct.pack("<IBI", capability, desired, validity))
         if len(data) != 1:
             raise ValueError("invalid admission")
         return {"status": STATUS[data[0]], "request_id": self.request_id}
+
+    def request_status(self, request_id, *, boot, session):
+        if self.sock is None or (boot,session)!=(self.boot,self.session):
+            return {"status":"UNKNOWN_OUTCOME"}
+        data=self._exchange(REQUEST_STATUS,struct.pack("<Q",request_id))
+        if len(data)!=1:raise ValueError("invalid retained result")
+        return {"status":STATUS[data[0]]}
+
+    def _observation(self,data):
+        if data[0]!=1:
+            if len(data)!=1:raise ValueError("invalid error result")
+            return {"status":STATUS[data[0]]}
+        if len(data)!=40:raise ValueError("invalid observation event")
+        sequence,cap,value,quality,ready,generation,sample,source=struct.unpack("<QIBBBQQQ",data[1:])
+        if cap not in self.capabilities or value>3 or quality>3 or ready>1:
+            raise ValueError("invalid observation values")
+        return dict(status="COMPLETED",sequence=sequence,capability=cap,value=value,quality=quality,
+                    ready=bool(ready),generation=generation,sample_tick=sample,source_sequence=source,
+                    boot=self.boot,session=self.session)
+
+    def subscribe(self,capability):
+        self._connect()
+        return self._observation(self._exchange(SUBSCRIBE,struct.pack("<I",capability)))
+
+    def event(self,cursor,*,boot,session):
+        if self.sock is None or (boot,session)!=(self.boot,self.session):
+            return {"status":"UNKNOWN_OUTCOME"}
+        return self._observation(self._exchange(EVENT,struct.pack("<Q",cursor)))
