@@ -53,7 +53,8 @@ zarc_composition_status zarc_composition_start(zarc_composition *c) {
   if(!s->start(s->context)) {release(c,i);c->states[i]=ZARC_SERVICE_FAILED;degraded=true;continue;}
   c->states[i]=ZARC_SERVICE_READY;
  }
- return degraded?ZARC_COMPOSITION_DEGRADED:ZARC_COMPOSITION_OK;
+ return !zarc_composition_required_ready(c)?ZARC_COMPOSITION_UNAVAILABLE:
+  degraded?ZARC_COMPOSITION_DEGRADED:ZARC_COMPOSITION_OK;
 }
 /* On failure, do not quiesce dependencies below a still-active dependent.
  * Admission closes for every service before callbacks begin. */
@@ -95,7 +96,8 @@ zarc_composition_status zarc_composition_resume(zarc_composition *c) {
   if(!c->services[i].resume(c->services[i].context)){c->states[i]=ZARC_SERVICE_FAILED;degraded=true;continue;}
   c->states[i]=ZARC_SERVICE_READY;
  }
- return degraded?ZARC_COMPOSITION_DEGRADED:ZARC_COMPOSITION_OK;
+ return !zarc_composition_required_ready(c)?ZARC_COMPOSITION_UNAVAILABLE:
+  degraded?ZARC_COMPOSITION_DEGRADED:ZARC_COMPOSITION_OK;
 }
 zarc_composition_status zarc_composition_stop(zarc_composition *c) {
  if(!c||!c->configured) return ZARC_COMPOSITION_INVALID;
@@ -111,3 +113,10 @@ bool zarc_composition_admits(const zarc_composition *c,uint32_t id) {
  zarc_service_state s;return zarc_composition_state(c,id,&s)&&s==ZARC_SERVICE_READY;
 }
 
+
+bool zarc_composition_required_ready(const zarc_composition *c){
+ if(!c||!c->configured||!c->active)return false;
+ for(size_t i=0;i<c->count;++i)
+  if(c->services[i].required&&c->states[i]!=ZARC_SERVICE_READY)return false;
+ return true;
+}

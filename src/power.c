@@ -6,7 +6,9 @@ bool zarc_power_init(zarc_power *p,uint32_t required,uint64_t epoch,uint64_t now
 bool zarc_power_tick(zarc_power *p,uint64_t now){
  if(!p||!p->configured||now<p->last_tick)return false;
  p->last_tick=now;
- if(p->phase==ZARC_POWER_WAITING&&now>=p->deadline)p->phase=ZARC_POWER_FALLBACK;
+ if((p->phase==ZARC_POWER_WAITING||p->phase==ZARC_POWER_READY)&&now>=p->deadline){
+  p->phase=ZARC_POWER_FALLBACK;p->ready_mask=0;
+ }
  return true;
 }
 bool zarc_power_request(zarc_power *p,uint64_t id,uint64_t now,uint64_t deadline,bool authorized){

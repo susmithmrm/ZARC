@@ -41,5 +41,11 @@ int main(void){
  CHECK(zarc_power_report(&power,9,2,0,false,14)&&power.phase==ZARC_POWER_WAITING);
  CHECK(zarc_power_cancel(&power,2,15,true)&&power.phase==ZARC_POWER_CANCELLED);
  CHECK(!zarc_power_request(&power,2,16,20,true));
+ CHECK(zarc_power_request(&power,3,16,20,true));
+ CHECK(zarc_power_report(&power,9,3,0,true,17));
+ CHECK(zarc_power_report(&power,9,3,1,true,18)&&power.phase==ZARC_POWER_READY);
+ CHECK(zarc_power_tick(&power,20)&&power.phase==ZARC_POWER_FALLBACK&&power.ready_mask==0);
+ CHECK(!zarc_power_report(&power,9,3,1,true,20));
+ CHECK(zarc_power_request(&power,4,21,30,true));
  puts("Coordination contracts passed");return 0;
 }

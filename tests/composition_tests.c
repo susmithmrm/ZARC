@@ -16,7 +16,7 @@ int main(void){
  s[0].dependency_count=1;s[0].dependencies[0]=1;
  CHECK(zarc_composition_configure(&c,s,3)==ZARC_COMPOSITION_OK);
  CHECK(zarc_composition_start(&c)==ZARC_COMPOSITION_OK);
- CHECK(zarc_composition_admits(&c,2));
+ CHECK(zarc_composition_admits(&c,2)&&zarc_composition_required_ready(&c));
  CHECK(zarc_composition_stop(&c)==ZARC_COMPOSITION_INVALID);
  CHECK(zarc_composition_quiesce(&c,1,2)==ZARC_COMPOSITION_OK);
  CHECK(!zarc_composition_admits(&c,2));
@@ -27,7 +27,8 @@ int main(void){
  CHECK(count==3&&order[0]==3&&order[1]==2&&order[2]==1);
  CHECK(zarc_composition_resume(&c)==ZARC_COMPOSITION_INVALID);
  a.fail_start=true;
- CHECK(zarc_composition_start(&c)==ZARC_COMPOSITION_DEGRADED);
+ CHECK(zarc_composition_start(&c)==ZARC_COMPOSITION_UNAVAILABLE);
+ CHECK(!zarc_composition_required_ready(&c));
  CHECK(a.releases==2&&b.inits==1&&zarc_composition_admits(&c,3));
  CHECK(!zarc_composition_admits(&c,1)&&!zarc_composition_admits(&c,2));
  CHECK(zarc_composition_quiesce(&c,5,6)==ZARC_COMPOSITION_OK);
@@ -42,6 +43,14 @@ int main(void){
  b.fail_quiesce=true;CHECK(zarc_composition_quiesce(&c,7,8)==ZARC_COMPOSITION_DEGRADED);
  CHECK(!zarc_composition_admits(&c,1)&&!zarc_composition_admits(&c,2));
  CHECK(zarc_composition_suspend(&c)==ZARC_COMPOSITION_INVALID);
+ CHECK(zarc_composition_stop(&c)==ZARC_COMPOSITION_OK);
+ b.fail_quiesce=false;
+ s[1].id=1;s[1].dependency_count=0;s[2].required=false;
+ d.fail_start=true;
+ CHECK(zarc_composition_configure(&c,s,3)==ZARC_COMPOSITION_OK);
+ CHECK(zarc_composition_start(&c)==ZARC_COMPOSITION_DEGRADED);
+ CHECK(zarc_composition_required_ready(&c)&&!zarc_composition_admits(&c,3));
+ CHECK(zarc_composition_quiesce(&c,9,10)==ZARC_COMPOSITION_OK);
  CHECK(zarc_composition_stop(&c)==ZARC_COMPOSITION_OK);
  puts("Composition contracts passed");return 0;
 }

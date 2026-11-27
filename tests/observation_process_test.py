@@ -30,6 +30,12 @@ try:
     assert backend.event(event["sequence"]+1,**epoch)["status"]=="UNKNOWN_OUTCOME"
     backend.invalidate()
     assert backend.event(cursor,**epoch)["status"]=="UNKNOWN_OUTCOME"
+    assert backend.capabilities=={}
+    fresh=backend.subscribe(1)
+    assert fresh["status"]=="COMPLETED" and fresh["value"]==2
+    assert backend.session>epoch["session"] and backend.boot==epoch["boot"]
+    assert backend.capabilities=={1:True}
+    assert backend.request_status(accepted["request_id"],**epoch)["status"]=="UNKNOWN_OUTCOME"
 finally:
     if backend is not None:backend.invalidate()
     p.terminate()

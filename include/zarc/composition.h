@@ -11,7 +11,7 @@ typedef enum { ZARC_SERVICE_REGISTERED, ZARC_SERVICE_READY,
 typedef enum { ZARC_COMPOSITION_OK, ZARC_COMPOSITION_DEGRADED,
  ZARC_COMPOSITION_INVALID, ZARC_COMPOSITION_DUPLICATE,
  ZARC_COMPOSITION_MISSING_DEPENDENCY, ZARC_COMPOSITION_CYCLE,
- ZARC_COMPOSITION_ACTIVE } zarc_composition_status;
+ ZARC_COMPOSITION_ACTIVE, ZARC_COMPOSITION_UNAVAILABLE } zarc_composition_status;
 /* Sole-owner, non-reentrant, bounded callbacks. False init must release its
  * own partial resources. False start is followed by release. Quiesce must
  * resolve accepted work before returning true. False quiesce/resume/suspend
@@ -43,6 +43,8 @@ zarc_composition_status zarc_composition_suspend(zarc_composition *);
 zarc_composition_status zarc_composition_resume(zarc_composition *);
 zarc_composition_status zarc_composition_stop(zarc_composition *);
 bool zarc_composition_state(const zarc_composition *, uint32_t, zarc_service_state *);
+/* Aggregate readiness is separate from independent service admission. */
+bool zarc_composition_required_ready(const zarc_composition *);
 bool zarc_composition_admits(const zarc_composition *, uint32_t);
 #endif
 

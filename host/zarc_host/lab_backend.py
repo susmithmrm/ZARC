@@ -21,6 +21,7 @@ class LabBackend:
             self.sock.close()
         self.sock = None
         self.boot = self.session = self.request_id = 0
+        self.capabilities.clear()
 
     def _read(self, n):
         result = bytearray()
@@ -51,16 +52,22 @@ class LabBackend:
 
     def _connect(self):
         if self.sock is None:
-            self.sock = socket.create_connection(("127.0.0.1", self.port), timeout=1)
-            self._exchange(HELLO, b"")
-            data = self._exchange(CAPABILITIES, b"")
-            if len(data)<2 or data[0]!=1 or not 1<=data[1]<=4 or len(data)!=2+5*data[1]:
-                raise ValueError("invalid capability registry")
-            for offset in range(2,len(data),5):
-                cap,ready=struct.unpack_from("<IB",data,offset)
-                if not cap or cap in self.capabilities or ready not in (0,1):
-                    raise ValueError("invalid capability descriptor")
-                self.capabilities[cap]=bool(ready)
+            try:
+                self.sock = socket.create_connection(("127.0.0.1", self.port), timeout=1)
+                self._exchange(HELLO, b"")
+                data = self._exchange(CAPABILITIES, b"")
+                if len(data)<2 or data[0]!=1 or not 1<=data[1]<=4 or len(data)!=2+5*data[1]:
+                    raise ValueError("invalid capability registry")
+                discovered = {}
+                for offset in range(2,len(data),5):
+                    cap,ready=struct.unpack_from("<IB",data,offset)
+                    if not cap or cap in discovered or ready not in (0,1):
+                        raise ValueError("invalid capability descriptor")
+                    discovered[cap]=bool(ready)
+                self.capabilities=discovered
+            except (OSError, ValueError):
+                self.invalidate()
+                raise
 
     def snapshot(self, capability):
         self._connect()
