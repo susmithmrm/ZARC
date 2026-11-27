@@ -47,6 +47,10 @@ jobs:
               ElementTree.parse(svg)
           print('Static HTML links and SVG XML passed')
           PY
+      - name: Verify sedan renderer and controls
+        run: |
+          node --check site/sedan.js
+          node tests/sedan_renderer_test.cjs
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         id: upload
