@@ -24,4 +24,3 @@ if(BUILD_TESTING)
   add_test(NAME domain_contract COMMAND zarc_contract_tests)
   add_test(NAME desktop_demo COMMAND zarc_controller_pc)
 endif()
-
