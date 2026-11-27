@@ -6,9 +6,11 @@
 #include "zarc/health.h"
 #include "zarc/observations.h"
 #include "zarc/schedule.h"
+#include "zarc/update.h"
 typedef struct {
  zarc_endpoint_config endpoint; /* legacy single endpoint when count is zero */
  uint64_t period,deadline,health_limit,max_validity,config_digest,build_digest;
+ uint64_t update_status_max_age; /* zero disables optional local status provider */
  size_t count;
  zarc_endpoint_config endpoints[ZARC_CONTROLLER_DOMAINS];
  bool remote_enabled;
@@ -34,6 +36,9 @@ typedef struct {
  zarc_observation_stream observations;
  zarc_periodic cycle;
  zarc_runtime_metrics metrics;
+ zarc_update update_status;
+ uint64_t update_revision,update_tick;
+ bool update_valid;
  zarc_health_snapshot health_snapshot;
  uint64_t health_sequence,sample_not_before;
  bool running,healthy,suspended;
@@ -48,6 +53,11 @@ bool zarc_runtime_step(zarc_runtime *,uint64_t now,bool sample_present,uint64_t 
  * not a WCET proof or physical resource measurement. */
 bool zarc_runtime_health_read(const zarc_runtime *,uint32_t id,zarc_runtime_health_view *);
 bool zarc_runtime_metrics_read(const zarc_runtime *,zarc_runtime_metrics *);
+/* The serialized, trusted local maintenance owner publishes only reconciled
+ * metadata. No flash access, boot request or verification is done here. */
+bool zarc_runtime_publish_update(zarc_runtime *,const zarc_update *,uint64_t revision,uint64_t now,bool verified);
+void zarc_runtime_invalidate_update(zarc_runtime *);
+bool zarc_runtime_read_update(const zarc_runtime *,uint64_t now,zarc_update *,uint64_t *revision,uint64_t *sample_tick);
 bool zarc_runtime_remote_ready(const zarc_runtime *);
 bool zarc_runtime_refresh(zarc_runtime *,uint64_t now);
 bool zarc_runtime_step_batch(zarc_runtime *,uint64_t now,const zarc_runtime_sample *,size_t);

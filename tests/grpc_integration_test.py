@@ -44,7 +44,7 @@ with tempfile.TemporaryDirectory() as directory:
     writer_cert,writer_key=issue("operator")
     unknown_cert,unknown_key=issue("unknown")
     policy=Policy({digest(reader_cert):Principal("reader",frozenset({1}),frozenset(),50),
-                   digest(writer_cert):Principal("writer",frozenset({1}),frozenset({1}),50)})
+                   digest(writer_cert):Principal("writer",frozenset({1}),frozenset({1}),50,update_read=True)})
     controller=subprocess.Popen([sys.argv[1],"401"],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
     backend=server=None;channels=[]
     try:
@@ -62,6 +62,8 @@ with tempfile.TemporaryDirectory() as directory:
         intent=pb.Intent(capability=1,desired=pb.INDICATOR_ON,validity_ms=1000)
         first=reader.GetSnapshot(snapshot,timeout=5)
         assert first.HasField("status") and first.status==pb.COMPLETED and first.value==pb.INDICATOR_OFF
+        assert reader.GetUpdateStatus(pb.UpdateStatusQuery(),timeout=5).status==pb.DENIED
+        assert writer.GetUpdateStatus(pb.UpdateStatusQuery(),timeout=5).status==pb.UNAVAILABLE
         healthy=reader.GetHealth(snapshot,timeout=5)
         assert healthy.HasField("status") and healthy.status==pb.COMPLETED and healthy.ready and not healthy.failures
         assert healthy.boot==first.boot and healthy.source_sequence>0

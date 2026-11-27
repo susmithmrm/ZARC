@@ -161,6 +161,20 @@ bool zarc_runtime_metrics_read(const zarc_runtime *r,zarc_runtime_metrics *out){
  if(!r||!r->controller.link.boot||!out)return false;
  *out=r->metrics;return true;
 }
+void zarc_runtime_invalidate_update(zarc_runtime *r){if(r)r->update_valid=false;}
+bool zarc_runtime_publish_update(zarc_runtime *r,const zarc_update *u,uint64_t revision,uint64_t now,bool verified){
+ if(!r||!r->running||!r->config.update_status_max_age||r->suspended)return false;
+ if(!verified||!zarc_update_state_valid(u)||!revision||revision<=r->update_revision||
+    now<r->controller.last_tick||now<r->update_tick){
+  r->update_valid=false;return false;
+ }
+ r->update_status=*u;r->update_revision=revision;r->update_tick=now;r->update_valid=true;return true;
+}
+bool zarc_runtime_read_update(const zarc_runtime *r,uint64_t now,zarc_update *u,uint64_t *rev,uint64_t *tick){
+ if(!r||!r->running||r->suspended||!r->update_valid||!u||!rev||!tick||
+    now<r->update_tick||now-r->update_tick>=r->config.update_status_max_age)return false;
+ *u=r->update_status;*rev=r->update_revision;*tick=r->update_tick;return true;
+}
 bool zarc_runtime_remote_ready(const zarc_runtime *r){
  return r&&r->running&&!r->suspended&&r->config.remote_enabled&&
   zarc_composition_admits(&r->composition,1)&&zarc_composition_admits(&r->composition,2)&&
@@ -187,7 +201,7 @@ bool zarc_runtime_suspend(zarc_runtime *r,uint64_t now,uint64_t deadline){
  if(!r||!r->running||r->suspended||now>=deadline||!zarc_controller_tick(&r->controller,now)||!idle(r))return false;
  if(zarc_composition_quiesce(&r->composition,now,deadline)!=ZARC_COMPOSITION_OK||
     zarc_composition_suspend(&r->composition)!=ZARC_COMPOSITION_OK)return false;
- r->suspended=true;core_release(r);
+ r->suspended=true;zarc_runtime_invalidate_update(r);core_release(r);
  for(size_t i=0;i<r->controller.count;++i)r->controller.endpoints[i].observed=false;
  return update_health(r,now);
 }

@@ -61,6 +61,20 @@ class Service(rpc.IndicatorServiceServicer):
         except (KeyError,TypeError,ValueError):
             return pb.Health(status=pb.UNAVAILABLE)
 
+    def GetUpdateStatus(self,request,context):
+        principal=_principal(self.gateway,context)
+        if not context.is_active():
+            context.abort(grpc.StatusCode.CANCELLED,"request no longer active")
+        result=self.gateway.dispatch(principal,b'{"operation":"update_status"}')
+        status=_status(result)
+        if status!=pb.COMPLETED:return pb.UpdateStatus(status=status)
+        try:
+            return pb.UpdateStatus(status=status,**{k:result[k] for k in (
+                "phase","revision","active_image","active_version","candidate_image","candidate_version",
+                "sample_tick","boot","session")})
+        except (KeyError,TypeError,ValueError):
+            return pb.UpdateStatus(status=pb.UNAVAILABLE)
+
     def GetRequestStatus(self,request,context):
         principal=_principal(self.gateway,context)
         if not context.is_active():

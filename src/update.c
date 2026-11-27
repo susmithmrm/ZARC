@@ -6,6 +6,15 @@ static bool compatible(const zarc_update_policy *p,const zarc_image *i){
 static bool same(const zarc_image *a,const zarc_image *b){
  return a->image_id==b->image_id&&a->version==b->version&&a->target==b->target&&a->contract==b->contract&&a->config_schema==b->config_schema;
 }
+bool zarc_update_state_valid(const zarc_update *u){
+ if(!u||!u->configured||!u->policy.target||!u->policy.contract||!u->policy.config_schema||
+    !compatible(&u->policy,&u->active)||(unsigned)u->phase>ZARC_UPDATE_CONFIRMING)return false;
+ const zarc_image *c=&u->candidate;
+ bool empty=!c->image_id&&!c->version&&!c->target&&!c->contract&&!c->config_schema;
+ if(u->phase==ZARC_UPDATE_ACTIVE)return empty;
+ if(empty)return u->phase==ZARC_UPDATE_RECOVERY_REQUIRED||u->phase==ZARC_UPDATE_UNAVAILABLE;
+ return compatible(&u->policy,c)&&c->image_id!=u->active.image_id&&c->version>u->active.version;
+}
 bool zarc_update_init(zarc_update *u,const zarc_update_policy *p,const zarc_image *i,bool verified){
  if(!u||!p||!i||!p->target||!p->contract||!p->config_schema||!verified||!compatible(p,i))return false;
  *u=(zarc_update){.policy=*p,.active=*i,.phase=ZARC_UPDATE_ACTIVE,.configured=true};return true;

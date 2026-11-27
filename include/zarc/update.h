@@ -11,6 +11,7 @@ typedef enum {ZARC_UPDATE_OK,ZARC_UPDATE_DENIED,ZARC_UPDATE_INVALID,ZARC_UPDATE_
 /* Portable decision model. Verified flags are facts supplied by the approved
  * boot/metadata and health providers. Not a signature verifier, flash writer
  * or durable boot state. The integrator must persist transitions atomically. */
+bool zarc_update_state_valid(const zarc_update *);
 bool zarc_update_init(zarc_update *,const zarc_update_policy *,const zarc_image *,bool boot_verified);
 zarc_update_status zarc_update_stage(zarc_update *,const zarc_image *,bool metadata_verified,bool eligible,bool recovery_verified);
 zarc_update_status zarc_update_trial_request(zarc_update *,bool eligible);

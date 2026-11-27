@@ -7,7 +7,7 @@ static bool scope(void *ctx,uint64_t principal,uint8_t op,uint32_t id){
 int main(void){
  zarc_runtime r={0};
  const zarc_runtime_config cfg={.count=2,.endpoints={{1,30},{2,30}},.remote_enabled=true,
-  .period=10,.deadline=8,.health_limit=25,.max_validity=50};
+  .period=10,.deadline=8,.health_limit=25,.max_validity=50,.update_status_max_age=20};
  const zarc_runtime_sample s[]={{1,1,0,ZARC_OFF},{2,1,0,ZARC_OFF}};
  zarc_wire_peer peer={.principal=7,.age_known=true,.allow=scope};
  zarc_frame q={.operation=ZARC_OP_HELLO,.request_id=1},out;
@@ -42,6 +42,21 @@ int main(void){
  q.payload[0]=1;
  CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_COMPLETED&&out.length==28);
  CHECK(out.payload[1]==1&&out.payload[2]==1&&out.payload[6]==0&&out.payload[10]==1&&out.payload[11]==0);
+ q.operation=ZARC_OP_UPDATE_STATUS;q.length=0;q.request_id=7;
+ CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_UNAVAILABLE);
+ const zarc_update_policy policy={1,2,3,1};
+ const zarc_image image={11,1,1,2,3};
+ zarc_update update;
+ CHECK(zarc_update_init(&update,&policy,&image,true));
+ CHECK(zarc_runtime_publish_update(&r,&update,1,10,true));
+ CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_COMPLETED&&out.length==51);
+ CHECK(out.payload[1]==1&&out.payload[2]==ZARC_UPDATE_ACTIVE&&out.payload[3]==1&&out.payload[11]==11);
+ CHECK(!effect.emitted);
+ CHECK(!zarc_runtime_publish_update(&r,&update,1,10,true));
+ CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_UNAVAILABLE);
+ CHECK(zarc_runtime_publish_update(&r,&update,2,10,true));
+ uint64_t rev,tick;
+ CHECK(!zarc_runtime_read_update(&r,30,&update,&rev,&tick));
  CHECK(zarc_runtime_dispatch(&r,&peer,&renew,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_COMPLETED&&out.session==2);
  CHECK(r.controller.link.count==0);
  CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_UNAVAILABLE);

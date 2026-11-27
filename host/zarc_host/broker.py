@@ -42,6 +42,8 @@ def parse_command(data):
     if not isinstance(obj, dict):
         raise ValueError("object required")
     op = obj.get("operation")
+    if op=="update_status" and set(obj)=={"operation"}:
+        return Command(op,0)
     domain = obj.get("capability")
     if type(domain) is not int or not 1 <= domain <= 0xFFFFFFFF:
         raise ValueError("capability")
@@ -78,6 +80,8 @@ class Gateway:
                 if self._owners.get(key)!=(principal.name,cmd.capability):
                     return {"status":"UNKNOWN_OUTCOME"}
                 return self.backend.request_status(cmd.request_id,boot=cmd.boot,session=cmd.session)
+            if cmd.operation == "update_status":
+                return self.backend.update_status()
             if cmd.operation == "health":
                 return self.backend.health(cmd.capability)
             if cmd.operation == "snapshot":

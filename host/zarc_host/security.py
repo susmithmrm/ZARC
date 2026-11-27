@@ -14,9 +14,10 @@ class Principal:
     read: frozenset[int]
     write: frozenset[int]
     rate: int = 8
+    update_read: bool = False
 
     def __post_init__(self):
-        if not self.name or not 1 <= self.rate <= 100:
+        if not self.name or not 1 <= self.rate <= 100 or type(self.update_read) is not bool:
             raise ValueError("invalid principal policy")
         if any(type(x) is not int or not 1 <= x <= 0xFFFFFFFF
                for x in self.read | self.write):
@@ -77,7 +78,9 @@ class Policy:
             return False
         scope = principal.read if operation in ("snapshot","health") else (
             principal.write if operation in ("request","request_status") else frozenset())
-        if type(capability) is not int or capability not in scope:
+        if operation=="update_status":
+            if type(capability) is not int or capability!=0 or not principal.update_read:return False
+        elif type(capability) is not int or capability not in scope:
             return False
         now = self._clock()
         window, used = self._usage.get(principal.name, (now, 0))

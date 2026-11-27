@@ -64,7 +64,30 @@ message Health {
   uint64 boot = 9;
   uint64 session = 10;
 }
+enum UpdatePhase {
+  UPDATE_ACTIVE = 0;
+  UPDATE_STAGED = 1;
+  UPDATE_TRIAL_REQUESTED = 2;
+  UPDATE_TRIAL = 3;
+  UPDATE_RECOVERY_REQUIRED = 4;
+  UPDATE_UNAVAILABLE = 5;
+  UPDATE_CONFIRMING = 6;
+}
+message UpdateStatusQuery {}
+message UpdateStatus {
+  optional Status status = 1;
+  UpdatePhase phase = 2;
+  uint64 revision = 3;
+  uint64 active_image = 4;
+  uint64 active_version = 5;
+  uint64 candidate_image = 6;
+  uint64 candidate_version = 7;
+  uint64 sample_tick = 8;
+  uint64 boot = 9;
+  uint64 session = 10;
+}
 service IndicatorService {
+  rpc GetUpdateStatus(UpdateStatusQuery) returns (UpdateStatus);
   rpc GetRequestStatus(RequestStatusQuery) returns (RequestOutcome);
   rpc GetHealth(SnapshotRequest) returns (Health);
   rpc GetSnapshot(SnapshotRequest) returns (Observation);

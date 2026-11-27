@@ -4,7 +4,7 @@ import struct
 
 HEADER = struct.Struct("<2sBBBBHQQQ")
 HELLO, CAPABILITIES, SNAPSHOT, DOMAIN, REQUEST_STATUS, SUBSCRIBE, RESULT, EVENT = 1, 2, 3, 4, 6, 7, 10, 11
-HEALTH = 8
+HEALTH, UPDATE_STATUS = 8, 9
 STATUS = ("ACCEPTED", "COMPLETED", "DENIED", "BUSY", "CONFLICT",
           "INVALID", "EXPIRED", "INCOMPATIBLE", "UNAVAILABLE", "UNKNOWN_OUTCOME")
 
@@ -109,6 +109,20 @@ class LabBackend:
         elif len(data) != 1:
             raise ValueError("invalid error response")
         return result
+
+    def update_status(self):
+        self._connect()
+        data=self._exchange(UPDATE_STATUS,b"")
+        if data[0]!=1:
+            if len(data)!=1:raise ValueError("invalid update error")
+            return {"status":STATUS[data[0]]}
+        if len(data)!=51:raise ValueError("invalid update status length")
+        version,phase,revision,active,av,candidate,cv,tick=struct.unpack("<BBQQQQQQ",data[1:])
+        if version!=1 or phase>6 or not revision or not active:
+            raise ValueError("invalid update status")
+        return dict(status="COMPLETED",phase=phase,revision=revision,active_image=active,
+                    active_version=av,candidate_image=candidate,candidate_version=cv,
+                    sample_tick=tick,boot=self.boot,session=self.session)
 
     def health(self, capability):
         self._connect()
