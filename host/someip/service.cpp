@@ -21,6 +21,9 @@ static std::string read_file(const char *path){
  if(data.empty()||data.size()>65536)throw std::runtime_error("invalid credential size");
  return data;
 }
+static void append32(Bytes &bytes,std::uint32_t value){
+ for(int i=3;i>=0;--i)bytes.push_back(static_cast<vsomeip::byte_t>(value>>(8*i)));
+}
 static void append64(Bytes &bytes,std::uint64_t value){
  for(int i=7;i>=0;--i)bytes.push_back(static_cast<vsomeip::byte_t>(value>>(8*i)));
 }
@@ -73,6 +76,44 @@ int main(int argc,char **argv){
           result.push_back(static_cast<vsomeip::byte_t>(observation.quality()));
           append64(result,observation.boot());append64(result,observation.generation());
          }
+        }
+       }
+      }
+     }
+    }
+    auto response=runtime->create_response(request);
+    auto body=runtime->create_payload();body->set_data(result);
+    response->set_payload(body);app->send(response);
+   });
+  app->register_message_handler(binding::service,binding::instance,binding::health_method,
+   [&](const std::shared_ptr<vsomeip::message> &request){
+    Bytes result{static_cast<vsomeip::byte_t>(schema::INVALID)};
+    auto payload=request->get_payload();
+    if(request->get_interface_version()!=binding::major)result[0]=static_cast<vsomeip::byte_t>(schema::INCOMPATIBLE);
+    else if(payload&&payload->get_length()==4){
+     std::uint32_t id=0;
+     for(std::size_t i=0;i<4;++i)id=(id<<8)|payload->get_data()[i];
+     std::unique_lock<std::mutex> lock(owner,std::try_to_lock);
+     if(!lock.owns_lock())result[0]=static_cast<vsomeip::byte_t>(schema::BUSY);
+     else{
+      grpc::ClientContext context;
+      context.set_deadline(std::chrono::system_clock::now()+std::chrono::milliseconds(900));
+      schema::SnapshotRequest query;query.set_capability(id);
+      schema::Health health;
+      auto status=stub->GetHealth(&context,query,&health);
+      if(!status.ok()||!health.has_status()||!schema::Status_IsValid(health.status()))
+       result[0]=static_cast<vsomeip::byte_t>(schema::UNAVAILABLE);
+      else{
+       result[0]=static_cast<vsomeip::byte_t>(health.status());
+       if(health.status()==schema::COMPLETED){
+        if(health.capability()!=id||health.failures()>7||!health.boot()||!health.session())
+         result[0]=static_cast<vsomeip::byte_t>(schema::UNAVAILABLE);
+        else{
+         append32(result,id);append32(result,health.failures());
+         result.push_back(health.ready()?1:0);
+         result.push_back(static_cast<vsomeip::byte_t>((health.pending()?1:0)|(health.effect_owned()?2:0)));
+         append64(result,health.sample_tick());append64(result,health.source_sequence());
+         append64(result,health.boot());append64(result,health.session());
         }
        }
       }
