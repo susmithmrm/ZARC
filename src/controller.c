@@ -49,13 +49,13 @@ zarc_conn_status zarc_controller_request(zarc_controller *c,const zarc_intent *q
  zarc_conn_status status=zarc_link_admit(&candidate,q,allowed,age_known,age,now,&fresh);
  if(status!=ZARC_CONN_ACCEPTED||!fresh)return status;
  if(!e->ready)return ZARC_CONN_UNAVAILABLE;
- if(!reserved||e->domain.pending)return ZARC_CONN_BUSY;
+ if(!reserved||e->domain.pending||e->effect_outstanding)return ZARC_CONN_BUSY;
  if(e->internal_id==UINT64_MAX)return ZARC_CONN_UNAVAILABLE;
  zarc_domain next=e->domain;zarc_effect output;
  uint64_t deadline=candidate.entries[candidate.count-1u].deadline;
  if(zarc_request(&next,true,e->internal_id+1u,(zarc_value)q->desired,now,deadline,&output)!=ZARC_ACCEPTED||!output.emitted)return ZARC_CONN_INVALID;
- c->link=candidate;e->domain=next;++e->internal_id;e->admitted_tick=now;e->request_id=q->request_id;e->session=q->session;e->correlated=true;
- *effect=(zarc_controller_effect){.id=q->domain,.desired=output.desired,.emitted=true};return ZARC_CONN_ACCEPTED;
+ c->link=candidate;e->domain=next;++e->internal_id;e->admitted_tick=now;e->request_id=q->request_id;e->session=q->session;e->correlated=true;e->effect_outstanding=true;
+ *effect=(zarc_controller_effect){.id=q->domain,.desired=output.desired,.emitted=true,.boot=c->link.boot,.token=e->internal_id,.deadline=deadline};return ZARC_CONN_ACCEPTED;
 }
 bool zarc_controller_feedback(zarc_controller *c,uint32_t id,uint64_t boot,uint64_t seq,uint64_t sample,uint64_t now,zarc_value value){
  if(!c||boot!=c->link.boot||!seq||sample>now||now<c->last_tick||
@@ -93,12 +93,12 @@ zarc_conn_status zarc_controller_local(zarc_controller *c,uint32_t id,zarc_value
  zarc_endpoint *e=find_endpoint(c,id);if(!e)return ZARC_CONN_INVALID;
  if(!allowed)return ZARC_CONN_DENIED;
  if(!e->ready)return ZARC_CONN_UNAVAILABLE;
- if(!reserved||e->domain.pending)return ZARC_CONN_BUSY;
+ if(!reserved||e->domain.pending||e->effect_outstanding)return ZARC_CONN_BUSY;
  if(e->internal_id==UINT64_MAX)return ZARC_CONN_UNAVAILABLE;
  zarc_domain next=e->domain;zarc_effect output;
  if(zarc_request(&next,true,e->internal_id+1u,desired,now,now+validity,&output)!=ZARC_ACCEPTED||!output.emitted)return ZARC_CONN_INVALID;
- e->domain=next;++e->internal_id;e->admitted_tick=now;e->correlated=false;
- *effect=(zarc_controller_effect){.id=id,.desired=output.desired,.emitted=true};return ZARC_CONN_ACCEPTED;
+ e->domain=next;++e->internal_id;e->admitted_tick=now;e->correlated=false;e->effect_outstanding=true;
+ *effect=(zarc_controller_effect){.id=id,.desired=output.desired,.emitted=true,.boot=c->link.boot,.token=e->internal_id,.deadline=now+validity};return ZARC_CONN_ACCEPTED;
 }
 zarc_cancel_status zarc_controller_cancel(zarc_controller *c,uint32_t id,uint64_t session,uint64_t request_id,bool authorized,bool removed,uint64_t now){
  if(!authorized)return ZARC_CANCEL_DENIED;
@@ -110,7 +110,16 @@ zarc_cancel_status zarc_controller_cancel(zarc_controller *c,uint32_t id,uint64_
   if(r->status!=ZARC_CONN_ACCEPTED)return ZARC_CANCEL_TERMINAL;
   if(!e->correlated||!e->domain.pending||e->request_id!=request_id||e->session!=session)return ZARC_CANCEL_UNKNOWN;
   if(!removed)return ZARC_CANCEL_IN_FLIGHT;
-  e->domain.pending=false;e->domain.result=ZARC_UNKNOWN_OUTCOME;reconcile(c,e,now);return ZARC_CANCEL_REMOVED;
+  e->effect_outstanding=false;e->domain.pending=false;e->domain.result=ZARC_UNKNOWN_OUTCOME;reconcile(c,e,now);return ZARC_CANCEL_REMOVED;
  }
  return ZARC_CANCEL_UNKNOWN;
+}
+
+bool zarc_controller_effect_released(zarc_controller *c,const zarc_controller_effect *effect,uint64_t now){
+ if(!c||!effect||!effect->emitted||effect->boot!=c->link.boot||!effect->token||now<c->last_tick)return false;
+ zarc_endpoint *e=find_endpoint(c,effect->id);
+ if(!e||!e->effect_outstanding||effect->token!=e->internal_id||effect->deadline!=e->domain.deadline||
+    effect->desired!=e->domain.desired)return false;
+ if(!zarc_controller_tick(c,now))return false;
+ e->effect_outstanding=false;return true;
 }

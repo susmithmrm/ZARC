@@ -5,16 +5,20 @@
 #define CHECK(x) do{if(!(x)){fprintf(stderr,"line %d: %s\n",__LINE__,#x);return 1;}}while(0)
 int main(void){
  zarc_controller c;const zarc_endpoint_config p[]={{1,50},{2,50}};
- zarc_controller_effect e;zarc_observation o;
+ zarc_controller_effect e,first,second;zarc_observation o;
  CHECK(zarc_controller_init(&c,p,2,1,100,0));
  CHECK(zarc_controller_ready(&c,1,true)&&zarc_controller_ready(&c,2,true));
  CHECK(zarc_controller_local(&c,1,ZARC_ON,false,1,10,true,&e)==ZARC_CONN_DENIED);
  CHECK(zarc_controller_local(&c,1,ZARC_ON,true,1,10,false,&e)==ZARC_CONN_BUSY);
  CHECK(zarc_controller_local(&c,1,ZARC_ON,true,1,10,true,&e)==ZARC_CONN_ACCEPTED&&e.emitted);
+ first=e;
  CHECK(zarc_controller_local(&c,1,ZARC_OFF,true,2,10,true,&e)==ZARC_CONN_BUSY);
  CHECK(zarc_controller_local(&c,2,ZARC_OFF,true,2,10,true,&e)==ZARC_CONN_ACCEPTED);
+ second=e;
  CHECK(zarc_controller_feedback(&c,2,1,1,3,3,ZARC_OFF));
  CHECK(zarc_controller_feedback(&c,1,1,1,4,4,ZARC_ON));
+ CHECK(zarc_controller_effect_released(&c,&first,4));
+ CHECK(zarc_controller_effect_released(&c,&second,4));
  CHECK(zarc_controller_snapshot(&c,1,&o)&&o.value==ZARC_ON&&o.quality==ZARC_QUALITY_VALID);
  CHECK(!c.link.connected&&c.link.count==0);
  CHECK(zarc_controller_open(&c,1,1,1,0,5)==ZARC_CONN_COMPLETED);
@@ -28,6 +32,7 @@ int main(void){
  CHECK(zarc_link_result(&c.link,1,ZARC_OP_DOMAIN,1,6)==ZARC_CONN_UNKNOWN_OUTCOME);
  CHECK(zarc_controller_local(&c,1,ZARC_OFF,true,7,10,true,&e)==ZARC_CONN_ACCEPTED);
  CHECK(zarc_controller_feedback(&c,1,1,2,8,8,ZARC_OFF));
+ CHECK(zarc_controller_effect_released(&c,&e,8));
  zarc_periodic s;zarc_release r;bool on_time;
  CHECK(zarc_periodic_init(&s,10,10,8));
  CHECK(zarc_periodic_poll(&s,9,&r)&&!r.due);

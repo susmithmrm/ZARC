@@ -4,7 +4,7 @@
 #include "lab_wire.h"
 #include <stdio.h>
 #include <stdlib.h>
-typedef struct { bool pending; uint64_t due, sequence; zarc_value desired; } virtual_device;
+typedef struct { bool pending; uint64_t due, sequence; zarc_controller_effect effect; } virtual_device;
 static void encode_observation(uint8_t *p,const zarc_observation *o,uint64_t seq){
  lab_put(p,8,seq);lab_put(p+8,4,o->id);p[12]=(uint8_t)o->value;p[13]=(uint8_t)o->quality;p[14]=o->ready?1u:0u;
  lab_put(p+15,8,o->generation);lab_put(p+23,8,o->sample_tick);lab_put(p+31,8,o->source_sequence);
@@ -38,7 +38,7 @@ static bool reply(zarc_controller *c,zarc_observation_stream *stream,virtual_dev
     .desired=q->payload[4],.operation=ZARC_OP_DOMAIN,.validity=lab_get(q->payload+5,4)};
   zarc_controller_effect effect;
   status=zarc_controller_request(c,&intent,true,true,0,now,!d->pending,&effect);
-  if(effect.emitted){d->pending=true;d->due=now+200u;d->desired=effect.desired;}
+  if(effect.emitted){d->pending=true;d->due=now+200u;d->effect=effect;}
  }else if(q->operation==ZARC_OP_SNAPSHOT&&q->length==4){
   zarc_observation o;
   if(zarc_controller_snapshot(c,(uint32_t)lab_get(q->payload,4),&o)){
