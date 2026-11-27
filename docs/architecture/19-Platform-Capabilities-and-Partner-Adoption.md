@@ -4,7 +4,7 @@ Informative extension to the architecture. No new normative requirements, unsupp
 
 ## Capability landscape
 
-Lab means limited laboratory evidence; Binding means native API code, not physical qualification; Candidate means architecture direction; Planned means not implemented as a complete integration; Opportunity means potential future extension. The expanded native provider lane has outstanding failures. Consult the implementation status and live CI.
+Lab means limited laboratory evidence; Binding means native API code, not physical qualification; Candidate means architecture direction; Planned means not implemented as a complete integration; Opportunity means potential future extension. The expanded native provider lane passed on the recorded 65d47614 baseline; the newer four-profile and independent-worker revisions require completed CI runs. Consult the implementation status and live CI.
 
 | Area | Capability | Approach | Maturity | Remaining evidence |
 |---|---|---|---|---|
