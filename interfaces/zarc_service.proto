@@ -1,0 +1,46 @@
+syntax = "proto3";
+package zarc.reference.v1;
+
+// Candidate semantic schema, independent of transport or OEM VSIDL mapping.
+enum Status {
+  ACCEPTED = 0;
+  COMPLETED = 1;
+  DENIED = 2;
+  BUSY = 3;
+  CONFLICT = 4;
+  INVALID = 5;
+  EXPIRED = 6;
+  INCOMPATIBLE = 7;
+  UNAVAILABLE = 8;
+  UNKNOWN_OUTCOME = 9;
+}
+enum Indicator {
+  INDICATOR_UNKNOWN = 0;
+  INDICATOR_OFF = 1;
+  INDICATOR_ON = 2;
+  INDICATOR_FAULT = 3;
+}
+enum Quality {
+  QUALITY_UNKNOWN = 0;
+  QUALITY_VALID = 1;
+  QUALITY_STALE = 2;
+  QUALITY_FAULT = 3;
+}
+message SnapshotRequest { uint32 capability = 1; }
+message Intent {
+  uint32 capability = 1;
+  Indicator desired = 2;
+  uint32 validity_ms = 3;
+}
+message Admission { optional Status status = 1; uint64 request_id = 2; }
+message Observation {
+  optional Status status = 1;
+  Indicator value = 2;
+  Quality quality = 3;
+  uint64 boot = 4;
+  uint64 generation = 5;
+}
+service IndicatorService {
+  rpc GetSnapshot(SnapshotRequest) returns (Observation);
+  rpc RequestState(Intent) returns (Admission);
+}
