@@ -7,5 +7,7 @@
 bool zarc_profile_provider_start(const zarc_endpoint_config *,size_t count);
 bool zarc_profile_provider_sample(zarc_runtime_sample *,size_t count);
 bool zarc_profile_provider_effect(const zarc_controller_effect *,bool *applied);
+bool zarc_profile_provider_suspend(void);
+bool zarc_profile_provider_resume(void);
 bool zarc_profile_provider_stop(void);
 #endif

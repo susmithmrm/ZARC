@@ -2,8 +2,19 @@
 #include <zephyr/sys/util.h>
 #include <string.h>
 #include "provider_fixture.h"
+#include "device_pm.h"
+#include <zephyr/pm/device.h>
+#include <errno.h>
 #include "zarc_manifest.h"
-enum command_kind { SAMPLE, EFFECT, STOP };
+enum command_kind { SAMPLE, EFFECT, SUSPEND, RESUME, STOP };
+/* This device exists only on native_sim. No physical power rail is touched. */
+static int fixture_pm_action(const struct device *dev,enum pm_device_action action){
+ ARG_UNUSED(dev);
+ return action==PM_DEVICE_ACTION_RESUME||action==PM_DEVICE_ACTION_SUSPEND?0:-ENOTSUP;
+}
+PM_DEVICE_DEFINE(zarc_runtime_virtual_pm,fixture_pm_action);
+DEVICE_DEFINE(zarc_runtime_virtual_pm,"zarc_runtime_virtual_pm",NULL,
+ PM_DEVICE_GET(zarc_runtime_virtual_pm),NULL,NULL,POST_KERNEL,CONFIG_KERNEL_INIT_PRIORITY_DEVICE,NULL);
 struct command {enum command_kind kind;uint64_t id;zarc_controller_effect effect;};
 struct reply {
  uint64_t id;bool ok,applied;
@@ -25,11 +36,17 @@ static void run(void *a,void *b,void *c){
  zarc_value values[ZARC_CONTROLLER_DOMAINS]={0};
  uint64_t seq[ZARC_CONTROLLER_DOMAINS]={0},tokens[ZARC_CONTROLLER_DOMAINS]={0};
  for(size_t i=0;i<count;++i)values[i]=ZARC_OFF;
+ struct zarc_native_pm pm={0};
+ if(zarc_native_pm_open(&pm,DEVICE_GET(zarc_runtime_virtual_pm))!=0||zarc_native_pm_acquire(&pm)!=0)return;
  for(;;){
   struct command q;
   if(k_msgq_get(&commands,&q,K_FOREVER)!=0)return;
   struct reply r={.id=q.id,.ok=true};
-  if(q.kind==SAMPLE){
+  if(q.kind==SUSPEND){r.ok=zarc_native_pm_release(&pm)==0;}
+  else if(q.kind==RESUME){r.ok=zarc_native_pm_acquire(&pm)==0;}
+  else if(q.kind==STOP){r.ok=!pm.held||zarc_native_pm_release(&pm)==0;}
+  else if(!pm.held){r.ok=false;}
+  else if(q.kind==SAMPLE){
    r.count=count;
    uint64_t now=ticks();
    for(size_t i=0;i<count;++i){
@@ -46,7 +63,7 @@ static void run(void *a,void *b,void *c){
     /* Expired work is discarded. Readback is a later separate SAMPLE. */
     if(ticks()<e->deadline){values[i]=e->desired;r.applied=true;}
    }
-  }else if(q.kind!=STOP)r.ok=false;
+  }else r.ok=false;
   if(k_msgq_put(&replies,&r,K_NO_WAIT)!=0)return;
   if(q.kind==STOP)return;
  }
@@ -76,6 +93,12 @@ bool zarc_profile_provider_effect(const zarc_controller_effect *e,bool *applied)
  struct command q={.kind=EFFECT,.effect=*e};struct reply r;
  if(!exchange(&q,&r))return false;
  *applied=r.applied;return true;
+}
+bool zarc_profile_provider_suspend(void){
+ struct command q={.kind=SUSPEND};struct reply r;return exchange(&q,&r);
+}
+bool zarc_profile_provider_resume(void){
+ struct command q={.kind=RESUME};struct reply r;return exchange(&q,&r);
 }
 bool zarc_profile_provider_stop(void){
  if(!tid)return false;

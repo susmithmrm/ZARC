@@ -5,11 +5,13 @@
 #include "zarc/power.h"
 #include "zarc_manifest.h"
 #include "provider_fixture.h"
+#include "observation_fixture.h"
 /* Simulator-only device readback and lab-local trusted peer. */
 BUILD_ASSERT(CONFIG_MAIN_STACK_SIZE==ZARC_RUNTIME_MAIN_STACK,"manifest stack mismatch");
 BUILD_ASSERT(CONFIG_MAIN_THREAD_PRIORITY==ZARC_RUNTIME_MAIN_PRIORITY,"manifest priority mismatch");
 BUILD_ASSERT(ZARC_PROFILE_ENDPOINT_COUNT<=ZARC_CONTROLLER_DOMAINS,"endpoint allocation");
 static zarc_runtime runtime;
+static struct zarc_profile_observer observer;
 static zarc_power power;
 static uint64_t profile_boot_tick;
 static bool ipc_opened;
@@ -108,14 +110,16 @@ int main(void){
  profile_boot_tick=now;
  if(!profile_setup()||!zarc_runtime_init(&runtime,&config,1,now))return 1;
  if(!zarc_composition_required_ready(&runtime.composition))return 1;
- if(!zarc_profile_provider_start(config.endpoints,config.count))return 1;
+ if(!zarc_profile_provider_start(config.endpoints,config.count)||
+    !zarc_profile_observer_barrier(&observer,&runtime.observations))return 1;
  printk("ZARC reference %s manifest %s\n",ZARC_PROFILE_NAME,ZARC_MANIFEST_SHA256);
  bool issued=false;
  for(;;){
   zarc_runtime_sample samples[ZARC_PROFILE_ENDPOINT_COUNT];
   if(!zarc_profile_provider_sample(samples,config.count))return 1;
   now=ticks();
-  if(!zarc_runtime_step_batch(&runtime,now,samples,config.count))return 1;
+  if(!zarc_runtime_step_batch(&runtime,now,samples,config.count)||
+     !zarc_profile_observer_pump(&observer,&runtime.observations))return 1;
   if(ZARC_PROFILE_KIND==1u&&!zarc_power_tick(&power,now))return 1;
   if(IS_ENABLED(CONFIG_ZARC_RUNTIME_SMOKE)&&!issued&&runtime.healthy){
    if(ZARC_PROFILE_KIND==1u){
@@ -143,6 +147,7 @@ int main(void){
     now=ticks();
    }
    zarc_runtime_disconnect(&runtime);issued=true;
+   if(!zarc_profile_observer_pump(&observer,&runtime.observations))return 1;
   }
   if(IS_ENABLED(CONFIG_ZARC_RUNTIME_SMOKE)&&issued){
    bool observed=true;
@@ -151,8 +156,16 @@ int main(void){
     if(!zarc_controller_snapshot(&runtime.controller,config.endpoints[i].id,&o)||o.value!=ZARC_ON||o.quality!=ZARC_QUALITY_VALID)observed=false;
    }
    if(observed){
-    now=ticks();if(!zarc_runtime_suspend(&runtime,now,now+20)||!zarc_runtime_resume(&runtime,now))return 1;
-    if(runtime.healthy||!zarc_runtime_stop(&runtime,now,now+20))return 1;
+    if(!observer.valid||!observer.delivered)return 1;
+    for(size_t i=0;i<observer.count;++i)
+     if(observer.cache[i].value!=ZARC_ON||observer.cache[i].quality!=ZARC_QUALITY_VALID)return 1;
+    now=ticks();
+    if(!zarc_runtime_suspend(&runtime,now,now+20)||
+       !zarc_profile_provider_suspend()||!zarc_profile_provider_resume())return 1;
+    now=ticks();
+    if(!zarc_runtime_resume(&runtime,now)||runtime.healthy||
+       !zarc_profile_observer_barrier(&observer,&runtime.observations)||
+       !zarc_runtime_stop(&runtime,now,now+20))return 1;
     if(ipc_opened||!zarc_profile_provider_stop())return 1;
     printk("ZARC runtime observed benign indicator and stopped\n");return 0;
    }
