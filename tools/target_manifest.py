@@ -16,6 +16,38 @@ CONTEXTS={"I0","R1","R2","C3","O4","M5"}
 def number(x,minimum=1,maximum=0xffffffff):
     return type(x) is int and minimum<=x<=maximum
 
+def validate_execution(m):
+    """Validate declared candidate architecture, not silicon support or safety evidence."""
+    e=m.get("execution")
+    if not isinstance(e,dict):
+        raise ValueError("execution descriptor required")
+    for k in ("isa","core","port_owner","port_reference","abi"):
+        if not isinstance(e.get(k),str) or not e[k].strip():
+            raise ValueError("missing execution "+k)
+    mode=e.get("mode")
+    if mode not in ("single","smp","amp","lockstep","split_lock","simulator"):
+        raise ValueError("execution mode")
+    count=e.get("core_count")
+    if not number(count,1,256):
+        raise ValueError("core count")
+    if mode=="single" and count!=1:
+        raise ValueError("single execution requires one core")
+    if mode in ("smp","amp","lockstep","split_lock") and count<2:
+        raise ValueError("multicore mode requires multiple cores")
+    if e.get("byte_order") not in ("little","big","host"):
+        raise ValueError("byte order")
+    if e.get("word_bits") not in (16,32,64) or type(e.get("word_bits")) is not int:
+        raise ValueError("word bits")
+    if not number(e.get("alignment_bytes"),1,64) or e["alignment_bytes"] & (e["alignment_bytes"]-1):
+        raise ValueError("alignment")
+    sim=m.get("board")=="native_sim/native/64"
+    if sim!=(mode=="simulator") or (not sim and e["byte_order"]=="host"):
+        raise ValueError("simulator execution mismatch")
+    if m["features"]["smp"]!=(mode=="smp"):
+        raise ValueError("SMP execution mismatch")
+    if mode in ("lockstep","split_lock") and not isinstance(e.get("mode_reference"),str):
+        raise ValueError("vendor mode reference required")
+
 def validate(m):
     if not isinstance(m,dict):
         raise ValueError("manifest object")
@@ -76,6 +108,7 @@ def validate(m):
     for feature in ("uart","can","ipc","watchdog","flash","mcuboot","pm","smp","zbus"):
         if feature not in features:
             raise ValueError("undeclared feature "+feature)
+    validate_execution(m)
     if features["mcuboot"] and not features["flash"]:
         raise ValueError("MCUboot requires flash")
     if profile=="integrated" and not features["ipc"]:

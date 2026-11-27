@@ -120,5 +120,17 @@
       1,
       2
     ]
+  },
+  "execution": {
+    "isa": "host-native",
+    "core": "native-simulator",
+    "port_owner": "Zephyr native simulator maintainers",
+    "port_reference": "Zephyr v4.2.0 native_sim",
+    "abi": "host compiler ABI",
+    "mode": "simulator",
+    "core_count": 1,
+    "byte_order": "host",
+    "word_bits": 64,
+    "alignment_bytes": 8
   }
 }

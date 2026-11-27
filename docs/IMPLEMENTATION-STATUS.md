@@ -76,3 +76,6 @@ All 178 IDs are represented in the verification register. Candidate paths were p
 The desktop controller operates only a benign simulated indicator. No physical vehicle commands or production credentials are included. Keep the branch in review until evidence is accepted; no automotive safety or production cybersecurity claim.
 
 The unified baseline now contains 178 proposed requirements. New silicon-related obligations are open; refined acceptance criteria require renewed evidence review. Existing candidate paths are not accepted evidence.
+
+## Candidate execution descriptor and baseline regression
+The native simulator manifests now declare ISA, core, ABI, mode, core count, byte order, alignment and port ownership. Build-time validation rejects inconsistent declarations. Evidence gate regression derives the expected IDs from Z12 instead of a historical constant. Physical silicon eligibility and CI results remain to be verified.

@@ -4,12 +4,13 @@ import sys
 import tempfile
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"tools"))
-from verify_evidence import trace_errors,evidence_errors,ROOT
+from verify_evidence import trace_errors,evidence_errors,read_csv,ROOT
 
 class Tests(unittest.TestCase):
     def test_trace(self):
         base, errors=trace_errors(ROOT)
-        self.assertEqual(len(base),111)
+        self.assertEqual(set(base), {row['ID'] for row in read_csv(ROOT / 'docs/architecture/12-Requirements-Verification.csv')})
+        self.assertTrue(base)
         self.assertEqual(errors,[])
     def test_fail_closed(self):
         base={"X":{"Verification_ID":"T-X","Method":"HIL","Profiles":"ALL"}}

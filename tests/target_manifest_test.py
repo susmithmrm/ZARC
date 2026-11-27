@@ -31,6 +31,16 @@ class Tests(unittest.TestCase):
             elif change=="flash":m["features"]["mcuboot"]=True
             elif change=="uart":m["features"]["uart"]=m["uart_console_shared"]=True
             with self.subTest(change=change),self.assertRaises(ValueError):validate(m)
+    def test_execution_descriptor(self):
+        for key,value in (("isa",""),("core_count",0),("mode","lockstep"),
+                          ("byte_order","unknown"),("word_bits",True),
+                          ("alignment_bytes",3),("port_owner","")):
+            bad=copy.deepcopy(self.m);bad["execution"][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):validate(bad)
+        bad=copy.deepcopy(self.m);del bad["execution"]
+        with self.assertRaises(ValueError):validate(bad)
+        bad=copy.deepcopy(self.m);bad["features"]["smp"]=True
+        with self.assertRaises(ValueError):validate(bad)
     def test_runtime_allocation(self):
         header=generate(self.m)
         self.assertIn("#define ZARC_RUNTIME_PERIOD_MS 10u",header)
