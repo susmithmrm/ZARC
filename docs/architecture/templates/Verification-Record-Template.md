@@ -1,4 +1,5 @@
 # ZARC verification record template
+
 Verification ID: TBD. Requirement ID and design reference: TBD. Method: TBD. Test owner/reviewer: TBD. Date: TBD.
 
 Configuration: source commits; release and dependency manifest; board/stepping; product/profile; toolchain; binary and configuration hashes; simulator or HIL identity; environmental conditions and load.

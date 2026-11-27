@@ -1,5 +1,7 @@
 # Z11 Architecture decisions and risk register
+
 ## Decision log
+
 | ID | Status | Decision/question | Owner/gate |
 |---|---|---|---|
 | ADR-001 | Proposed | Native Zephyr execution; no parallel general RTOS abstraction | Architect G0 |
@@ -24,6 +26,7 @@
 | ADR-020 | Proposed | No production support without exact configuration evidence | Assurance G0 |
 
 ## Risk register
+
 | ID | Risk | Likelihood/impact | Mitigation / trigger |
 |---|---|---|---|
 | RK-01 | Vendor BSP unsupported or incomplete | High/high | Select two candidates and document errata; no board claim before evidence |
@@ -42,4 +45,5 @@
 | RK-14 | Evidence not reproducible | Medium/high | Manifest-bound trace, raw artifacts, fail-closed release gate |
 
 ## Architecture review checklist
+
 At each gate confirm ownership, supported profiles, actual dependencies, changed interface versions, resource/timing evidence, assumptions of use, unresolved requirements, residual risks, maintenance and supplier responsibilities. Record approval or rejection against exact version. No undocumented deviations in released builds.

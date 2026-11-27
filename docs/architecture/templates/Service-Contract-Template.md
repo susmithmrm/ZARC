@@ -1,4 +1,5 @@
 # ZARC service contract template
+
 Service ID and owner: TBD. Version: TBD. Applicable profiles: TBD. Dependencies and provided capability: TBD. Local authority and allocated HW resource: TBD.
 
 | Operation or event | Types and units | Role and preconditions | Bounds and deadline | Result and observed outcome | Test ID |

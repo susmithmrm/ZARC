@@ -1,4 +1,5 @@
 # ZARC target admission checklist
+
 Target ID: TBD. Board/SoC/revision: TBD. Product and profile: TBD. Submission owner: TBD. Release: TBD.
 
 | Checklist | Evidence reference | Verdict |

@@ -1,4 +1,5 @@
 # ZARC realization specification
+
 27 November 2026 • Desktop-first engineering edition • Companion to architecture 1.1
 
 ## Engineering decision
