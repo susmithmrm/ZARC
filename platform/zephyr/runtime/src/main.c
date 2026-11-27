@@ -4,6 +4,7 @@
 #include "zarc/runtime_wire.h"
 #include "zarc/power.h"
 #include "zarc_manifest.h"
+#include "provider_fixture.h"
 /* Simulator-only device readback and lab-local trusted peer. */
 BUILD_ASSERT(CONFIG_MAIN_STACK_SIZE==ZARC_RUNTIME_MAIN_STACK,"manifest stack mismatch");
 BUILD_ASSERT(CONFIG_MAIN_THREAD_PRIORITY==ZARC_RUNTIME_MAIN_PRIORITY,"manifest priority mismatch");
@@ -12,8 +13,7 @@ static zarc_runtime runtime;
 static zarc_power power;
 static uint64_t profile_boot_tick;
 static bool ipc_opened;
-static zarc_value device[ZARC_PROFILE_ENDPOINT_COUNT];
-static uint64_t seq[ZARC_PROFILE_ENDPOINT_COUNT];
+
 struct encoded {size_t n;uint8_t data[ZARC_FRAME_HEADER+ZARC_PAYLOAD_MAX];};
 K_MSGQ_DEFINE(lab_queue,sizeof(struct encoded),2,8);
 #if defined(CONFIG_IPC_SERVICE)
@@ -108,12 +108,13 @@ int main(void){
  profile_boot_tick=now;
  if(!profile_setup()||!zarc_runtime_init(&runtime,&config,1,now))return 1;
  if(!zarc_composition_required_ready(&runtime.composition))return 1;
- for(size_t i=0;i<config.count;++i)device[i]=ZARC_OFF;
+ if(!zarc_profile_provider_start(config.endpoints,config.count))return 1;
  printk("ZARC reference %s manifest %s\n",ZARC_PROFILE_NAME,ZARC_MANIFEST_SHA256);
  bool issued=false;
  for(;;){
-  now=ticks();zarc_runtime_sample samples[ZARC_PROFILE_ENDPOINT_COUNT];
-  for(size_t i=0;i<config.count;++i)samples[i]=(zarc_runtime_sample){config.endpoints[i].id,++seq[i],now,device[i]};
+  zarc_runtime_sample samples[ZARC_PROFILE_ENDPOINT_COUNT];
+  if(!zarc_profile_provider_sample(samples,config.count))return 1;
+  now=ticks();
   if(!zarc_runtime_step_batch(&runtime,now,samples,config.count))return 1;
   if(ZARC_PROFILE_KIND==1u&&!zarc_power_tick(&power,now))return 1;
   if(IS_ENABLED(CONFIG_ZARC_RUNTIME_SMOKE)&&!issued&&runtime.healthy){
@@ -137,9 +138,9 @@ int main(void){
      for(size_t k=0;k<4;++k)q.payload[5u+k]=(uint8_t)(50u>>(8u*k));
      if(!wire(&q,now,&reply,&effect)||reply.payload[0]!=ZARC_CONN_ACCEPTED||!effect.emitted)return 1;
     }else if(zarc_runtime_local_at(&runtime,id,ZARC_ON,true,now,50,true,&effect)!=ZARC_CONN_ACCEPTED)return 1;
-    if(ticks()>=effect.deadline)return 1;
-    device[i]=effect.desired;
-    if(!zarc_runtime_release(&runtime,&effect,now))return 1;
+    bool applied=false;
+    if(!zarc_profile_provider_effect(&effect,&applied)||!zarc_runtime_release(&runtime,&effect,ticks())||!applied)return 1;
+    now=ticks();
    }
    zarc_runtime_disconnect(&runtime);issued=true;
   }
@@ -152,7 +153,7 @@ int main(void){
    if(observed){
     now=ticks();if(!zarc_runtime_suspend(&runtime,now,now+20)||!zarc_runtime_resume(&runtime,now))return 1;
     if(runtime.healthy||!zarc_runtime_stop(&runtime,now,now+20))return 1;
-    if(ipc_opened)return 1;
+    if(ipc_opened||!zarc_profile_provider_stop())return 1;
     printk("ZARC runtime observed benign indicator and stopped\n");return 0;
    }
   }

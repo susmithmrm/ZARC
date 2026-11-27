@@ -125,6 +125,7 @@ zarc_conn_status zarc_runtime_local(zarc_runtime *r,zarc_value value,bool author
 }
 bool zarc_runtime_remote_ready(const zarc_runtime *r){
  return r&&r->running&&!r->suspended&&r->config.remote_enabled&&
+  zarc_composition_admits(&r->composition,1)&&zarc_composition_admits(&r->composition,2)&&
   (!r->config.remote_service||zarc_composition_admits(&r->composition,r->config.remote_service));
 }
 zarc_conn_status zarc_runtime_open(zarc_runtime *r,uint64_t session,uint64_t principal,uint8_t major,uint8_t minor,uint64_t now){

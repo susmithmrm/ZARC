@@ -4,7 +4,7 @@
   "target": "native-sim-zonal-reference",
   "board": "native_sim/native/64",
   "soc": "host-sim",
-  "revision": "candidate-2",
+  "revision": "candidate-3",
   "zephyr": "v4.2.0",
   "toolchain": "host GCC candidate",
   "maintainer": "ZARC development",
@@ -88,10 +88,21 @@
       "period_us": 10000,
       "deadline_us": 8000,
       "execution_us": 1000,
-      "blocking_us": 0,
+      "blocking_us": 4000,
       "jitter_us": 100,
       "priority": 1,
       "stack_bytes": 8192
+    },
+    {
+      "name": "virtual_device",
+      "context": "R2",
+      "period_us": 10000,
+      "deadline_us": 8000,
+      "execution_us": 500,
+      "blocking_us": 0,
+      "jitter_us": 100,
+      "priority": 5,
+      "stack_bytes": 2048
     }
   ],
   "budgets": {
@@ -103,9 +114,9 @@
   "limitations": [
     "Illustrative allocations only; not measured WCET or board memory evidence",
     "Simulator only; no physical devices or production support",
-    "Single owner synchronous simulated provider; task allocations are candidate assumptions, not measured execution bounds",
     "Native simulator profile; product-specific functions are laboratory application-owned providers, not qualified product services",
-    "Lab-local framed queue; no production external transport"
+    "Lab-local framed queue; no production external transport",
+    "Independent simulated provider worker; bounded synchronous fixture waits self-suspend the owner; no measured WCET or response-time proof"
   ],
   "profile_runtime": {
     "period_ms": 10,

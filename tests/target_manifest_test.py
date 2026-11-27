@@ -52,7 +52,9 @@ class Tests(unittest.TestCase):
     def test_timing(self):
         assumptions=dict(uniprocessor=True,fully_preemptive=True,no_self_suspension=True)
         tasks=copy.deepcopy(self.m["tasks"])
-        tasks.append(dict(name="virtual_device",context="R2",period_us=10000,deadline_us=10000,execution_us=500,blocking_us=0,jitter_us=100,priority=5,stack_bytes=2048))
+        # Synthetic analytical allocation, not the actual self-suspending native fixture.
+        tasks[0]["blocking_us"]=0
+        tasks[1]["deadline_us"]=10000
         result=analyze(tasks,**assumptions)
         self.assertTrue(all(x["admitted"] for x in result.values()))
         tasks[0]["execution_us"]=9800

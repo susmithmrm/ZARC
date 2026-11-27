@@ -112,7 +112,7 @@ def validate(m):
             raise ValueError("invalid benign runtime allocation")
         if runtime["deadline_ms"]>runtime["period_ms"] or min(runtime["health_limit_ms"],runtime["feedback_max_age_ms"])<=runtime["period_ms"]:
             raise ValueError("invalid reference timing relationship")
-        if len(tasks)!=1 or tasks[0]["name"]!="controller_owner" or tasks[0]["context"]!="R1" or tasks[0]["period_us"]!=runtime["period_ms"]*1000 or tasks[0]["deadline_us"]!=runtime["deadline_ms"]*1000:
+        if len(tasks)!=2 or tasks[1]["name"]!="virtual_device" or tasks[1]["context"]!="R2" or tasks[1]["priority"]<=tasks[0]["priority"] or tasks[0]["name"]!="controller_owner" or tasks[0]["context"]!="R1" or tasks[0]["period_us"]!=runtime["period_ms"]*1000 or tasks[0]["deadline_us"]!=runtime["deadline_ms"]*1000:
             raise ValueError("runtime/task allocation mismatch")
         if len(services)!=2 or {s["id"]:s["name"] for s in services}!={1:"core",2:"health"} or ordered!=[1,2]:
             raise ValueError("reference composition mismatch")
@@ -130,7 +130,7 @@ def validate(m):
             raise ValueError("invalid profile timing")
         if profile_runtime["deadline_ms"]>profile_runtime["period_ms"] or min(profile_runtime["health_limit_ms"],profile_runtime["feedback_max_age_ms"])<=profile_runtime["period_ms"]:
             raise ValueError("invalid profile timing relationship")
-        if len(tasks)!=1 or tasks[0]["name"]!="controller_owner" or tasks[0]["context"]!="R1" or tasks[0]["period_us"]!=profile_runtime["period_ms"]*1000 or tasks[0]["deadline_us"]!=profile_runtime["deadline_ms"]*1000:
+        if len(tasks)!=2 or tasks[1]["name"]!="virtual_device" or tasks[1]["context"]!="R2" or tasks[1]["priority"]<=tasks[0]["priority"] or tasks[0]["name"]!="controller_owner" or tasks[0]["context"]!="R1" or tasks[0]["period_us"]!=profile_runtime["period_ms"]*1000 or tasks[0]["deadline_us"]!=profile_runtime["deadline_ms"]*1000:
             raise ValueError("profile/task allocation mismatch")
         expected={"companion":["core","health","power","broker"],"zonal":["core","health","endpoint"],"integrated":["core","health","ipc"]}[profile]
         if len(services)!=len(expected) or {s["id"]:s["name"] for s in services}!={i+1:name for i,name in enumerate(expected)} or ordered!=list(range(1,len(expected)+1)):
@@ -174,6 +174,8 @@ def generate(m):
             runtime_macros+=f"#define ZARC_RUNTIME_{key.upper()} {value}u\n"
         runtime_macros+=f'#define ZARC_RUNTIME_MAIN_STACK {m["tasks"][0]["stack_bytes"]}u\n'
         runtime_macros+=f'#define ZARC_RUNTIME_MAIN_PRIORITY {m["tasks"][0]["priority"]}u\n'
+        runtime_macros+=f'#define ZARC_RUNTIME_WORKER_STACK {m["tasks"][1]["stack_bytes"]}u\n'
+        runtime_macros+=f'#define ZARC_RUNTIME_WORKER_PRIORITY {m["tasks"][1]["priority"]}u\n'
         runtime_macros+=f"#define ZARC_RUNTIME_CONFIG_DIGEST UINT64_C(0x{digest[:16]})\n"
     return ("#ifndef ZARC_GENERATED_MANIFEST_H\n#define ZARC_GENERATED_MANIFEST_H\n"
             "#include <stdint.h>\n"
