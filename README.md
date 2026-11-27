@@ -40,3 +40,5 @@ See [implementation status](docs/IMPLEMENTATION-STATUS.md) for the current scope
 ## License
 
 ZARC is licensed under the [MIT License](LICENSE). Third-party dependencies retain their respective licenses.
+
+The authoritative requirements register is [Z12](docs/architecture/12-Requirements-Verification.csv). Reference prototype, demonstration and BOM are linked from the architecture index.

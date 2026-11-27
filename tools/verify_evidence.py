@@ -18,8 +18,8 @@ def trace_errors(root):
     base = {r["ID"]: r for r in baseline}
     records = {r["Requirement"]: r for r in trace}
     errors = []
-    if len(baseline) != 111 or len(base) != len(baseline) or len(records) != len(trace) or set(base) != set(records):
-        errors.append("trace must contain exactly the 111 unique baseline requirements")
+    if len(base) != len(baseline) or len(records) != len(trace) or set(base) != set(records):
+        errors.append("trace must contain exactly the unique baseline requirements")
     for rid, row in records.items():
         if rid not in base:
             continue

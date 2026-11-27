@@ -8,11 +8,13 @@ ZARC defines a modular, Zephyr-native software foundation for the physical contr
 
 Start with [the realization specification](realization/16-Implementation-Realization.md) and [the development allocation](realization/17-Development-Allocation.csv). RT-001 applies to embedded execution adapters. The reviewed architecture is maintained in the linked Markdown sources and requirements register. The earlier consolidated PDF is a historical local artifact and is not shipped in this repository.
 
-## Informative reference design
+## Reference design and prototype
 
-[Suggested modern SDV vehicle architecture](18-Modern-SDV-Reference-Architecture.md) · [Rendered public page](https://susmithmrm.github.io/ZARC/modern-architecture.html). This extension is not a change to the normative-candidate requirements baseline.
+[Suggested modern SDV vehicle architecture](18-Modern-SDV-Reference-Architecture.md) · [Rendered public page](https://susmithmrm.github.io/ZARC/modern-architecture.html). This is a reference design; requirements are maintained only in Z12.
 
 [Platform capability and partner adoption guide](19-Platform-Capabilities-and-Partner-Adoption.md) · [Public onboarding page](https://susmithmrm.github.io/ZARC/platform-adoption.html).
+
+[Reference prototype](22-Reference-Prototype.md) · [Demonstration plan](23-Reference-Demonstration-Plan.md) · [BOM](24-Reference-Prototype-BOM.csv). All requirements are maintained exclusively in Z12; allocations and evidence records are derived and must match its IDs.
 
 ## Document map
 

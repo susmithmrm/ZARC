@@ -38,7 +38,7 @@ Representative signals include sensor values, validity, timestamp, feedback, hea
 7. Collect raw traces, manifests, build hashes, measurements and acceptance review. Do not claim production or safety qualification.
 
 ## Software composition
-Reuse existing profile manifests, runtime dispatcher, native provider contracts and host mappings. Add target-specific overlays and benign device providers; no new general middleware. Proposed directories: products/reference-bench, config/targets/bench-*, tests/hil/reference-bench. These paths are proposals, not implemented files. Allocate baseline SYS/RT/PL/CON/VER and ADOPT-001..054 by applicability, not blanket closure.
+Reuse existing profile manifests, runtime dispatcher, native provider contracts and host mappings. Add target-specific overlays and benign device providers; no new general middleware. Proposed directories: products/reference-bench, config/targets/bench-*, tests/hil/reference-bench. These paths are proposals, not implemented files. Allocate baseline SYS/RT/PL/CON/VER and the applicable ZARC-ADOPT requirements in Z12 by applicability, not blanket closure.
 
 ## Electrical review checklist
 Verify module datasheets, 3.3 V logic tolerance, pull-ups, unique I2C addresses or mux, ADC range, transceiver standby, connector pinout, ground and branch current; separate motor rail, avoid backfeeding USB, add flyback protection where appropriate. Use certified enclosed supplies; no mains wiring. Inspect wiring unpowered and enable one branch at a time. Physical emergency disable disconnects actuator supply independently of MCU. Freeze actual wiring table after board selection.

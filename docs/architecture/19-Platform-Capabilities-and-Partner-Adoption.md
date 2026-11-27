@@ -1,6 +1,6 @@
 # Platform capability and partner adoption guide
 
-Informative extension to the architecture. No new normative requirements, unsupported feature claims, vendor adoption claims or production qualification. [Rendered partner guide](https://susmithmrm.github.io/ZARC/platform-adoption.html).
+Partner-facing view of the architecture. No new normative requirements, unsupported feature claims, vendor adoption claims or production qualification. [Rendered partner guide](https://susmithmrm.github.io/ZARC/platform-adoption.html).
 
 ## Capability landscape
 
@@ -35,7 +35,7 @@ Lab means limited laboratory evidence; Binding means native API code, not physic
 | Future | [Edge AI and predictive maintenance](https://github.com/susmithmrm/ZARC/blob/main/docs/architecture/01-Executive-Strategy.md) | AI produces advisory intent or analytics; deterministic local policy remains authoritative | Future opportunity | Model resource isolation, data quality and approved use-case validation |
 | Future | [Virtual ECU / SIL / digital twin](https://github.com/susmithmrm/ZARC/blob/main/docs/LOOPBACK-INCREMENT.md) | Desktop independent processes and native simulator; wider twin integration candidate | Laboratory evidence | External twin and real HIL correlation |
 | Assurance | [Functional safety and cybersecurity](https://github.com/susmithmrm/ZARC/blob/main/docs/architecture/08-Safety-Security-Assurance.md) | Allocated ownership, evidence gate, fault containment design | Architecture candidate | Item HARA/TARA, safety case, independent approval |
-| Assurance | [Traceability & build provenance](https://github.com/susmithmrm/ZARC/blob/main/docs/RELEASE-ENGINEERING-INCREMENT.md) | 111 proposed requirements, candidate trace and release evidence tooling | Laboratory evidence | All applicable requirements accepted; SBOM and signing |
+| Assurance | [Traceability & build provenance](https://github.com/susmithmrm/ZARC/blob/main/docs/RELEASE-ENGINEERING-INCREMENT.md) | 165 proposed requirements, candidate trace and release evidence tooling | Laboratory evidence | All applicable requirements accepted; SBOM and signing |
 | Assurance | [Supplier conformance](https://github.com/susmithmrm/ZARC/blob/main/docs/architecture/10-Supplier-Ecosystem-Roadmap.md) | Structured target descriptor, supplier admission and review records | Laboratory evidence | Partner submissions and configuration-specific approval |
 
 ## Partner contribution paths
