@@ -13,6 +13,7 @@
 #include "watchdog.h"
 #include "observation_bus.h"
 #include "device_pm.h"
+#include "sensor_sample.h"
 #include <zephyr/pm/device.h>
 #include <zephyr/pm/device_runtime.h>
 
@@ -256,3 +257,25 @@ ZTEST(zarc_providers,test_runtime_pm_balance){
  zassert_equal(pm_device_runtime_usage(dev),0);
 }
 ZTEST_SUITE(zarc_providers,NULL,NULL,NULL,NULL,NULL);
+
+ZTEST(zarc_providers,test_sensor_conversion_and_unavailable){
+ int32_t out=0;
+ struct sensor_value v={.val1=12,.val2=345678};
+ zassert_true(zarc_native_sensor_convert(&v,-3,&out));
+ zassert_equal(out,12345);
+ v.val1=-12;v.val2=-345678;
+ zassert_true(zarc_native_sensor_convert(&v,-3,&out));
+ zassert_equal(out,-12345);
+ v.val1=2147483647;v.val2=0;
+ zassert_false(zarc_native_sensor_convert(&v,-9,&out));
+ v.val1=1;v.val2=1000000;
+ zassert_false(zarc_native_sensor_convert(&v,-3,&out));
+ zarc_sensor s={0};zarc_sensor_sample sample_out;
+ const zarc_sensor_config cfg={1,2,3,-3,-40000,125000,10};
+ zassert_true(zarc_sensor_init(&s,&cfg,1,0));
+ zassert_equal(zarc_native_sensor_poll(&s,NULL,SENSOR_CHAN_AMBIENT_TEMP,1,1,1),-ENODEV);
+ zassert_true(zarc_sensor_snapshot(&s,1,&sample_out));
+ zassert_equal(sample_out.quality,ZARC_SAMPLE_FAULT);
+ zassert_equal(sample_out.sequence,1);
+ zassert_equal(zarc_native_sensor_poll(&s,NULL,SENSOR_CHAN_AMBIENT_TEMP,1,1,2),-EINVAL);
+}

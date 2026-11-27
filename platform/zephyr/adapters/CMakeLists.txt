@@ -26,3 +26,7 @@ endif()
 if(CONFIG_PM_DEVICE_RUNTIME)
   target_sources(app PRIVATE device_pm.c)
 endif()
+
+if(CONFIG_SENSOR)
+  target_sources(app PRIVATE sensor_sample.c ${ZARC_ROOT}/src/sensor.c)
+endif()

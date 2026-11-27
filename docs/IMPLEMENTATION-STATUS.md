@@ -84,3 +84,5 @@ The native simulator manifests now declare ISA, core, ABI, mode, core count, byt
 Optional portable C17 single-owner sample library adds typed scaled values, calibration identity, range, freshness, boot/sequence and quality handling. Desktop regression added. No physical provider integration or accepted HIL evidence; CI pending.
 
 Physical candidate descriptor admission now checks declared address ranges, alignment, non-overlap, ownership, attributes, shared-memory coherency and external initialization dependencies. Synthetic negative fixtures are not actual linker or silicon evidence.
+
+The optional sensor provider uses Zephyr sensor fetch/channel APIs and checked decimal conversion; native regression covers conversion boundaries and unavailable-device reporting. Physical acquisition and native CI results remain unverified.
