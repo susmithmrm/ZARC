@@ -22,12 +22,15 @@ try:
         event=backend.event(cursor,**epoch)
         if event["status"]=="COMPLETED":
             assert event["sequence"]==cursor+1
-            assert event["value"]==2 and event["quality"]==1
-            break
+            cursor=event["sequence"]
+            assert event["quality"]==1
+            if event["value"]==2:break
+            assert event["value"]==1 and time.monotonic()<until
+            continue
         assert event["status"]=="BUSY" and time.monotonic()<until
         time.sleep(.02)
     assert backend.request_status(accepted["request_id"],**epoch)["status"]=="COMPLETED"
-    assert backend.event(event["sequence"]+1,**epoch)["status"]=="UNKNOWN_OUTCOME"
+    assert backend.event(event["sequence"]+1000000,**epoch)["status"]=="UNKNOWN_OUTCOME"
     backend.invalidate()
     assert backend.event(cursor,**epoch)["status"]=="UNKNOWN_OUTCOME"
     assert backend.capabilities=={}

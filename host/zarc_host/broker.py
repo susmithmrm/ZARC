@@ -38,7 +38,7 @@ def parse_command(data):
     domain = obj.get("capability")
     if type(domain) is not int or not 1 <= domain <= 0xFFFFFFFF:
         raise ValueError("capability")
-    if op == "snapshot" and set(obj) == {"operation", "capability"}:
+    if op in ("snapshot","health") and set(obj) == {"operation", "capability"}:
         return Command(op, domain)
     if op == "request" and set(obj) == {"operation", "capability", "desired", "validity"}:
         desired, validity = obj["desired"], obj["validity"]
@@ -60,6 +60,8 @@ class Gateway:
         if not self.policy.authorize(principal, cmd.operation, cmd.capability):
             return {"status": "DENIED"}
         try:
+            if cmd.operation == "health":
+                return self.backend.health(cmd.capability)
             if cmd.operation == "snapshot":
                 return self.backend.snapshot(cmd.capability)
             return self.backend.request(cmd.capability, cmd.desired, cmd.validity)

@@ -62,6 +62,10 @@ with tempfile.TemporaryDirectory() as directory:
         intent=pb.Intent(capability=1,desired=pb.INDICATOR_ON,validity_ms=1000)
         first=reader.GetSnapshot(snapshot,timeout=5)
         assert first.HasField("status") and first.status==pb.COMPLETED and first.value==pb.INDICATOR_OFF
+        healthy=reader.GetHealth(snapshot,timeout=5)
+        assert healthy.HasField("status") and healthy.status==pb.COMPLETED and healthy.ready and not healthy.failures
+        assert healthy.boot==first.boot and healthy.source_sequence>0
+        assert reader.GetHealth(pb.SnapshotRequest(capability=2),timeout=5).status==pb.DENIED
         assert reader.RequestState(intent,timeout=5).status==pb.DENIED
         accepted=writer.RequestState(intent,timeout=5)
         assert accepted.HasField("status") and accepted.status==pb.ACCEPTED and accepted.request_id

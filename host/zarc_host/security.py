@@ -75,7 +75,7 @@ class Policy:
     def authorize(self, principal, operation, capability):
         if principal not in self._entries.values():
             return False
-        scope = principal.read if operation == "snapshot" else (
+        scope = principal.read if operation in ("snapshot","health") else (
             principal.write if operation == "request" else frozenset())
         if type(capability) is not int or capability not in scope:
             return False

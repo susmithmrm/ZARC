@@ -4,6 +4,7 @@ import struct
 
 HEADER = struct.Struct("<2sBBBBHQQQ")
 HELLO, CAPABILITIES, SNAPSHOT, DOMAIN, REQUEST_STATUS, SUBSCRIBE, RESULT, EVENT = 1, 2, 3, 4, 6, 7, 10, 11
+HEALTH = 8
 STATUS = ("ACCEPTED", "COMPLETED", "DENIED", "BUSY", "CONFLICT",
           "INVALID", "EXPIRED", "INCOMPATIBLE", "UNAVAILABLE", "UNKNOWN_OUTCOME")
 
@@ -108,6 +109,22 @@ class LabBackend:
         elif len(data) != 1:
             raise ValueError("invalid error response")
         return result
+
+    def health(self, capability):
+        self._connect()
+        if capability not in self.capabilities:
+            return {"status":"UNAVAILABLE"}
+        data=self._exchange(HEALTH,struct.pack("<I",capability))
+        if data[0]!=1:
+            if len(data)!=1:raise ValueError("invalid health error")
+            return {"status":STATUS[data[0]]}
+        if len(data)!=28:raise ValueError("invalid health length")
+        version,cap,flags,ready,ownership,sample,source=struct.unpack("<BIIBBQQ",data[1:])
+        if version!=1 or cap!=capability or flags>7 or ready>1 or ownership>3:
+            raise ValueError("invalid health record")
+        return dict(status="COMPLETED",capability=cap,failures=flags,ready=bool(ready),
+                    pending=bool(ownership&1),effect_owned=bool(ownership&2),
+                    sample_tick=sample,source_sequence=source,boot=self.boot,session=self.session)
 
     def request(self, capability, desired, validity):
         self._connect()
