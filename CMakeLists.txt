@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.21)
 project(zarc VERSION 0.1.0 LANGUAGES C)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -24,3 +24,4 @@ if(BUILD_TESTING)
   add_test(NAME domain_contract COMMAND zarc_contract_tests)
   add_test(NAME desktop_demo COMMAND zarc_controller_pc)
 endif()
+
