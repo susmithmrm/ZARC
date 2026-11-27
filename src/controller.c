@@ -85,3 +85,32 @@ bool zarc_controller_snapshot(const zarc_controller *c,uint32_t id,zarc_observat
  }
  return false;
 }
+
+zarc_conn_status zarc_controller_local(zarc_controller *c,uint32_t id,zarc_value desired,bool allowed,uint64_t now,uint64_t validity,bool reserved,zarc_controller_effect *effect){
+ if(!effect)return ZARC_CONN_INVALID;
+ *effect=(zarc_controller_effect){0};
+ if(!c||(desired!=ZARC_OFF&&desired!=ZARC_ON)||!validity||validity>c->link.max_validity||now>UINT64_MAX-validity||!zarc_controller_tick(c,now))return ZARC_CONN_INVALID;
+ zarc_endpoint *e=find_endpoint(c,id);if(!e)return ZARC_CONN_INVALID;
+ if(!allowed)return ZARC_CONN_DENIED;
+ if(!e->ready)return ZARC_CONN_UNAVAILABLE;
+ if(!reserved||e->domain.pending)return ZARC_CONN_BUSY;
+ if(e->internal_id==UINT64_MAX)return ZARC_CONN_UNAVAILABLE;
+ zarc_domain next=e->domain;zarc_effect output;
+ if(zarc_request(&next,true,e->internal_id+1u,desired,now,now+validity,&output)!=ZARC_ACCEPTED||!output.emitted)return ZARC_CONN_INVALID;
+ e->domain=next;++e->internal_id;e->admitted_tick=now;e->correlated=false;
+ *effect=(zarc_controller_effect){.id=id,.desired=output.desired,.emitted=true};return ZARC_CONN_ACCEPTED;
+}
+zarc_cancel_status zarc_controller_cancel(zarc_controller *c,uint32_t id,uint64_t session,uint64_t request_id,bool authorized,bool removed,uint64_t now){
+ if(!authorized)return ZARC_CANCEL_DENIED;
+ if(!c||!c->link.connected||session!=c->link.session||!request_id||!zarc_controller_tick(c,now))return ZARC_CANCEL_UNKNOWN;
+ zarc_endpoint *e=find_endpoint(c,id);if(!e)return ZARC_CANCEL_UNKNOWN;
+ for(size_t i=0;i<c->link.count;++i){
+  const zarc_request_entry *r=&c->link.entries[i];
+  if(r->intent.session!=session||r->intent.request_id!=request_id||r->intent.operation!=ZARC_OP_DOMAIN||r->intent.domain!=id)continue;
+  if(r->status!=ZARC_CONN_ACCEPTED)return ZARC_CANCEL_TERMINAL;
+  if(!e->correlated||!e->domain.pending||e->request_id!=request_id||e->session!=session)return ZARC_CANCEL_UNKNOWN;
+  if(!removed)return ZARC_CANCEL_IN_FLIGHT;
+  e->domain.pending=false;e->domain.result=ZARC_UNKNOWN_OUTCOME;reconcile(c,e,now);return ZARC_CANCEL_REMOVED;
+ }
+ return ZARC_CANCEL_UNKNOWN;
+}

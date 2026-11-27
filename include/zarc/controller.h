@@ -33,4 +33,9 @@ void zarc_controller_disconnect(zarc_controller *);
 zarc_conn_status zarc_controller_request(zarc_controller *, const zarc_intent *, bool allowed, bool age_known, uint64_t age, uint64_t now, bool effect_slot_reserved, zarc_controller_effect *);
 bool zarc_controller_feedback(zarc_controller *, uint32_t id, uint64_t boot, uint64_t sequence, uint64_t sample_tick, uint64_t now, zarc_value);
 bool zarc_controller_snapshot(const zarc_controller *, uint32_t id, zarc_observation *);
+/* Trusted local policy, no remote session required. No preemption of accepted work. */
+zarc_conn_status zarc_controller_local(zarc_controller *,uint32_t,zarc_value,bool,uint64_t,uint64_t,bool,zarc_controller_effect *);
+typedef enum { ZARC_CANCEL_DENIED,ZARC_CANCEL_UNKNOWN,ZARC_CANCEL_TERMINAL,ZARC_CANCEL_IN_FLIGHT,ZARC_CANCEL_REMOVED } zarc_cancel_status;
+/* removed_before_execution is supplied only by the synchronized effect owner. */
+zarc_cancel_status zarc_controller_cancel(zarc_controller *,uint32_t,uint64_t,uint64_t,bool,bool,uint64_t);
 #endif
