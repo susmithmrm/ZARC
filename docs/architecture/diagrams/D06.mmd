@@ -1,0 +1,14 @@
+flowchart TD
+  %% Zonal controller profile
+  N0_0["Central SDV services"]
+  N1_0["ZARC zonal controller"]
+  N2_0["Network/endpoint group A"]
+  N2_1["Network/endpoint group B"]
+  N3_0["Smart controller or remote IO"]
+  N3_1["Smart controller or remote IO"]
+  N0_0 --> N1_0
+  N1_0 --> N2_0
+  N1_0 --> N2_1
+  N2_0 --> N3_0
+  N2_1 --> N3_1
+  %% Endpoint fault domains and local protection are part of the vehicle integration.

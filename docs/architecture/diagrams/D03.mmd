@@ -1,0 +1,17 @@
+flowchart TD
+  %% Native runtime and work ownership
+  N0_0["I0 interrupt / bounded acquisition"]
+  N1_0["R1 local control"]
+  N1_1["R2 policy and health"]
+  N2_0["C3 transport"]
+  N2_1["O4 telemetry / diagnostics"]
+  N3_0["M5 maintenance"]
+  N4_0["Static pools / queue budgets / measurements"]
+  N0_0 --> N1_0
+  N0_0 --> N1_1
+  N1_0 --> N1_1
+  N1_1 --> N2_0
+  N1_0 --> N2_1
+  N2_1 --> N3_0
+  N3_0 --> N4_0
+  %% Arrows show information flow. R1 does not wait for C3/O4/M5. Separate actual task priorities per target.

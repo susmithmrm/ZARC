@@ -1,0 +1,16 @@
+flowchart TD
+  %% Supplier contribution ecosystem
+  N0_0["OEM vehicle allocation"]
+  N1_0["Tier 1 product / integration"]
+  N2_0["Tier 2 components"]
+  N2_1["Semiconductor BSP / drivers"]
+  N3_0["ZARC public contracts and conformance"]
+  N4_0["Maintainers / release evidence"]
+  N0_0 --> N1_0
+  N2_0 --> N1_0
+  N2_1 --> N1_0
+  N1_0 --> N3_0
+  N2_0 --> N3_0
+  N2_1 --> N3_0
+  N3_0 --> N4_0
+  %% Supplier roles own separate deliverables; interfaces and evidence reviewed independently.

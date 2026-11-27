@@ -1,0 +1,15 @@
+flowchart TD
+  %% Safety evidence allocation
+  N0_0["Item definition and HARA"]
+  N1_0["Safety goals / technical allocation"]
+  N2_0["Controller mechanisms"]
+  N2_1["Independent HW mechanisms"]
+  N3_0["Analysis and verification"]
+  N4_0["Configuration-scoped assurance case"]
+  N0_0 --> N1_0
+  N1_0 --> N2_0
+  N1_0 --> N2_1
+  N2_0 --> N3_0
+  N2_1 --> N3_0
+  N3_0 --> N4_0
+  %% No safety rating until exact allocations and evidence are accepted.

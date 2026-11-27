@@ -1,0 +1,19 @@
+sequenceDiagram
+  participant C as Authorized client
+  participant H as Trusted Host
+  participant R as ZARC controller
+  participant F as Physical feedback
+  C->>H: Typed intent and request ID
+  H->>R: Authorized intent
+  alt eligible and permitted
+    R-->>H: ACCEPTED (not completed)
+    H-->>C: ACCEPTED
+    R->>F: Approved local transition
+    F-->>R: Observed result
+    R-->>H: Observed state and quality
+    H-->>C: Outcome
+  else refused
+    R-->>H: REJECTED
+    H-->>C: Refusal
+  end
+  Note over C,R: Timeout means unknown outcome; reconcile snapshot

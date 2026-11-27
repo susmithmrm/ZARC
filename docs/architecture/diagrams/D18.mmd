@@ -1,0 +1,14 @@
+flowchart TD
+  %% Update and recovery flow
+  N0_0["Vehicle update coordinator"]
+  N1_0["Approved metadata / compatible image"]
+  N2_0["Local eligibility and staging"]
+  N3_0["Boot candidate / agreed self-test"]
+  N4_0["Confirm and report"]
+  N4_1["Approved recovery"]
+  N0_0 --> N1_0
+  N1_0 --> N2_0
+  N2_0 --> N3_0
+  N3_0 --> N4_0
+  N3_0 --> N4_1
+  %% Exact recovery and rollback depend on selected flash/boot and integrator policy.

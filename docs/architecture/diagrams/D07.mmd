@@ -1,0 +1,14 @@
+flowchart TD
+  %% Integrated real-time core profile
+  N0_0["Application CPU / guest VMs"]
+  N1_0["Approved IPC bridge"]
+  N2_0["Dedicated ZARC real-time domain"]
+  N3_0["Owned devices / feedback"]
+  N3_1["Independent hardware protection"]
+  N4_0["Physical endpoint"]
+  N0_0 --> N1_0
+  N1_0 --> N2_0
+  N2_0 --> N3_0
+  N3_0 --> N4_0
+  N3_1 --> N4_0
+  %% Shared resource, reset, clock, memory and DMA boundaries require evidence; external MCU fallback.

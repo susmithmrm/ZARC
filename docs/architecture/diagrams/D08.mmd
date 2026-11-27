@@ -1,0 +1,14 @@
+flowchart TD
+  %% Product line composition
+  N0_0["Product policy and profile"]
+  N0_1["Vendor SoC / board"]
+  N1_0["Reviewed target descriptor"]
+  N2_0["Kconfig / devicetree / pinned west manifest"]
+  N3_0["Native build and generated capabilities"]
+  N4_0["Evidence-bound release configuration"]
+  N0_0 --> N1_0
+  N0_1 --> N1_0
+  N1_0 --> N2_0
+  N2_0 --> N3_0
+  N3_0 --> N4_0
+  %% The target composes product and board; immutable generated descriptor binds evidence.

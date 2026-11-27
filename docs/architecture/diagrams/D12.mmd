@@ -1,0 +1,19 @@
+flowchart TD
+  %% Transport provider model
+  N0_0["Canonical typed semantic interface"]
+  N1_0["Connect provider contract"]
+  N2_0["UART point-to-point"]
+  N2_1["Standard Ethernet / SOME-IP"]
+  N3_0["Native IPC"]
+  N3_1["Selected vehicle-bus adapter"]
+  N4_0["Native Zephyr or host transport APIs"]
+  N0_0 --> N1_0
+  N1_0 --> N2_0
+  N1_0 --> N2_1
+  N1_0 --> N3_0
+  N1_0 --> N3_1
+  N2_0 --> N4_0
+  N2_1 --> N4_0
+  N3_0 --> N4_0
+  N3_1 --> N4_0
+  %% Independent bindings; not a universal wire protocol. Each transport declares verified capabilities.

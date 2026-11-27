@@ -1,0 +1,16 @@
+flowchart TD
+  %% Typed intent and observed outcome
+  N0_0["Authorized client intent"]
+  N1_0["Trusted broker / transport"]
+  N2_0["ZARC local policy"]
+  N3_0["Accepted / pending"]
+  N3_1["Rejected / unavailable"]
+  N4_0["Local transition and feedback"]
+  N5_0["Observed outcome event"]
+  N0_0 --> N1_0
+  N1_0 --> N2_0
+  N2_0 --> N3_0
+  N2_0 --> N3_1
+  N3_0 --> N4_0
+  N4_0 --> N5_0
+  %% ACCEPTED does not equal COMPLETED. Refusal/timeout does not fabricate physical state.

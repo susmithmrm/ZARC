@@ -1,0 +1,14 @@
+flowchart TD
+  %% Verification and evidence progression
+  N0_0["Requirements and design contracts"]
+  N1_0["Unit / contract tests"]
+  N2_0["Native simulation / SIL"]
+  N3_0["Target simulation / HIL"]
+  N4_0["Vehicle validation and review"]
+  N5_0["Exact configuration release evidence"]
+  N0_0 --> N1_0
+  N1_0 --> N2_0
+  N2_0 --> N3_0
+  N3_0 --> N4_0
+  N4_0 --> N5_0
+  %% Simulation does not replace physical evidence. Unverified scope cannot pass release gate.
