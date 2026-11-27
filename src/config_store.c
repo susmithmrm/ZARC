@@ -57,3 +57,32 @@ zarc_config_status zarc_config_commit(zarc_config_store *s,size_t i,uint32_t sch
  }
  s->slots[i][MARK_OFFSET]=MARK;return ZARC_CONFIG_OK;
 }
+
+zarc_config_status zarc_config_prepare_migration(zarc_config_store *s,uint32_t source,uint32_t target,
+ uint64_t revision,bool authorized,zarc_config_migration_fn map,void *context,zarc_config_migration *ticket){
+ if(!s||!source||!target||source==target||!revision||!map||!ticket)return ZARC_CONFIG_INVALID;
+ *ticket=(zarc_config_migration){0};
+ if(!authorized)return ZARC_CONFIG_UNAVAILABLE;
+ zarc_config current;zarc_config_status status=zarc_config_load(s,source,&current);
+ if(status!=ZARC_CONFIG_OK)return status;
+ if(revision<=current.revision)return ZARC_CONFIG_CONFLICT;
+ zarc_config_migration next={.source_schema=source,.target_schema=target,.source_revision=current.revision,
+  .target_revision=revision};
+ if(!map(context,&current,next.bytes,sizeof next.bytes,&next.length)||next.length>sizeof next.bytes)return ZARC_CONFIG_INVALID;
+ status=zarc_config_stage(s,target,revision,next.bytes,next.length,&next.slot);
+ if(status!=ZARC_CONFIG_OK)return status;
+ next.prepared=true;*ticket=next;return ZARC_CONFIG_OK;
+}
+zarc_config_status zarc_config_commit_migration(zarc_config_store *s,const zarc_config_migration *t){
+ if(!s||!t||!t->prepared||t->slot>=2||!t->source_schema||!t->target_schema||
+    t->source_schema==t->target_schema||!t->source_revision||t->target_revision<=t->source_revision||
+    t->length>ZARC_CONFIG_MAX)return ZARC_CONFIG_INVALID;
+ zarc_config candidate,current;size_t active;
+ if(!decode(s->slots[t->slot],&candidate)||candidate.schema!=t->target_schema||candidate.revision!=t->target_revision||
+    candidate.length!=t->length||memcmp(candidate.bytes,t->bytes,t->length)!=0)return ZARC_CONFIG_CONFLICT;
+ zarc_config_status status=latest(s,&current,&active);
+ if(status!=ZARC_CONFIG_OK)return status;
+ if(active==t->slot&&current.schema==t->target_schema&&current.revision==t->target_revision)return ZARC_CONFIG_OK;
+ if(current.schema!=t->source_schema||current.revision!=t->source_revision||active==t->slot)return ZARC_CONFIG_CONFLICT;
+ return zarc_config_commit(s,t->slot,t->target_schema,t->target_revision);
+}

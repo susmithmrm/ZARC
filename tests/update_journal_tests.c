@@ -29,5 +29,19 @@ int main(void){
  CHECK(restored.active.version==2);
  CHECK(zarc_update_reconcile_confirmation(&restored,&active,true,true)==ZARC_UPDATE_CONFLICT);
  CHECK(zarc_update_journal_stage(&store,3,&restored,&slot)==ZARC_CONFIG_CONFLICT);
+ CHECK(zarc_update_init(&u,&p,&active,true));
+ CHECK(zarc_update_stage(&u,&candidate,true,true,true)==ZARC_UPDATE_OK);
+ CHECK(zarc_update_recover_boot(&u,&active,true,true)==ZARC_UPDATE_OK&&u.phase==ZARC_UPDATE_STAGED);
+ CHECK(zarc_update_trial_request(&u,true)==ZARC_UPDATE_OK);
+ CHECK(zarc_update_recover_boot(&u,&candidate,true,false)==ZARC_UPDATE_OK&&u.phase==ZARC_UPDATE_TRIAL);
+ CHECK(zarc_update_prepare_confirmation(&u,true,true,true)==ZARC_UPDATE_OK);
+ CHECK(zarc_update_recover_boot(&u,&candidate,true,true)==ZARC_UPDATE_OK&&u.active.image_id==12);
+ CHECK(zarc_update_recover_boot(&u,&candidate,true,false)==ZARC_UPDATE_DENIED&&u.phase==ZARC_UPDATE_RECOVERY_REQUIRED);
+ CHECK(zarc_update_recover_boot(&u,&candidate,false,true)==ZARC_UPDATE_DENIED&&u.phase==ZARC_UPDATE_UNAVAILABLE);
+ CHECK(zarc_update_init(&u,&p,&active,true));
+ CHECK(zarc_update_stage(&u,&candidate,true,true,true)==ZARC_UPDATE_OK);
+ CHECK(zarc_update_trial_request(&u,true)==ZARC_UPDATE_OK);
+ CHECK(zarc_update_recover_boot(&u,&candidate,true,true)==ZARC_UPDATE_DENIED&&u.phase==ZARC_UPDATE_RECOVERY_REQUIRED);
+ CHECK(zarc_update_recover_boot(&u,&active,true,true)==ZARC_UPDATE_OK&&u.phase==ZARC_UPDATE_ACTIVE);
  puts("Versioned update journal and confirmation recovery contracts passed");return 0;
 }

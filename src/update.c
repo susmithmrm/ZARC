@@ -53,6 +53,24 @@ zarc_update_status zarc_update_reconcile_confirmation(zarc_update *u,const zarc_
  }
  u->active=*running;u->candidate=(zarc_image){0};u->phase=ZARC_UPDATE_ACTIVE;return ZARC_UPDATE_OK;
 }
+zarc_update_status zarc_update_recover_boot(zarc_update *u,const zarc_image *running,bool verified,bool confirmed){
+ if(!u||!u->configured||!running)return ZARC_UPDATE_INVALID;
+ if(!verified||!compatible(&u->policy,running)){u->phase=ZARC_UPDATE_UNAVAILABLE;return ZARC_UPDATE_DENIED;}
+ if(u->phase==ZARC_UPDATE_CONFIRMING&&same(running,&u->candidate))
+  return zarc_update_reconcile_confirmation(u,running,true,confirmed);
+ if(confirmed&&same(running,&u->active)){
+  /* Retain staged metadata when no trial was requested. Otherwise a
+   * confirmed previous image establishes the old active state. */
+  if(u->phase!=ZARC_UPDATE_STAGED){u->candidate=(zarc_image){0};u->phase=ZARC_UPDATE_ACTIVE;}
+  return ZARC_UPDATE_OK;
+ }
+ if(!confirmed&&u->phase==ZARC_UPDATE_TRIAL_REQUESTED&&same(running,&u->candidate)){
+  u->phase=ZARC_UPDATE_TRIAL;return ZARC_UPDATE_OK;
+ }
+ /* Unexpected confirmed candidate without durable confirmation intent,
+  * repeated unconfirmed trial, unknown or unconfirmed old image: no admission. */
+ u->phase=ZARC_UPDATE_RECOVERY_REQUIRED;return ZARC_UPDATE_DENIED;
+}
 void zarc_update_interrupt(zarc_update *u){
  if(!u||!u->configured)return;
  switch(u->phase){

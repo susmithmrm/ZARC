@@ -9,4 +9,7 @@ typedef int (*zarc_update_persist_fn)(void *,const zarc_update *);
 int zarc_native_request_trial(zarc_update *,bool eligible,zarc_update_persist_fn,void *);
 int zarc_native_confirm_trial(zarc_update *,const zarc_image *running,bool verified,bool healthy,bool compatible,bool eligible,
                              zarc_update_persist_fn,void *);
+/* Caller restores the journal and supplies verified running-image identity.
+ * Reconciliation persists both success and denial before admission. */
+int zarc_native_recover_boot(zarc_update *,const zarc_image *running,bool verified,zarc_update_persist_fn,void *);
 #endif

@@ -36,3 +36,14 @@ int zarc_native_confirm_trial(zarc_update *u,const zarc_image *running,bool veri
  if(zarc_update_reconcile_confirmation(&next,running,verified,boot_is_img_confirmed())!=ZARC_UPDATE_OK)return -EIO;
  return save(u,&next,persist,ctx);
 }
+
+int zarc_native_recover_boot(zarc_update *u,const zarc_image *running,bool verified,zarc_update_persist_fn persist,void *ctx){
+ if(!u||!u->configured||!running||!persist)return -EINVAL;
+ zarc_update next=*u;
+ zarc_update_status status=zarc_update_recover_boot(&next,running,verified,boot_is_img_confirmed());
+ if(status==ZARC_UPDATE_INVALID)return -EINVAL;
+ if(next.phase!=u->phase||next.active.image_id!=u->active.image_id||next.candidate.image_id!=u->candidate.image_id){
+  int ret=save(u,&next,persist,ctx);if(ret<0)return ret;
+ }
+ return status==ZARC_UPDATE_OK?0:-EPERM;
+}

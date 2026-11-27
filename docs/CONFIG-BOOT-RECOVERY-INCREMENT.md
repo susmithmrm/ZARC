@@ -1,0 +1,7 @@
+# Explicit migration and boot recovery
+
+Configuration migration is a reviewed, bounded mapping callback from the exact committed source schema. Preparation validates authorization, source revision and target revision, then stages an explicit payload. Commit binds to both the old committed source and exact staged bytes, rejecting stale tickets or competing staged content. The old record remains selected until commit; physical persistence still requires the maintenance owner to write both stage and commit via the native storage adapter. No arbitrary schema conversion or default policy is inferred.
+
+Boot reconciliation checks the durable update phase against verified running-image identity and actual bootloader confirmation. An old confirmed image may recover the previous active state, an unconfirmed requested candidate may enter trial, and a confirmed candidate requires durable confirmation intent. Unexpected or unverifiable identity is denied; no new boot or confirmation action is issued by reconciliation. The native MCUboot wrapper reads its confirmation status and persists changed outcomes. Actual trusted metadata provider, physical boot/recovery and power-cut testing remain outstanding.
+
+Tests cover interrupted preparation, stale migration ticket, schema mismatch, expected trial and interrupted confirmation, unexpected confirmation and rollback. Trace candidates SVC-010 and ASR-006/007. CI pending.

@@ -20,5 +20,8 @@ zarc_update_status zarc_update_confirm(zarc_update *,bool healthy,bool compatibl
  * reconcile verified running identity and observed confirmation. */
 zarc_update_status zarc_update_prepare_confirmation(zarc_update *,bool healthy,bool compatible,bool eligible);
 zarc_update_status zarc_update_reconcile_confirmation(zarc_update *,const zarc_image *,bool verified,bool confirmed);
+/* Reconcile actual verified boot metadata and bootloader confirmation against
+ * durable state. Never writes/requests confirmation or resets hardware. */
+zarc_update_status zarc_update_recover_boot(zarc_update *,const zarc_image *,bool verified,bool confirmed);
 void zarc_update_interrupt(zarc_update *);
 #endif
