@@ -7,6 +7,7 @@ vehicle or untrusted network. All socket operations occur on the C3 host path.
 import json
 import socket
 import ssl
+import time
 from dataclasses import dataclass
 from .security import Policy
 
@@ -73,13 +74,19 @@ class Gateway:
         with context.wrap_socket(raw, server_side=True) as peer:
             principal = self.policy.identify(peer)
             data = bytearray()
+            deadline = time.monotonic() + 2
             while len(data) <= MAX_REQUEST:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError("request deadline")
+                peer.settimeout(remaining)
                 chunk = peer.recv(1)
                 if not chunk:
                     return
                 if chunk == b"\n":
                     break
                 data += chunk
+            peer.settimeout(2)
             result = self.dispatch(principal, bytes(data))
             encoded = json.dumps(result, separators=(",", ":"), allow_nan=False).encode()
             if len(encoded) > MAX_RESPONSE:
