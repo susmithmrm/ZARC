@@ -1,0 +1,41 @@
+name: Generated service CI
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  grpc:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install candidate dependency pins
+        run: |
+          python -m pip install -r host/requirements-grpc.txt
+          python -m pip freeze > grpc-dependencies.txt
+      - name: Generate protobuf bindings
+        run: |
+          mkdir -p build/generated
+          python -m grpc_tools.protoc -I interfaces --python_out=build/generated --grpc_python_out=build/generated interfaces/zarc_service.proto
+      - name: Build independent controller
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --target zarc_controller_lab_pc
+      - name: Exercise generated client and broker
+        env:
+          PYTHONPATH: ${{ github.workspace }}/build/generated
+        run: |
+          set -o pipefail
+          python tests/grpc_integration_test.py build/zarc_controller_lab_pc | tee grpc-test.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: grpc-evidence
+          path: |
+            grpc-dependencies.txt
+            grpc-test.log
+          if-no-files-found: warn

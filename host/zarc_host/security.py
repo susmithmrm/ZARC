@@ -63,6 +63,10 @@ class Policy:
         if peer.context.verify_mode != ssl.CERT_REQUIRED or peer.version() != "TLSv1.3":
             raise PermissionError("verified TLS 1.3 required")
         der = peer.getpeercert(binary_form=True)
+        return self.identify_der(der)
+
+    def identify_der(self, der):
+        """Only a verified transport adapter may supply the authenticated DER."""
         principal = self._entries.get(sha256(der).hexdigest()) if der else None
         if principal is None:
             raise PermissionError("unknown certificate")
