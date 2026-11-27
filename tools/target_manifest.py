@@ -45,8 +45,53 @@ def validate_execution(m):
         raise ValueError("simulator execution mismatch")
     if m["features"]["smp"]!=(mode=="smp"):
         raise ValueError("SMP execution mismatch")
-    if mode in ("lockstep","split_lock") and not isinstance(e.get("mode_reference"),str):
+    if mode in ("lockstep","split_lock") and (not isinstance(e.get("mode_reference"),str) or not e["mode_reference"].strip()):
         raise ValueError("vendor mode reference required")
+    validate_memory(m,e,sim)
+
+def validate_memory(m,e,sim):
+    """Check declared address allocation; actual linker/MPU evidence is separate."""
+    regions=m.get("memory_regions")
+    if regions is None and sim:
+        return
+    if not isinstance(regions,list) or not 1<=len(regions)<=64:
+        raise ValueError("physical target requires memory region inventory")
+    limit=1<<e["word_bits"]
+    names=set(); spans=[]; types=set()
+    for region in regions:
+        if not isinstance(region,dict):
+            raise ValueError("invalid memory region")
+        name=region.get("name")
+        kind=region.get("kind")
+        start=region.get("base")
+        size=region.get("size")
+        alignment=region.get("alignment")
+        if not isinstance(name,str) or not re.fullmatch(r"[a-z][a-z0-9_]*",name) or name in names:
+            raise ValueError("invalid or duplicate memory name")
+        if kind not in ("code","ram","tcm","external_ram","nonvolatile","shared","device"):
+            raise ValueError("unknown memory kind")
+        if not number(start,0,limit-1) or not number(size,1,limit) or start+size>limit:
+            raise ValueError("memory address overflow")
+        if not number(alignment,1,limit) or alignment&(alignment-1) or start%alignment or size%alignment:
+            raise ValueError("memory alignment")
+        for key in ("read","write","execute","cacheable","dma"):
+            if type(region.get(key)) is not bool:
+                raise ValueError("memory permission or attribute missing")
+        if not isinstance(region.get("owner"),str) or not region["owner"].strip():
+            raise ValueError("memory ownership missing")
+        if not region["read"] or (kind=="device" and (region["execute"] or region["cacheable"])):
+            raise ValueError("invalid memory attributes")
+        if kind=="shared" and (not isinstance(region.get("coherency"),str) or not region["coherency"].strip()):
+            raise ValueError("shared memory requires coherency contract")
+        if kind=="external_ram" and (not isinstance(region.get("initialization"),str) or not region["initialization"].strip()):
+            raise ValueError("external memory requires initialization dependency")
+        names.add(name);types.add(kind);spans.append((start,start+size))
+    spans.sort()
+    if any(spans[i][0]<spans[i-1][1] for i in range(1,len(spans))):
+        raise ValueError("overlapping memory allocations")
+    if not sim and (not any(r["execute"] and r["kind"]!="device" for r in regions) or
+                    not any(r["write"] and r["kind"] in ("ram","tcm","external_ram") for r in regions)):
+        raise ValueError("missing code or writable runtime memory")
 
 def validate(m):
     if not isinstance(m,dict):

@@ -41,6 +41,32 @@ class Tests(unittest.TestCase):
         with self.assertRaises(ValueError):validate(bad)
         bad=copy.deepcopy(self.m);bad["features"]["smp"]=True
         with self.assertRaises(ValueError):validate(bad)
+    def test_physical_memory_descriptor(self):
+        # Synthetic address allocation, not a supported board or real linker map.
+        m=copy.deepcopy(self.m)
+        del m["benign_runtime"]
+        m["board"]="candidate_board";m["soc"]="candidate_soc"
+        m["execution"].update(isa="arm",core="candidate",abi="candidate ABI",
+                              mode="single",byte_order="little",word_bits=32)
+        def region(name,kind,base,**kw):
+            return dict(name=name,kind=kind,base=base,size=4096,alignment=4096,
+                        read=True,write=kw.get("write",False),
+                        execute=kw.get("execute",False),cacheable=False,
+                        dma=False,owner="core")
+        m["memory_regions"]=[region("code","code",0,execute=True),
+                             region("ram","ram",4096,write=True)]
+        self.assertEqual(validate(m),[1,2])
+        for case in ("missing","overlap","wrap","alignment","shared","external","permissions"):
+            bad=copy.deepcopy(m)
+            r=bad["memory_regions"][1]
+            if case=="missing":del bad["memory_regions"]
+            elif case=="overlap":r["base"]=0
+            elif case=="wrap":r["base"]=(1<<32)-2048
+            elif case=="alignment":r["alignment"]=3
+            elif case=="shared":r["kind"]="shared"
+            elif case=="external":r["kind"]="external_ram"
+            else:del r["dma"]
+            with self.subTest(case=case),self.assertRaises(ValueError):validate(bad)
     def test_runtime_allocation(self):
         header=generate(self.m)
         self.assertIn("#define ZARC_RUNTIME_PERIOD_MS 10u",header)
