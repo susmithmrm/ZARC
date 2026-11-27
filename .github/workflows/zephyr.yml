@@ -24,9 +24,10 @@ jobs:
           west init -m https://github.com/zephyrproject-rtos/zephyr --mr v4.2.0 "$RUNNER_TEMP/zephyr-workspace"
           cd "$RUNNER_TEMP/zephyr-workspace"
           west update --narrow
+          git -C zephyr rev-parse HEAD > "$GITHUB_WORKSPACE/zephyr-revision.txt"
           west zephyr-export
           pip install -r zephyr/scripts/requirements.txt
-          west manifest --freeze > "$GITHUB_WORKSPACE/zephyr-manifest-frozen.yml"
+          west manifest --freeze --active-only > "$GITHUB_WORKSPACE/zephyr-manifest-frozen.yml"
       - name: Run native simulator tests
         working-directory: ${{ runner.temp }}/zephyr-workspace
         run: west twister -T "$GITHUB_WORKSPACE/platform/zephyr" -p native_sim/native/64 --inline-logs -O "$GITHUB_WORKSPACE/twister-out"
@@ -36,6 +37,7 @@ jobs:
         with:
           name: zephyr-native-evidence
           path: |
+            zephyr-revision.txt
             zephyr-manifest-frozen.yml
             twister-out/twister.json
             twister-out/twister.log
