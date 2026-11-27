@@ -79,3 +79,6 @@ The unified baseline now contains 178 proposed requirements. New silicon-related
 
 ## Candidate execution descriptor and baseline regression
 The native simulator manifests now declare ISA, core, ABI, mode, core count, byte order, alignment and port ownership. Build-time validation rejects inconsistent declarations. Evidence gate regression derives the expected IDs from Z12 instead of a historical constant. Physical silicon eligibility and CI results remain to be verified.
+
+## Numeric sensor reference contract
+Optional portable C17 single-owner sample library adds typed scaled values, calibration identity, range, freshness, boot/sequence and quality handling. Desktop regression added. No physical provider integration or accepted HIL evidence; CI pending.
