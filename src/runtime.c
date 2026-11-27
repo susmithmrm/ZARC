@@ -29,7 +29,9 @@ static bool health_reset(zarc_runtime *r,uint64_t now){
 }
 bool zarc_runtime_init(zarc_runtime *r,const zarc_runtime_config *cfg,uint64_t boot,uint64_t now){
  if(!r||!cfg||r->running||!cfg->period||!cfg->deadline||cfg->deadline>cfg->period||
-    cfg->health_limit<=cfg->period||cfg->count>ZARC_CONTROLLER_DOMAINS)return false;
+    cfg->health_limit<=cfg->period||cfg->count>ZARC_CONTROLLER_DOMAINS||
+    cfg->extension_count>ZARC_SERVICE_LIMIT-2u||(!cfg->extensions&&cfg->extension_count)||
+    (cfg->remote_service&&!cfg->remote_enabled))return false;
  const size_t n=cfg->count?cfg->count:1u;
  const zarc_endpoint_config *endpoints=cfg->count?cfg->endpoints:&cfg->endpoint;
  for(size_t i=0;i<n;++i)if(endpoints[i].feedback_max_age<=cfg->period)return false;
@@ -37,21 +39,29 @@ bool zarc_runtime_init(zarc_runtime *r,const zarc_runtime_config *cfg,uint64_t b
  if(!zarc_controller_init(&r->controller,endpoints,n,boot,cfg->max_validity,now)||
     !health_reset(r,now)||!zarc_periodic_init(&r->cycle,now,cfg->period,cfg->deadline)||
     !zarc_observation_stream_init(&r->observations,&r->controller))return false;
- const zarc_service_descriptor services[]={
+ zarc_service_descriptor services[ZARC_SERVICE_LIMIT]={
   {.id=1,.required=true,.context=r,.init=core_init,.start=core_start,.quiesce=core_quiesce,
    .suspend=logical_transition,.resume=logical_transition,.release=core_release},
   {.id=2,.required=true,.dependency_count=1,.dependencies={1},.context=r,.init=health_init,.start=health_start,
    .quiesce=health_quiesce,.suspend=logical_transition,.resume=logical_transition,.release=health_release}
  };
- if(zarc_composition_configure(&r->composition,services,2)!=ZARC_COMPOSITION_OK||
-    zarc_composition_start(&r->composition)!=ZARC_COMPOSITION_OK)return false;
+ bool remote_found=!cfg->remote_service;
+ for(size_t i=0;i<cfg->extension_count;++i){
+  services[i+2u]=cfg->extensions[i];
+  if(services[i+2u].id==cfg->remote_service)remote_found=true;
+ }
+ if(!remote_found||zarc_composition_configure(&r->composition,services,cfg->extension_count+2u)!=ZARC_COMPOSITION_OK)return false;
+ /* Descriptors copied by composition; do not retain a borrowed descriptor array. */
+ r->config.extensions=NULL;r->config.extension_count=0;
+ (void)zarc_composition_start(&r->composition);
+ if(!zarc_composition_admits(&r->composition,1)||!zarc_composition_admits(&r->composition,2))return false;
  r->running=true;return true;
 }
 static bool update_health(zarc_runtime *r,uint64_t now){
  zarc_health_snapshot h;
  if(!zarc_health_check(&r->health,now,&h))return false;
- bool common=!r->suspended&&zarc_composition_required_ready(&r->composition);
- r->healthy=common;
+ bool common=!r->suspended&&zarc_composition_admits(&r->composition,1)&&zarc_composition_admits(&r->composition,2);
+ r->healthy=common&&zarc_composition_required_ready(&r->composition);
  for(size_t i=0;i<r->controller.count;++i){
   zarc_observation o;
   uint32_t id=r->controller.endpoints[i].config.id,bit=UINT32_C(1)<<i;
@@ -113,8 +123,12 @@ zarc_conn_status zarc_runtime_local(zarc_runtime *r,zarc_value value,bool author
  if(!r||r->controller.count!=1){if(effect)*effect=(zarc_controller_effect){0};return ZARC_CONN_INVALID;}
  return zarc_runtime_local_at(r,r->controller.endpoints[0].config.id,value,authorized,now,validity,reserved,effect);
 }
+bool zarc_runtime_remote_ready(const zarc_runtime *r){
+ return r&&r->running&&!r->suspended&&r->config.remote_enabled&&
+  (!r->config.remote_service||zarc_composition_admits(&r->composition,r->config.remote_service));
+}
 zarc_conn_status zarc_runtime_open(zarc_runtime *r,uint64_t session,uint64_t principal,uint8_t major,uint8_t minor,uint64_t now){
- if(!r||!r->running||r->suspended||!r->config.remote_enabled)return ZARC_CONN_UNAVAILABLE;
+ if(!zarc_runtime_remote_ready(r))return ZARC_CONN_UNAVAILABLE;
  if(!zarc_controller_tick(&r->controller,now)||!update_health(r,now))return ZARC_CONN_INVALID;
  return zarc_controller_open(&r->controller,session,principal,major,minor,now);
 }
@@ -122,7 +136,7 @@ void zarc_runtime_disconnect(zarc_runtime *r){if(r)zarc_controller_disconnect(&r
 zarc_conn_status zarc_runtime_remote(zarc_runtime *r,const zarc_intent *q,bool authorized,bool known,uint64_t age,uint64_t now,bool reserved,zarc_controller_effect *effect){
  if(!effect)return ZARC_CONN_INVALID;
  *effect=(zarc_controller_effect){0};
- if(!r||!r->running||r->suspended||!r->config.remote_enabled)return ZARC_CONN_UNAVAILABLE;
+ if(!zarc_runtime_remote_ready(r))return ZARC_CONN_UNAVAILABLE;
  if(!zarc_controller_tick(&r->controller,now)||!update_health(r,now))return ZARC_CONN_INVALID;
  return zarc_controller_request(&r->controller,q,authorized,known,age,now,reserved,effect);
 }

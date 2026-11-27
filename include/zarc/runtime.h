@@ -12,6 +12,8 @@ typedef struct {
  size_t count;
  zarc_endpoint_config endpoints[ZARC_CONTROLLER_DOMAINS];
  bool remote_enabled;
+ uint32_t remote_service; /* optional lifecycle service gating remote admission */
+ const zarc_service_descriptor *extensions;size_t extension_count;
 } zarc_runtime_config;
 typedef struct {uint32_t id;uint64_t sequence,tick;zarc_value value;} zarc_runtime_sample;
 typedef struct {
@@ -31,6 +33,7 @@ typedef struct {
  * and verified remote identity. This reference operates benign endpoints. */
 bool zarc_runtime_init(zarc_runtime *,const zarc_runtime_config *,uint64_t boot,uint64_t now);
 bool zarc_runtime_step(zarc_runtime *,uint64_t now,bool sample_present,uint64_t sequence,uint64_t sample_tick,zarc_value);
+bool zarc_runtime_remote_ready(const zarc_runtime *);
 bool zarc_runtime_refresh(zarc_runtime *,uint64_t now);
 bool zarc_runtime_step_batch(zarc_runtime *,uint64_t now,const zarc_runtime_sample *,size_t);
 zarc_conn_status zarc_runtime_local(zarc_runtime *,zarc_value,bool authorized,uint64_t now,uint64_t validity,bool reserved,zarc_controller_effect *);

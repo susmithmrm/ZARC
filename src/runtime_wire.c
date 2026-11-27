@@ -15,7 +15,7 @@ bool zarc_runtime_dispatch(zarc_runtime *r,const zarc_wire_peer *p,const zarc_fr
  *out=(zarc_frame){.operation=ZARC_OP_RESULT,.length=1,.boot=r->controller.link.boot,
   .session=r->controller.link.session,.request_id=q->request_id};
  zarc_conn_status status=ZARC_CONN_INVALID;
- if(!r->running||r->suspended||!r->config.remote_enabled)status=ZARC_CONN_UNAVAILABLE;
+ if(!zarc_runtime_remote_ready(r))status=ZARC_CONN_UNAVAILABLE;
  else if(q->operation==ZARC_OP_HELLO&&q->length==0&&q->boot==0&&q->session==0){
   if(!allowed(p,ZARC_OP_HELLO,0))status=ZARC_CONN_DENIED;
   else if(r->controller.link.session==UINT64_MAX)status=ZARC_CONN_UNAVAILABLE;
