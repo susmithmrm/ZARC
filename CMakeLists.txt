@@ -149,6 +149,8 @@ if(BUILD_TESTING)
     add_test(NAME host_tls_integration COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/host_tls_test.py $<TARGET_FILE:zarc_controller_lab_pc>)
     set_tests_properties(host_tls_integration PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
     add_test(NAME target_manifest_contract COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/target_manifest_test.py)
+    add_test(NAME dependency_boundary_contract COMMAND ${Python3_EXECUTABLE}
+      ${CMAKE_CURRENT_SOURCE_DIR}/tests/dependency_boundary_test.py)
     add_test(NAME telemetry_bridge_contract COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/telemetry_bridge_test.py)
     add_test(NAME telemetry_controller_integration COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/telemetry_bridge_test.py $<TARGET_FILE:zarc_controller_lab_pc>)
     set_tests_properties(telemetry_controller_integration PROPERTIES TIMEOUT 20)
@@ -167,8 +169,6 @@ if(BUILD_TESTING)
         ${CMAKE_CURRENT_SOURCE_DIR}/tools/dependency_boundary.py
         --compile-commands ${CMAKE_BINARY_DIR}/compile_commands.json
         --root ${CMAKE_CURRENT_SOURCE_DIR})
-      add_test(NAME dependency_boundary_contract COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/dependency_boundary_test.py)
     endif()
   endif()
   find_program(ZARC_NODE_EXECUTABLE node)
