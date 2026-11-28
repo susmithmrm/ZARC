@@ -3,8 +3,10 @@
 #include "zarc/runtime.h"
 /* Authenticated, serialized transport owner supplies this metadata. The
  * codec does not establish trust, transit age, identity or scope. The scope
- * callback is mandatory for every data operation (including enumeration).
- * No raw hardware operation is exposed. */
+ * callback is mandatory for every data operation (including enumeration);
+ * endpoint 0 denotes operation-wide scope, including an evicted stale-session
+ * result query that can disclose only UNKNOWN_OUTCOME. No raw hardware
+ * operation is exposed. */
 typedef struct {
  uint64_t principal,age;
  bool age_known;

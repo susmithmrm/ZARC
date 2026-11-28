@@ -51,9 +51,10 @@ zarc_conn_status zarc_link_admit(zarc_link *l,const zarc_intent *q,bool allowed,
  *fresh=true;return ZARC_CONN_ACCEPTED;
 }
 zarc_conn_status zarc_link_result(zarc_link *l,uint64_t session,uint8_t op,uint64_t id,uint64_t now){
- if(!l||!command(op)||!id||now<l->last_tick)return ZARC_CONN_INVALID;
- if(!l->connected||session!=l->session)return ZARC_CONN_UNAVAILABLE;
+ if(!l||!session||!command(op)||!id||now<l->last_tick)return ZARC_CONN_INVALID;
  if(!zarc_link_tick(l,now))return ZARC_CONN_INVALID;
+ if(session<l->session)return ZARC_CONN_UNKNOWN_OUTCOME;
+ if(!l->connected||session!=l->session)return ZARC_CONN_UNAVAILABLE;
  zarc_request_entry *e=find(l,session,op,id);return e?e->status:ZARC_CONN_UNKNOWN_OUTCOME;
 }
 zarc_conn_status zarc_link_finish(zarc_link *l,uint64_t session,uint8_t op,uint64_t id,uint64_t now,bool confirmed){

@@ -24,7 +24,8 @@ typedef struct {
 /* Caller is the trusted transport/policy adapter, not an untrusted wire peer.
  * A new boot ID must be supplied externally on restart. No cryptography here.
  * Retain all admitted entries until a new session, refusing overflow. A new
- * session cannot erase outstanding accepted work. */
+ * session cannot erase outstanding accepted work. Once a settled prior
+ * session is retired, result queries for it return UNKNOWN_OUTCOME. */
 bool zarc_link_init(zarc_link *, uint64_t boot, uint64_t max_validity, uint64_t now);
 zarc_conn_status zarc_link_open(zarc_link *, uint64_t session, uint64_t verified_principal, uint8_t major, uint8_t minor, uint64_t now);
 void zarc_link_disconnect(zarc_link *);

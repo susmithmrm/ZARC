@@ -11,7 +11,7 @@ The proposed ZARC Connect defines one semantic service contract and transport-sp
 | GetSnapshot | Scope | Full current observed state, quality, time and generation |
 | RequestDomainState | Domain ID, desired enum, request ID, validity | Accepted or refused; outcome separate |
 | RequestMode | Supported mode, ID, validity | Local admission result |
-| GetRequestStatus | Request ID in current session | Retained outcome or UNKNOWN_OUTCOME |
+| GetRequestStatus | Request ID in current or retired same-boot session | Retained current-session outcome; UNKNOWN_OUTCOME for evicted prior-session result |
 | Subscribe | Authorized topic and rate | Initial snapshot and bounded events |
 | GetHealth | Scope | Readiness, faults and quality |
 | GetUpdateStatus | Approved scope | Version/phase, no low-level execution |

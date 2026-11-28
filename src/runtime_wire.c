@@ -25,6 +25,16 @@ bool zarc_runtime_dispatch(zarc_runtime *r,const zarc_wire_peer *p,const zarc_fr
   if(!allowed(p,ZARC_OP_HELLO,0))status=ZARC_CONN_DENIED;
   else status=zarc_controller_renew(&r->controller,q->session,p->principal,now);
   out->session=r->controller.link.session;
+ }else if(q->operation==ZARC_OP_REQUEST_STATUS&&q->length==8&&
+          q->boot==r->controller.link.boot&&q->session&&
+          q->session<r->controller.link.session&&
+          p->principal==r->controller.link.principal){
+  /* A successful renewal evicts the prior session ledger. The same
+   * authenticated principal may learn only that its old result is unknown;
+   * no old result or capability data is retained or disclosed. */
+  uint64_t id=get(q->payload,8);
+  status=now<r->controller.link.last_tick||!id?ZARC_CONN_INVALID:
+   allowed(p,ZARC_OP_REQUEST_STATUS,0)?ZARC_CONN_UNKNOWN_OUTCOME:ZARC_CONN_DENIED;
  }else if(!r->controller.link.connected||q->boot!=r->controller.link.boot||
            q->session!=r->controller.link.session||p->principal!=r->controller.link.principal){
   status=ZARC_CONN_UNAVAILABLE;

@@ -4,6 +4,9 @@
 static bool scope(void *ctx,uint64_t principal,uint8_t op,uint32_t id){
  (void)ctx;return principal==7&&id!=2&&op!=ZARC_OP_MODE;
 }
+static bool no_unscoped_result_scope(void *ctx,uint64_t principal,uint8_t op,uint32_t id){
+ return scope(ctx,principal,op,id)&&!(op==ZARC_OP_REQUEST_STATUS&&id==0);
+}
 int main(void){
  zarc_runtime r={0};
  const zarc_runtime_config cfg={.count=2,.endpoints={{1,30},{2,30}},.remote_enabled=true,
@@ -59,6 +62,18 @@ int main(void){
  CHECK(!zarc_runtime_read_update(&r,30,&update,&rev,&tick));
  CHECK(zarc_runtime_dispatch(&r,&peer,&renew,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_COMPLETED&&out.session==2);
  CHECK(r.controller.link.count==0);
+ zarc_frame old_status={.operation=ZARC_OP_REQUEST_STATUS,.length=8,.boot=9,.session=1,.request_id=8,.payload={3}};
+ CHECK(zarc_runtime_dispatch(&r,&peer,&old_status,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_UNKNOWN_OUTCOME);
+ CHECK(zarc_runtime_dispatch(&r,&peer,&old_status,9,false,&out,&effect)&&out.payload[0]==ZARC_CONN_INVALID);
+ old_status.payload[0]=0;old_status.payload[1]=0;
+ CHECK(zarc_runtime_dispatch(&r,&peer,&old_status,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_INVALID);
+ old_status.payload[0]=3;peer.allow=no_unscoped_result_scope;
+ CHECK(zarc_runtime_dispatch(&r,&peer,&old_status,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_DENIED);
+ peer.allow=scope;old_status.session=3;
+ CHECK(zarc_runtime_dispatch(&r,&peer,&old_status,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_UNAVAILABLE);
+ old_status.session=1;peer.principal=8;
+ CHECK(zarc_runtime_dispatch(&r,&peer,&old_status,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_UNAVAILABLE);
+ peer.principal=7;
  CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_UNAVAILABLE);
  zarc_runtime_disconnect(&r);
  CHECK(zarc_runtime_dispatch(&r,&peer,&q,10,false,&out,&effect)&&out.payload[0]==ZARC_CONN_UNAVAILABLE);

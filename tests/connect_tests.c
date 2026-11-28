@@ -16,10 +16,15 @@ int main(void){
  q.desired=0;CHECK(zarc_link_admit(&l,&q,true,true,3,2,&fresh)==ZARC_CONN_CONFLICT);
  CHECK(zarc_link_admit(&other,&q,true,true,3,2,&fresh)==ZARC_CONN_ACCEPTED&&fresh);
  zarc_link_disconnect(&l);CHECK(zarc_link_open(&l,2,10,1,0,3)==ZARC_CONN_BUSY);
+ CHECK(zarc_link_result(&l,1,ZARC_OP_DOMAIN,7,3)==ZARC_CONN_UNAVAILABLE);
  CHECK(zarc_link_finish(&l,1,ZARC_OP_DOMAIN,7,4,true)==ZARC_CONN_COMPLETED);
  CHECK(zarc_link_open(&l,2,10,1,0,5)==ZARC_CONN_COMPLETED);
  CHECK(zarc_link_admit(&l,&q,true,true,0,5,&fresh)==ZARC_CONN_UNAVAILABLE);
  q.session=2;q.validity=1;
+ CHECK(zarc_link_result(&l,1,ZARC_OP_DOMAIN,7,4)==ZARC_CONN_INVALID);
+ CHECK(zarc_link_result(&l,1,ZARC_OP_DOMAIN,7,5)==ZARC_CONN_UNKNOWN_OUTCOME);
+ CHECK(zarc_link_result(&l,3,ZARC_OP_DOMAIN,7,5)==ZARC_CONN_UNAVAILABLE);
+ CHECK(zarc_link_result(&l,0,ZARC_OP_DOMAIN,7,5)==ZARC_CONN_INVALID);
  for(uint64_t i=1;i<=ZARC_REQUEST_LIMIT;++i){q.request_id=i;CHECK(zarc_link_admit(&l,&q,true,true,0,5,&fresh)==ZARC_CONN_ACCEPTED&&fresh);}
  q.request_id=99;CHECK(zarc_link_admit(&l,&q,true,true,0,5,&fresh)==ZARC_CONN_BUSY);
  CHECK(zarc_link_finish(&l,2,ZARC_OP_DOMAIN,1,6,true)==ZARC_CONN_UNKNOWN_OUTCOME);
@@ -41,5 +46,25 @@ int main(void){
  CHECK(!zarc_cache_event(&cache,9,2,7,13,1)&&!cache.valid);
  CHECK(zarc_cache_snapshot(&cache,10,3,0,0,0));
  CHECK(!zarc_cache_event(&cache,9,2,8,1,1)&&!cache.valid);
+ zarc_link stress;uint64_t tick=0,prior=0;
+ CHECK(zarc_link_init(&stress,10,10,tick));
+ CHECK(zarc_link_open(&stress,1,30,1,0,tick)==ZARC_CONN_COMPLETED);
+ for(uint64_t cycle=0;cycle<128;++cycle){
+  if(cycle){
+   prior=stress.session;zarc_link_disconnect(&stress);++tick;
+   CHECK(zarc_link_open(&stress,prior+1u,30,1,0,tick)==ZARC_CONN_COMPLETED);
+   CHECK(stress.count==0u);
+   CHECK(zarc_link_result(&stress,prior,ZARC_OP_DOMAIN,1,tick)==ZARC_CONN_UNKNOWN_OUTCOME);
+  }
+  q=(zarc_intent){.session=stress.session,.domain=1,.desired=1,
+   .operation=ZARC_OP_DOMAIN,.validity=1};
+  for(uint64_t id=1;id<=ZARC_REQUEST_LIMIT;++id){
+   q.request_id=id;
+   CHECK(zarc_link_admit(&stress,&q,true,true,0,tick,&fresh)==ZARC_CONN_ACCEPTED&&fresh);
+  }
+  q.request_id=ZARC_REQUEST_LIMIT+1u;
+  CHECK(stress.count==ZARC_REQUEST_LIMIT);
+  CHECK(zarc_link_admit(&stress,&q,true,true,0,tick,&fresh)==ZARC_CONN_BUSY&&!fresh);
+ }
  puts("Connect contracts passed");return 0;
 }
