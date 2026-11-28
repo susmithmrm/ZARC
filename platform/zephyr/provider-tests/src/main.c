@@ -168,8 +168,49 @@ ZTEST(zarc_providers,test_ipc_service_and_loss){
  zassert_equal(k_msgq_get(&ipc_rx,&bytes,K_NO_WAIT),0);
  zassert_true(zarc_frame_decode(bytes.data,bytes.len,&decoded));
  zassert_equal(decoded.request_id,sample.request_id);
+
+ uint8_t encoded[ZARC_NATIVE_FRAME_MAX];size_t encoded_len=0;
+ zassert_true(zarc_frame_encode(&sample,encoded,sizeof encoded,&encoded_len));
+ /* Exact bounded depth preserves both valid items; the next item latches a
+  * transport fault and is not silently accepted as usable channel state. */
+ ipc_state.cfg->cb.received(encoded,encoded_len,ipc_state.cfg->priv);
+ ipc_state.cfg->cb.received(encoded,encoded_len,ipc_state.cfg->priv);
+ zassert_equal(k_msgq_num_used_get(&ipc_rx),2);
+ ipc_state.cfg->cb.received(encoded,encoded_len,ipc_state.cfg->priv);
+ zassert_true(atomic_get(&ipc_adapter.fault));
+ zassert_equal(zarc_native_ipc_send(&ipc_adapter,&sample),-ENOTCONN);
+ zassert_equal(k_msgq_get(&ipc_rx,&bytes,K_NO_WAIT),0);
+ zassert_equal(k_msgq_get(&ipc_rx,&bytes,K_NO_WAIT),0);
+ zassert_equal(k_msgq_get(&ipc_rx,&bytes,K_NO_WAIT),-ENOMSG);
+ zassert_equal(zarc_native_ipc_close(&ipc_adapter),0);
+
+ /* Malformed callback inputs fail closed before copying or queueing. */
+ zassert_equal(zarc_native_ipc_open(&ipc_adapter,dev,"zarc-test-short",&ipc_rx),0);
+ ipc_state.cfg->cb.received(encoded,ZARC_FRAME_HEADER-1u,ipc_state.cfg->priv);
+ zassert_true(atomic_get(&ipc_adapter.fault));
+ zassert_equal(k_msgq_num_used_get(&ipc_rx),0);
+ zassert_equal(zarc_native_ipc_close(&ipc_adapter),0);
+ zassert_equal(zarc_native_ipc_open(&ipc_adapter,dev,"zarc-test-long",&ipc_rx),0);
+ uint8_t oversized[ZARC_NATIVE_FRAME_MAX+1u]={0};
+ ipc_state.cfg->cb.received(oversized,sizeof oversized,ipc_state.cfg->priv);
+ zassert_true(atomic_get(&ipc_adapter.fault));
+ zassert_equal(k_msgq_num_used_get(&ipc_rx),0);
+ zassert_equal(zarc_native_ipc_close(&ipc_adapter),0);
+ zassert_equal(zarc_native_ipc_open(&ipc_adapter,dev,"zarc-test-null",&ipc_rx),0);
+ ipc_state.cfg->cb.received(NULL,ZARC_FRAME_HEADER,ipc_state.cfg->priv);
+ zassert_true(atomic_get(&ipc_adapter.fault));
+ zassert_equal(zarc_native_ipc_close(&ipc_adapter),0);
+
+ /* A rebound endpoint stays faulted until a full close/open lifecycle. */
+ zassert_equal(zarc_native_ipc_open(&ipc_adapter,dev,"zarc-test-rebind",&ipc_rx),0);
  ipc_state.cfg->cb.unbound(ipc_state.cfg->priv);
  zassert_equal(zarc_native_ipc_send(&ipc_adapter,&sample),-ENOTCONN);
+ ipc_state.cfg->cb.bound(ipc_state.cfg->priv);
+ zassert_equal(zarc_native_ipc_send(&ipc_adapter,&sample),-ENOTCONN);
+ zassert_equal(zarc_native_ipc_close(&ipc_adapter),0);
+ zassert_equal(zarc_native_ipc_open(&ipc_adapter,dev,"zarc-test-reopened",&ipc_rx),0);
+ zassert_equal(zarc_native_ipc_send(&ipc_adapter,&sample),0);
+ zassert_equal(k_msgq_get(&ipc_rx,&bytes,K_NO_WAIT),0);
  zassert_equal(zarc_native_ipc_close(&ipc_adapter),0);
 }
 
