@@ -110,7 +110,7 @@ All 101 expressions used by Z12 are defined here as interpretation guidance, der
 | `SELECTED:TOOL_INTEROP` | Versioned engineering-data exchange selected. |
 | `SELECTED:TRANSPORT` | Managed communication link/provider; derive from resolved bindings. |
 | `SELECTED:TSN` | TSN traffic policy selected; implies ETHERNET and applicable TIME_SYNC. |
-| `SELECTED:UPDATE` | Firmware or independently activated deployment unit (including selected configuration, calibration or model data) has an allocated update/replacement policy; implies SOFTWARE_INVENTORY. Evaluate firmware-specific clauses only when allocated; data-specific verification follows ADOPT-005/061/062 as applicable. |
+| `SELECTED:UPDATE` | Firmware or independently activated deployment unit (including selected configuration, calibration or model data) has an allocated update/replacement policy; implies SOFTWARE_INVENTORY. Evaluate every selected artifact class; physical flash/boot and verified-boot evidence applies only to allocated firmware/trust-chain scope. Data-specific verification follows ADOPT-005/061/062 as applicable. |
 | `SELECTED:VEHICLE_MODE` | Vehicle-mode availability policy selected; distinct from device and host lifecycle. |
 | `SELECTED:VERIFIED_BOOT` | Target verified boot/trust-chain configuration allocated. |
 | `SELECTED:VHAL` | AAOS vehicle hardware interface; implies HOST. |
