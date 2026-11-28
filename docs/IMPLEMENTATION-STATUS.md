@@ -12,7 +12,7 @@ The architecture baseline has 178 proposed requirements. The following increment
 | Independent controller and broker processes | [Loopback increment](LOOPBACK-INCREMENT.md) |
 | Guest readiness and firmware update decision models | [Coordination increment](COORDINATION-INCREMENT.md) |
 | Native Zephyr candidate fixture and CI | [Native increment](NATIVE-INCREMENT.md) |
-| UART, CAN and IPC API bindings | [Transport adapters](../platform/zephyr/adapters/TRANSPORT.md) |
+| UART, CAN, IPC and TCP socket API bindings (TCP simulator only) | [Transport adapters](../platform/zephyr/adapters/TRANSPORT.md) |
 | Native watchdog, NVS and MCUboot bindings | [Native adapters](../platform/zephyr/adapters/README.md) |
 | TLS guest identity and authorization gateway | [Host security increment](HOST-SECURITY-INCREMENT.md) |
 | AAOS and typed SDV/SOME-IP payload mapping | [Host mapping increment](HOST-MAPPING-INCREMENT.md) |
@@ -25,7 +25,7 @@ The architecture baseline has 178 proposed requirements. The following increment
 | Build provenance and supplier admission | [Release engineering](RELEASE-ENGINEERING-INCREMENT.md) |
 | Requirement-level trace and evidence gate | [Verification register](REQUIREMENT-TRACE.csv) and [HIL procedure](HIL-AND-EVIDENCE.md) |
 
-All four CI lanes passed on 65d47614 (desktop 46061895128, generated service 46061895108, COVESA 46061895124, native 46061895160). Desktop CI passed on multi-endpoint, dispatcher, profile manifest, session renewal, diagnostic store, profile lifecycle and migration/boot reconciliation revisions through e3de9ef1 (run 46063781031). Native core/provider CI also passed through 05dc4631 (run 46063258049). All four engineering lanes also passed on 24466c77 (desktop 46064087185, generated service 46064087101, COVESA 46064087117, native 46064087065). The preceding native worker revision 8cd3fb1b executed all 12 selected runnable cases successfully (6 configurations); the remaining MCUboot configuration was compiled only. This is simulator evidence, not physical qualification. See [Actions](https://github.com/susmithmrm/ZARC/actions).
+All four CI lanes passed on ae8760a4: desktop 46140743432, generated service 46140743485, COVESA 46140743456, and native Zephyr 46140743467. The native simulator run executed 16/16 test cases; the MCUboot configuration was compile-only. The TCP adapter is exercised on native_sim only. These results do not establish physical Ethernet or product qualification. See [Actions](https://github.com/susmithmrm/ZARC/actions).
 
 ## Current stabilization increments
 
