@@ -5,6 +5,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 from pathlib import Path
 
 def positive(x):
@@ -64,6 +65,44 @@ def evaluate_transport(rows,latency_limit_us,window_us,bit_rate,bits_per_byte,ut
                 max_tx_permille=tx_permille,max_rx_permille=rx_permille,
                 span_us=0 if first is None else latest_end-first)
 
+PROFILE_METRICS=("boot_ms","latency_us","jitter_us","ram_bytes","flash_bytes","cpu_permille","power_mw")
+PROFILE_INTEGER_METRICS={"ram_bytes","flash_bytes"}
+PROFILE_UNITS={"boot_ms":"ms","latency_us":"us","jitter_us":"us",
+               "ram_bytes":"bytes","flash_bytes":"bytes","cpu_permille":"permille",
+               "power_mw":"mW"}
+
+def evaluate_profile(rows,profile):
+    """Summarize an acquired per-profile trace without imposing universal limits."""
+    if not isinstance(profile,str) or not profile.strip():
+        raise ValueError("profile identity required")
+    values={key:[] for key in PROFILE_METRICS}
+    count=0
+    for index,row in enumerate(rows,1):
+        if row.get("profile")!=profile:
+            raise ValueError(f"row {index}: profile identity mismatch")
+        for key in PROFILE_METRICS:
+            raw=row.get(key)
+            try:
+                value=float(raw)
+            except (TypeError,ValueError):
+                raise ValueError(f"row {index}: invalid {key}") from None
+            if not math.isfinite(value) or value<0:
+                raise ValueError(f"row {index}: invalid {key}")
+            if key in PROFILE_INTEGER_METRICS and not value.is_integer():
+                raise ValueError(f"row {index}: {key} must be an integer")
+            values[key].append(value)
+        count+=1
+    if not count:
+        raise ValueError("profile trace has no measurements")
+    summary={}
+    for key,samples in values.items():
+        summary[key]={"unit":PROFILE_UNITS[key],
+                      "count":len(samples),"minimum":min(samples),"maximum":max(samples),
+                      "mean":sum(value/len(samples) for value in samples)}
+    return {"profile":profile,"samples":count,"metrics":summary,
+            "verdict":"RECORDED",
+            "scope":"observed measurements only; no universal threshold, WCET or product-support claim"}
+
 def digest(path):
     h=hashlib.sha256()
     with path.open("rb") as f:
@@ -72,7 +111,7 @@ def digest(path):
 
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument("kind",choices=("cycles","transport"))
+    p.add_argument("kind",choices=("cycles","transport","profile"))
     p.add_argument("--plan",type=Path,required=True)
     p.add_argument("--trace",type=Path,required=True)
     a=p.parse_args()
@@ -85,10 +124,19 @@ def main():
             if plan.get("profile")=="G1-C-LAB" and (plan.get("duration_us",0)<86400000000 or plan.get("deadline_us")!=10000):
                 raise ValueError("G1-C-LAB requires 24 h and 10 ms deadline")
             result=evaluate_cycles(rows,plan["period_us"],plan["deadline_us"],plan["duration_us"])
-        else:
+        elif a.kind=="transport":
             result=evaluate_transport(rows,*(plan[k] for k in ("latency_limit_us","window_us","bit_rate","bits_per_byte","utilization_permille","minimum_samples")))
-    result.update(configuration=plan["configuration"],plan_sha256=digest(a.plan),trace_sha256=digest(a.trace),
-                  scope="observed measurements only; responsible reviewer must establish trace completeness and clock uncertainty")
+        else:
+            if not isinstance(plan.get("profile"),str) or not plan["profile"].strip():
+                raise ValueError("missing profile")
+            if not isinstance(plan.get("firmware_sha256"),str) or len(plan["firmware_sha256"])!=64 or any(c not in "0123456789abcdef" for c in plan["firmware_sha256"]):
+                raise ValueError("invalid firmware SHA-256")
+            if not isinstance(plan.get("toolchain"),str) or not plan["toolchain"].strip():
+                raise ValueError("missing toolchain")
+            result=evaluate_profile(rows,plan["profile"])
+    scope=(result["scope"] if a.kind=="profile" else
+           "observed measurements only; responsible reviewer must establish trace completeness and clock uncertainty")
+    result.update(configuration=plan["configuration"],plan_sha256=digest(a.plan),trace_sha256=digest(a.trace),scope=scope)
     print(json.dumps(result,indent=2))
-    return 0 if result["verdict"]=="PASS" else 1
+    return 0 if a.kind=="profile" or result["verdict"]=="PASS" else 1
 if __name__=="__main__":raise SystemExit(main())
