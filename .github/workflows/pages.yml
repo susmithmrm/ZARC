@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - 'site/**'
+      - 'config/targets/**'
+      - 'tools/project_status.py'
+      - 'tools/target_manifest.py'
       - '.github/workflows/pages.yml'
 permissions:
   contents: read
@@ -25,6 +28,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Verify public target matrix against maturity records
+        run: python tools/project_status.py --support-matrix-out site/support-matrix.json --check-support-matrix
       - name: Validate static reference assets
         run: |
           python - <<'PY'

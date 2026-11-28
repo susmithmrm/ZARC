@@ -157,6 +157,7 @@ if(BUILD_TESTING)
   if(ZARC_NODE_EXECUTABLE)
     add_test(NAME telemetry_renderer_contract COMMAND ${ZARC_NODE_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/telemetry_renderer_test.cjs)
     add_test(NAME sedan_renderer_contract COMMAND ${ZARC_NODE_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/sedan_renderer_test.cjs)
+    add_test(NAME support_matrix_renderer_contract COMMAND ${ZARC_NODE_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/support_matrix_renderer_test.cjs)
   endif()
 endif()
 

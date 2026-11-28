@@ -1,12 +1,14 @@
 import json
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
-from project_status import _configuration_status, _junit_status, build_report, markdown
+from project_status import (_configuration_status, _junit_status, build_report,
+                            build_support_matrix, markdown)
 
 
 class ProjectStatusTests(unittest.TestCase):
@@ -53,6 +55,38 @@ class ProjectStatusTests(unittest.TestCase):
         self.assertEqual(records[0]["status"], "NOT_SUPPORTED")
         self.assertFalse(records[0]["manifest_valid"])
         self.assertTrue(errors)
+
+    def test_public_matrix_uses_only_candidate_target_records(self):
+        matrix = build_support_matrix(ROOT)
+        self.assertEqual(matrix["production_supported"], [])
+        self.assertEqual(len(matrix["records"]), 4)
+        self.assertTrue(all(row["status"] == "CANDIDATE" for row in matrix["records"]))
+        self.assertTrue(all(row["manifest"].startswith("config/targets/") for row in matrix["records"]))
+        self.assertIn("no production target is supported", matrix["scope"])
+
+    def test_invalid_target_cannot_enter_public_matrix(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            directory = root / "config/targets"
+            directory.mkdir(parents=True)
+            (directory / "bad.json").write_text(json.dumps({"maturity": "SUPPORTED"}), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                build_support_matrix(root)
+
+    def test_matrix_generation_and_check_are_reproducible_and_fail_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            output = Path(d) / "matrix.json"
+            command = [sys.executable, str(ROOT / "tools/project_status.py"),
+                       "--support-matrix-out", str(output)]
+            generated = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertEqual(generated.returncode, 0, generated.stderr)
+            checked = subprocess.run(command + ["--check-support-matrix"],
+                                     capture_output=True, text=True, check=False)
+            self.assertEqual(checked.returncode, 0, checked.stderr)
+            output.write_text("{}\n", encoding="utf-8")
+            stale = subprocess.run(command + ["--check-support-matrix"],
+                                   capture_output=True, text=True, check=False)
+            self.assertEqual(stale.returncode, 1)
 
 
 if __name__ == "__main__":

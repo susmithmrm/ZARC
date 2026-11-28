@@ -60,6 +60,12 @@ def _configuration_status(root):
             "manifest": path.relative_to(root).as_posix(),
             "target": manifest.get("target", path.stem),
             "profile": manifest.get("profile", "UNKNOWN"),
+            "board": manifest.get("board", "UNKNOWN"),
+            "soc": manifest.get("soc", "UNKNOWN"),
+            "revision": manifest.get("revision", "UNKNOWN"),
+            "zephyr": manifest.get("zephyr", "UNKNOWN"),
+            "toolchain": manifest.get("toolchain", "UNKNOWN"),
+            "maintainer": manifest.get("maintainer", "UNKNOWN"),
             "maturity": maturity,
             "manifest_valid": valid,
             "status": "CANDIDATE" if valid and maturity == "CANDIDATE" else "NOT_SUPPORTED",
@@ -70,6 +76,24 @@ def _configuration_status(root):
     if not records:
         errors.append("no target manifests found")
     return records, errors
+
+
+def build_support_matrix(root):
+    """Build the public matrix only from validated, explicitly candidate records."""
+    root = Path(root).resolve()
+    records, errors = _configuration_status(root)
+    if errors:
+        raise ValueError("invalid target maturity records: " + "; ".join(errors))
+    candidates = [record for record in records if record["status"] == "CANDIDATE"]
+    if len(candidates) != len(records):
+        raise ValueError("support matrix contains a non-candidate record")
+    return {
+        "schema": 1,
+        "source": "config/targets/*.json",
+        "scope": "candidate simulator records only; no production target is supported",
+        "production_supported": [],
+        "records": candidates,
+    }
 
 
 def build_report(root, junit=None):
@@ -144,9 +168,14 @@ def main():
                         help="CTest/JUnit XML from this candidate run; omitted means tests are NOT RUN")
     parser.add_argument("--json-out", type=Path)
     parser.add_argument("--markdown-out", type=Path)
+    parser.add_argument("--support-matrix-out", type=Path,
+                        help="write the deterministic public target matrix")
+    parser.add_argument("--check-support-matrix", action="store_true",
+                        help="fail if the generated matrix differs from the committed file")
     args = parser.parse_args()
     try:
         report = build_report(args.root, args.junit)
+        matrix = build_support_matrix(args.root) if args.support_matrix_out or args.check_support_matrix else None
     except (OSError, ET.ParseError, ValueError, TypeError, KeyError) as exc:
         print(f"cannot build status report: {exc}", file=sys.stderr)
         return 2
@@ -155,8 +184,26 @@ def main():
         args.json_out.write_text(rendered, encoding="utf-8")
     if args.markdown_out:
         args.markdown_out.write_text(markdown(report), encoding="utf-8")
-    if not args.json_out and not args.markdown_out:
+    if args.support_matrix_out and not args.check_support_matrix:
+        args.support_matrix_out.parent.mkdir(parents=True, exist_ok=True)
+        args.support_matrix_out.write_text(json.dumps(matrix, indent=2, sort_keys=True) + "\n",
+                                           encoding="utf-8")
+    if args.check_support_matrix:
+        if not args.support_matrix_out:
+            parser.error("--check-support-matrix requires --support-matrix-out")
+        expected = json.dumps(matrix, indent=2, sort_keys=True) + "\n"
+        try:
+            actual = args.support_matrix_out.read_text(encoding="utf-8")
+        except OSError as exc:
+            print(f"cannot read support matrix: {exc}", file=sys.stderr)
+            return 1
+        if actual != expected:
+            print("generated support matrix differs from committed output", file=sys.stderr)
+            return 1
+    if not args.json_out and not args.markdown_out and not args.support_matrix_out:
         print(markdown(report))
+    elif args.support_matrix_out and not args.json_out and not args.markdown_out:
+        print(f"Validated {len(matrix['records'])} candidate target records; no production support claimed")
     return 1 if report["validation_errors"] else 0
 
 

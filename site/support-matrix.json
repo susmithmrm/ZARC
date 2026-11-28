@@ -1,0 +1,146 @@
+{
+  "production_supported": [],
+  "records": [
+    {
+      "board": "native_sim/native/64",
+      "features": {
+        "can": false,
+        "flash": true,
+        "ipc": false,
+        "mcuboot": false,
+        "pm": true,
+        "smp": false,
+        "uart": false,
+        "watchdog": false,
+        "zbus": true
+      },
+      "limitations": [
+        "Illustrative allocations only; not measured WCET or board memory evidence",
+        "Simulator only; no physical devices or production support",
+        "Native simulator profile; product-specific functions are laboratory application-owned providers, not qualified product services",
+        "Lab-local framed queue; no production external transport",
+        "Independent simulated provider worker; bounded synchronous fixture waits self-suspend the owner; no measured WCET or response-time proof",
+        "Native Zbus observer delivery and device runtime PM on a simulated device only; not measured observer/wake latency",
+        "Boot counter and diagnostic journal in native simulator NVS at startup/quiescent shutdown; not rollback-resistant or power-cut qualified"
+      ],
+      "maintainer": "ZARC development",
+      "manifest": "config/targets/native-sim-companion.json",
+      "manifest_valid": true,
+      "maturity": "CANDIDATE",
+      "profile": "companion",
+      "revision": "candidate-5",
+      "soc": "host-sim",
+      "status": "CANDIDATE",
+      "target": "native-sim-companion-reference",
+      "toolchain": "host GCC candidate",
+      "validation_error": null,
+      "zephyr": "v4.2.0"
+    },
+    {
+      "board": "native_sim/native/64",
+      "features": {
+        "can": false,
+        "flash": true,
+        "ipc": false,
+        "mcuboot": false,
+        "pm": true,
+        "smp": false,
+        "uart": false,
+        "watchdog": false,
+        "zbus": true
+      },
+      "limitations": [
+        "Illustrative allocations only; not measured WCET or board memory evidence",
+        "Simulator only; no physical devices or production support",
+        "Independent simulated provider worker; bounded synchronous fixture waits self-suspend the owner; no measured WCET or response-time proof",
+        "Native Zbus observer delivery and device runtime PM on a simulated device only; not measured observer/wake latency",
+        "Boot counter and diagnostic journal in native simulator NVS at startup/quiescent shutdown; not rollback-resistant or power-cut qualified"
+      ],
+      "maintainer": "ZARC development",
+      "manifest": "config/targets/native-sim-edge.json",
+      "manifest_valid": true,
+      "maturity": "CANDIDATE",
+      "profile": "edge",
+      "revision": "candidate-5",
+      "soc": "host-sim",
+      "status": "CANDIDATE",
+      "target": "native-sim-edge-reference",
+      "toolchain": "host GCC candidate",
+      "validation_error": null,
+      "zephyr": "v4.2.0"
+    },
+    {
+      "board": "native_sim/native/64",
+      "features": {
+        "can": false,
+        "flash": true,
+        "ipc": true,
+        "mcuboot": false,
+        "pm": true,
+        "smp": false,
+        "uart": false,
+        "watchdog": false,
+        "zbus": true
+      },
+      "limitations": [
+        "Illustrative allocations only; not measured WCET or board memory evidence",
+        "Simulator only; no physical devices or production support",
+        "Native simulator profile; product-specific functions are laboratory application-owned providers, not qualified product services",
+        "Native IPC front end with explicit simulated backend, no physical inter-core memory",
+        "Independent simulated provider worker; bounded synchronous fixture waits self-suspend the owner; no measured WCET or response-time proof",
+        "Native Zbus observer delivery and device runtime PM on a simulated device only; not measured observer/wake latency",
+        "Boot counter and diagnostic journal in native simulator NVS at startup/quiescent shutdown; not rollback-resistant or power-cut qualified"
+      ],
+      "maintainer": "ZARC development",
+      "manifest": "config/targets/native-sim-integrated.json",
+      "manifest_valid": true,
+      "maturity": "CANDIDATE",
+      "profile": "integrated",
+      "revision": "candidate-5",
+      "soc": "host-sim",
+      "status": "CANDIDATE",
+      "target": "native-sim-integrated-reference",
+      "toolchain": "host GCC candidate",
+      "validation_error": null,
+      "zephyr": "v4.2.0"
+    },
+    {
+      "board": "native_sim/native/64",
+      "features": {
+        "can": false,
+        "flash": true,
+        "ipc": false,
+        "mcuboot": false,
+        "pm": true,
+        "smp": false,
+        "uart": false,
+        "watchdog": false,
+        "zbus": true
+      },
+      "limitations": [
+        "Illustrative allocations only; not measured WCET or board memory evidence",
+        "Simulator only; no physical devices or production support",
+        "Native simulator profile; product-specific functions are laboratory application-owned providers, not qualified product services",
+        "Lab-local framed queue; no production external transport",
+        "Independent simulated provider worker; bounded synchronous fixture waits self-suspend the owner; no measured WCET or response-time proof",
+        "Native Zbus observer delivery and device runtime PM on a simulated device only; not measured observer/wake latency",
+        "Boot counter and diagnostic journal in native simulator NVS at startup/quiescent shutdown; not rollback-resistant or power-cut qualified"
+      ],
+      "maintainer": "ZARC development",
+      "manifest": "config/targets/native-sim-zonal.json",
+      "manifest_valid": true,
+      "maturity": "CANDIDATE",
+      "profile": "zonal",
+      "revision": "candidate-5",
+      "soc": "host-sim",
+      "status": "CANDIDATE",
+      "target": "native-sim-zonal-reference",
+      "toolchain": "host GCC candidate",
+      "validation_error": null,
+      "zephyr": "v4.2.0"
+    }
+  ],
+  "schema": 1,
+  "scope": "candidate simulator records only; no production target is supported",
+  "source": "config/targets/*.json"
+}
