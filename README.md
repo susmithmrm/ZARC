@@ -23,6 +23,10 @@ Use the preset matching your host. Windows requires MSVC and CMake available in 
 
  The tests cover admission, feedback confirmation, timeout, duplicate handling and independent instances. The starter retains only one request per instance, refuses older IDs and assumes a single simulated principal/session. It is a prototype, not a full contract implementation.
 
+### Show reference-controller telemetry in the sedan
+
+Build `zarc_controller_lab_pc` using the desktop preset and start it with a nonzero boot ID, for example `./build/linux/zarc_controller_lab_pc 42`. It prints a local TCP port. In another terminal run `PYTHONPATH=host python tools/telemetry_bridge.py --controller-port PORT`, replacing `PORT` with that value. Open the [sedan reference page](https://susmithmrm.github.io/ZARC/modern-architecture.html) and connect to `http://127.0.0.1:8765/snapshot`. The display is read-only and identifies the desktop controller as simulated; loss of fresh valid samples changes the label to stale. This does not connect physical vehicle hardware.
+
 See [implementation status](docs/IMPLEMENTATION-STATUS.md) for the current scope and [implementation realization](docs/architecture/realization/16-Implementation-Realization.md) for planned work. Future increments include independent broker processes, service registry, session contracts, diagnostics, persistence, target adapters and target evidence. No real automotive hardware is operated by this starter.
 
 ## Suggested modern vehicle architecture
