@@ -23,10 +23,13 @@ The single requirements register [Z12](12-Requirements-Verification.csv) contain
 | Z13 | [Reference register](13-References.md) | Evidence and research |
 | Z14 | [Architecture review report](14-Architecture-Review.md) | Architecture and engineering leads |
 | Z15 | [Findings register](15-Review-Findings.csv) | Review board and requirement owners |
+| Z16–17 | [Realization plan](realization/16-Implementation-Realization.md) and [development allocation](realization/17-Development-Allocation.csv) | Implementation teams |
+| Z18–19 | [Vehicle reference](18-Modern-SDV-Reference-Architecture.md) and [partner guide](19-Platform-Capabilities-and-Partner-Adoption.md) | Architects and suppliers |
+| Z22–24 | [Physical reference](22-Reference-Prototype.md), [demonstration](23-Reference-Demonstration-Plan.md), [planning BOM](24-Reference-Prototype-BOM.csv) | Bench and verification teams |
 
 [Diagram atlas](diagrams/README.md) renders the editable Mermaid diagrams directly on GitHub. [Engineering templates](templates/) are also available.
 
-Markdown files are editable normative-candidate design sources, CSV is an editable requirements register, Mermaid files are editable diagrams. IDs remain stable across revisions. PROPOSED denotes a specified requirement awaiting implementation-phase allocation and accepted verification. All targets are provisional unless stated as public upstream facts. Configuration-specific evidence is required before claiming support.
+Z12 is the sole normative requirements register. Markdown design documents and Mermaid diagrams describe allocated design intent; derived registers and templates do not introduce independent requirements. If wording conflicts, reconcile the design against Z12 before admission. IDs remain stable across revisions. PROPOSED denotes a specified requirement awaiting implementation-phase allocation and accepted verification. All targets are provisional unless stated as public upstream facts. Configuration-specific evidence is required before claiming support.
 
 ## Baseline review and scope
 

@@ -3,7 +3,7 @@
 > **ZARC 2035 | Architecture specification | Design phase.** The single requirements register is [Z12](12-Requirements-Verification.csv) (267 requirements). Implementation and verification are planned for the next phase. See [implementation plan](../IMPLEMENTATION-STATUS.md).
 
 ## Scope
-OEM owns item, hazard analysis, safety goals, vehicle validation and type approval. Allocate DIA, HARA, FTTI, TARA, assumptions of use, independence, safety manual and residual risk. ISO 26262, ISO/SAE 21434, ISO 24089, UN R155/R156, ISO 21448 and ISO/PAS 8800 apply to allocated scope. No platform ASIL, SIL, cybersecurity, regulatory or production claim. Upstream certification is not automatically inherited.
+The responsible vehicle/system approval holder owns item definition, safety goals, vehicle validation and type approval; allocated supplier obligations remain explicit. Allocate DIA, HARA, FTTI, TARA, assumptions of use, independence, safety manual and residual risk. ISO 26262, ISO/SAE 21434, ISO 24089, UN R155/R156, ISO 21448 and ISO/PAS 8800 apply to allocated scope. No platform ASIL, SIL, cybersecurity, regulatory or production claim. Upstream certification is not automatically inherited.
 ## Boundaries
 Analyze startup/reset/shutdown/update, shared resources, common-cause faults and independent protection. Local authority and bounded execution survive allocated failures. Access classified by role/object; expose status, not secrets or arbitrary low-level control. Approved security and boot providers; no proprietary crypto. Safety communication error model separate from cybersecurity. Incident, dependency, privacy and key lifecycle controls.
 ## Update and recovery
@@ -11,3 +11,8 @@ Every selected deployment unit has identity, compatibility, eligibility, activat
 
 ## Evidence allocation
 Assess exact product assumptions and fault tolerant time intervals; independent hardware protection and product-specific safe behavior are externally allocated. Verification must cover allocated failure and recovery, interference and actual physical evidence. Security policy and safety mechanism claims are distinct. Report missing vendor, hardware, licensed standards and independent assessment as open. No standards conformity is implied by architecture or simulator success.
+
+## Scope allocation and change impact
+ASR-001–014, ASR-017/019/026–030 allocate safety scope, freedom from interference, cybersecurity, identity, update trust/recovery, diagnostic hardware, cryptographic agility, boot trust, retirement, fault response and authorized visibility. ADOPT-024–034 and ADOPT-061/062/068/069 cover assurance lifecycle, regulatory and process work products, privacy, disclosure, dependencies and AI changes. All allocations are exact product/target scope; the platform does not confer an ASIL, SIL, type approval or safety integrity rating.
+## Deployment and data changes
+All releasable artifacts have a documented lifecycle policy under PL-025. Where activation is selected, the update selection covers firmware, independently activated modules and allocated data artifacts. Use the relevant firmware, configuration, calibration or model-specific approval and recovery criteria; no bootloader requirement is inferred merely from a data-only update. Approved providers and evidence establish trust and recovery, not a documentation assertion. Coordinate compatibility and actual version reporting across dependencies. Apply jurisdictional and customer policies to inventory, diagnostics, privacy, replacement and retirement.

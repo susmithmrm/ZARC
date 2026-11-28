@@ -5,13 +5,13 @@
 ## Verification contract
 Z12 is the single source for normative IDs, objective, profile, acceptance, verification method, design allocation, gate, owner and status. Derived trace and development allocation must match these canonical fields. Implementation and test paths are assigned only after review in the implementation phase.
 ## Applicability
-ALL refers to the admitted configuration or portfolio obligation. SELECTED derives from approved manifest, capability and contract allocation; E/C/Z/I are deployment profiles. No arbitrary per-requirement switches. Unknown predicates, absent implied dependencies and unresolved allocations block affected admission (VER-023). Portfolio obligations cannot be waived by individual image flags.
+ALL refers to the admitted configuration, release, program or portfolio obligation; mandatory portfolio evidence is not a dependency of every firmware image. SELECTED derives from approved manifest, capability and contract allocation; E/C/Z/I are deployment profiles. No arbitrary per-requirement switches. Unknown predicates, absent implied dependencies and unresolved allocations block affected admission (VER-023). Portfolio obligations cannot be waived by individual image flags.
 ## Verification ladder
 Unit and contract → desktop/native simulation → physical target and HIL → independent integration, safety and security review → customer production acceptance. Test positive, negative and boundary cases as applicable. Record exact source, configuration, toolchain, hardware identity, workload, uncertainty, expected/observed result, reviewer, raw trace and verdict. No fabricated physical evidence, no simulator-to-production inference.
 ## Architecture evidence
 Verify independent component exchange, graph consistency, allocated resource visibility, actual versus intended deployment, trace correlation, authorized access, update/recovery and native control deadlines under observation pressure. Test architectural diagrams and catalogs against the resolved graph (VER-024). AI benchmark evidence reports model, precision, accuracy, latency, memory and energy; AI-assisted work receives accountable review.
 ## Gates
-G0 allocation and architecture; G1 native/portable lab behavior; G2 physical portability, lifecycle and SDK; G3 independent protocol and host integration; G4 allocated safety/security and partner review; G5 exact release and maintenance acceptance. Gate assignment is not acceptance. Benchmark equivalent workloads, scope, assurance, licensing and staffing; publish limitations. No blanket certification.
+G0 allocation and architecture; G1 native/portable lab behavior; G2 physical portability, lifecycle and SDK; G3 independent protocol and host integration; G4 allocated safety/security and partner review; G5 portfolio-level adoption-readiness review and release-scope decision. A gate is the planned evidence stage, not acceptance or a mandatory dependency for unrelated configurations. Benchmark equivalent workloads, scope, assurance, licensing and staffing; publish limitations. No blanket certification.
 
 ## Applicability dictionary — 2035 baseline selection guidance
 
@@ -110,7 +110,7 @@ All 101 expressions used by Z12 are defined here as interpretation guidance, der
 | `SELECTED:TOOL_INTEROP` | Versioned engineering-data exchange selected. |
 | `SELECTED:TRANSPORT` | Managed communication link/provider; derive from resolved bindings. |
 | `SELECTED:TSN` | TSN traffic policy selected; implies ETHERNET and applicable TIME_SYNC. |
-| `SELECTED:UPDATE` | Firmware update admission/recovery allocated; implies SOFTWARE_INVENTORY. |
+| `SELECTED:UPDATE` | Firmware or independently activated deployment unit (including selected configuration, calibration or model data) has an allocated update/replacement policy; implies SOFTWARE_INVENTORY. Evaluate firmware-specific clauses only when allocated; data-specific verification follows ADOPT-005/061/062 as applicable. |
 | `SELECTED:VEHICLE_MODE` | Vehicle-mode availability policy selected; distinct from device and host lifecycle. |
 | `SELECTED:VERIFIED_BOOT` | Target verified boot/trust-chain configuration allocated. |
 | `SELECTED:VHAL` | AAOS vehicle hardware interface; implies HOST. |
@@ -120,3 +120,6 @@ All 101 expressions used by Z12 are defined here as interpretation guidance, der
 | `SELECTED:ZBUS` | Native zbus channel/observer path used. |
 | `SELECTED:ZONE` | Derived from Z profile or allocated zonal topology; not a separate opt-out. |
 | `Z` | Zonal controller profile. |
+
+## Verification allocation and evidence scope
+VER-001–012, VER-014/016/017/019/021–024 and ADOPT-045–054/056–059/063–065/067/070 allocate traceability, reproducibility, measurements, coverage, review, virtual engineering, AI evaluation and observability. Only IDs actually present in Z12 apply. Use the resolved configuration to derive applicable, not applicable with reviewed rationale, or unresolved with an owner. Unresolved requirements block affected admission. Distinguish a portfolio record from an image record. Maintain exact candidate, software, simulation, physical and independently qualified verdicts; do not aggregate evidence across different configurations. Validate actual source/test allocations in the implementation phase. The evidence gate must reject missing, failed or unsupported evidence. A documentation audit can check consistency but cannot establish implementation or product acceptance.

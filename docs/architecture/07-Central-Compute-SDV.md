@@ -11,3 +11,6 @@ Fleet coordinator/cloud are external optional integrations. Report actual instal
 
 ## Ownership and independent lifecycle
 A host or guest restart does not imply controller reset; link epoch and controller boot epoch are distinct. Preserve independent allocated functions across loss and reconnection. Guest readiness is not electrical or physical readiness. Host, vehicle and local mode transitions require allocated eligibility, bounded coordination, observed outcomes and an approved response to unavailable evidence. Host adapters translate only authorized semantic contracts; the real-time controller retains physical authority.
+
+## Host and fleet scope
+HOST-001–015 allocate broker ownership, session recovery, quotas, AAOS/VHAL, SDV/SOME-IP, guest readiness, delegation, virtualization, adapter substitution, approved telemetry and rollout coordination. A no-host edge configuration has no mandatory guest or cloud services. Where guest coordination is selected, readiness aggregates only required guests, within approved bounds, and local eligibility is revalidated. Fleet reports actual installed/staged/unavailable states with provenance rather than desired versions. Pause and recovery decisions belong to the responsible coordinator; the controller owns its allocated local behavior.

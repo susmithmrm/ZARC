@@ -21,3 +21,6 @@ One codebase, one Z12, native Zephyr first. Independently maintained micro-compo
 
 ## Decision and acceptance policy
 Use independent workload, hardware and assurance comparisons against legally accessible automotive platforms. The shared platform does not own OEM domain algorithms, vehicle safety decisions, cloud fleet services or silicon errata. Public roadmaps are design inputs, not supplier commitments. Support for any company or product requires an agreed integration and independently reviewed evidence.
+
+## Global scope and target outcomes
+The shared foundation is intended for passenger, commercial, off-highway and intelligent embedded products; sector adapters and assurance scopes are selected, not universal dependencies. OEM, Tier 1, Tier 2, semiconductor and embedded/AI partner evaluation is a portfolio obligation (ADOPT-082). Tier 3 manufacturing and component vendors participate through allocated manufacturing, materials and lifecycle interfaces where relevant. Regional and customer-specific requirements belong to the product allocation (ADOPT-030, SUP-017). The 30% and 25% economic targets are evaluation hypotheses; they are not per-image release thresholds.

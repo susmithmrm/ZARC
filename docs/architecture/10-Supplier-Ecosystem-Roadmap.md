@@ -16,3 +16,8 @@ Version and compatibility policy, reproducible archive, patch/backport and migra
 5. Optional AI and heterogeneous providers.
 6. Customer pilots, measured economics and scoped qualification.
 Portfolio adoption review ADOPT-082 includes both architecture generations. No partnerships or superiority claims without independently substantiated evidence.
+
+## Supplier engineering obligations
+SUP-001–004/006/011/014–018 and ADOPT-035–044/080–082 allocate contributions, maintenance, migration, IP boundaries, tool exchange, continuous alignment, licensing, component exchange, reproducible SDK, localization, quality processes, economics and independent partner evaluation. The common core must be integrable without compulsory proprietary tooling or ZARC-specific runtime royalties; selected vendor SDK and third-party license restrictions remain explicit. Public target maturity is derived from PL-010 under ADOPT-043. Compare equivalent costs and effort using VER-017, including negative outcomes and missing evidence.
+## Governance and support
+Maintain decision authority, accountable owners, conflict-of-interest disclosure, escalation and succession, maintenance window, response and backport policy, dependency end-of-life and reproducible archive. A single maintainer is a dependency, not independent approval. Use the contribution guide and responsible independent reviewers. Customer-specific deliverables are controlled allocations; do not publish confidential material. Industry research is a recurring design input, not evidence of procurement or partnership.
