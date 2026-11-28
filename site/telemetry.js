@@ -3,7 +3,8 @@
  const $=id=>document.getElementById(id);
  const endpoint=$("telemetry-endpoint"),button=$("telemetry-connect"),state=$("telemetry-state");
  const sample=$("telemetry-sample"),quality=$("telemetry-quality"),epoch=$("telemetry-epoch");
- if(!endpoint||!button||!state)return;
+ const simulatedState=$("telemetry-simulated-state"),simulatedChannels=$("telemetry-simulated-channels");
+ if(!endpoint||!button||!state||!simulatedState||!simulatedChannels)return;
  const staleAfterMs=1500;
  let timer=null,lastGood=null,inFlight=false;
  const qualities=["UNKNOWN","VALID","STALE","FAULT"];
@@ -31,6 +32,59 @@
    if(lastGood&&Date.now()-lastGood.captured_at_ms>staleAfterMs)paint("stale","STALE · last controller sample is too old");
   }
  }
+ function renderSimulatedCatalogue(catalogue){
+  if(!catalogue||catalogue.schema!==1||catalogue.catalogue_id!=="reference-bench-50-v1"||catalogue.status!=="SIMULATED"||
+     catalogue.provenance!=="simulated_reference_bench"||catalogue.sample_tick_ms!==0||
+     !Array.isArray(catalogue.channels)||catalogue.channels.length!==50)return false;
+  const seen=new Set();
+  for(const channel of catalogue.channels){
+   if(!channel||typeof channel.id!=="string"||!channel.id||seen.has(channel.id)||
+      typeof channel.name!=="string"||!channel.name||typeof channel.group!=="string"||!channel.group||
+      typeof channel.source!=="string"||!channel.source||typeof channel.unit!=="string"||!channel.unit||
+      !["input","feedback","status"].includes(channel.direction)||
+      channel.quality!=="SIMULATED"||channel.provenance!=="simulated_reference_bench"||
+      !Number.isFinite(channel.value)||!Number.isFinite(channel.value_min)||
+      !Number.isFinite(channel.value_max)||channel.value_min>channel.value||
+      channel.value>channel.value_max||channel.sample_tick_ms!==0)return false;
+   seen.add(channel.id);
+  }
+  const table=document.createElement("table");
+  table.setAttribute("aria-label","Simulated reference bench channels");
+  const head=document.createElement("thead"),headRow=document.createElement("tr");
+  for(const label of ["ID","Signal","Value","Unit","Quality / provenance","Scenario tick"]){
+   const cell=document.createElement("th");cell.scope="col";cell.textContent=label;headRow.append(cell);
+  }
+  head.append(headRow);
+  const body=document.createElement("tbody");
+  for(const channel of catalogue.channels){
+   const row=document.createElement("tr");
+   for(const value of [channel.id,channel.name,String(channel.value),channel.unit,
+                       "SIMULATED · reference fixture",String(channel.sample_tick_ms)]){
+    const cell=document.createElement("td");cell.textContent=value;
+    if(value.startsWith("SIMULATED"))cell.dataset.provenance="simulated";
+    row.append(cell);
+   }
+   row.dataset.provenance=channel.provenance;
+   body.append(row);
+  }
+  table.append(head,body);
+  simulatedChannels.replaceChildren(table);
+  simulatedState.textContent="SIMULATED · 50 deterministic channels; separate from controller feedback";
+  return true;
+ }
+ async function loadSimulatedCatalogue(){
+  try{
+   const url=new URL(endpoint.value);
+   if(url.protocol!=="http:"||!(url.hostname==="127.0.0.1"||url.hostname==="localhost")||url.pathname!=="/snapshot")
+    throw new Error("Use the localhost telemetry bridge");
+   url.pathname="/channels";
+   const response=await fetch(url.href,{cache:"no-store",mode:"cors"});
+   if(!response.ok||!renderSimulatedCatalogue(await response.json()))throw new Error("invalid simulated catalogue");
+  }catch(_error){
+   simulatedState.textContent="SIMULATED · reference catalogue unavailable; no controller feedback is used";
+   simulatedChannels.replaceChildren();
+  }
+ }
  async function poll(){
   if(inFlight)return;
   inFlight=true;
@@ -51,9 +105,11 @@
    if(url.protocol!=="http:"||!(url.hostname==="127.0.0.1"||url.hostname==="localhost")||url.pathname!=="/snapshot")
     throw new Error();
   }catch(_error){paint("error","Enter http://127.0.0.1:PORT/snapshot");return;}
+  loadSimulatedCatalogue();
   button.textContent="Disconnect";
   poll();timer=setInterval(poll,500);
  });
  paint("simulated","SIMULATED · illustrative baseline; no controller connected");
- globalThis.zarcTelemetry={render,poll,freshness};
+ loadSimulatedCatalogue();
+ globalThis.zarcTelemetry={render,poll,freshness,renderSimulatedCatalogue,loadSimulatedCatalogue};
 })();

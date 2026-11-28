@@ -66,7 +66,7 @@ All four engineering lanes passed on 06ef2c1d (desktop 46068427184, generated se
 
 ## Remaining gates
 
-All 178 IDs are represented in the verification register. The current trace contains 133 PARTIAL_OPEN and 45 OPEN records across the 178 Z12 requirements; it does not mark any requirement accepted. Complete acceptance vectors, product manifests and independent accepted evidence remain mandatory.
+All 178 IDs are represented in the verification register. The current trace contains 134 PARTIAL_OPEN and 44 OPEN records across the 178 Z12 requirements; it does not mark any requirement accepted. Complete acceptance vectors, product manifests and independent accepted evidence remain mandatory.
 
 - Extend tested reference discovery and reconciliation to selected production transports and product schemas; integrate approved broker quotas, MCU authentication and identity delegation. Guest-side retained outcomes are now exposed; complete multi-client event reconciliation, mode allocation and production update-status publisher remain open.
 - Complete selected physical board and driver configurations, integrate physical UART/CAN/Ethernet and IPC transport owners with the continuous runtime, connect the tested simulator PM, Zbus and journal lifecycle paths to approved physical product services, and qualify signed boot, trusted metadata, watchdog, NVS and reset behavior. The new simulator compositions do not constitute physical ports.
