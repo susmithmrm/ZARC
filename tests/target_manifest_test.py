@@ -1,6 +1,8 @@
 import copy
+import hashlib
 import json
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -20,6 +22,37 @@ class Tests(unittest.TestCase):
             reconcile_kconfig(self.m,p)
             p.write_text("CONFIG_CAN=y\nCONFIG_ZBUS=y\nCONFIG_PM_DEVICE_RUNTIME=y\nCONFIG_NVS=y\n")
             with self.assertRaises(ValueError):reconcile_kconfig(self.m,p)
+
+    def test_generated_header_is_byte_reproducible_from_identical_manifest(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            manifest=root/"candidate.json"
+            manifest.write_text(json.dumps(self.m,indent=2)+"\n",encoding="utf-8")
+            outputs=[root/"one"/"zarc_manifest.h",root/"two"/"zarc_manifest.h"]
+            for output in outputs:
+                result=subprocess.run([sys.executable,str(ROOT/"tools/target_manifest.py"),
+                                       str(manifest),"--header",str(output)],
+                                      capture_output=True,text=True,check=False)
+                self.assertEqual(result.returncode,0,result.stderr)
+                self.assertIn("no target support claim",result.stdout)
+            first,second=(output.read_bytes() for output in outputs)
+            self.assertEqual(first,second)
+            self.assertEqual(hashlib.sha256(first).digest(),hashlib.sha256(second).digest())
+
+    def test_invalid_manifest_cli_reports_actionable_error_and_writes_no_header(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            invalid=copy.deepcopy(self.m)
+            invalid["profile"]="unknown-profile"
+            manifest=root/"invalid.json"
+            manifest.write_text(json.dumps(invalid),encoding="utf-8")
+            header=root/"generated"/"zarc_manifest.h"
+            result=subprocess.run([sys.executable,str(ROOT/"tools/target_manifest.py"),
+                                   str(manifest),"--header",str(header)],
+                                  capture_output=True,text=True,check=False)
+            self.assertEqual(result.returncode,1)
+            self.assertIn("Rejected: unknown profile",result.stdout)
+            self.assertFalse(header.exists())
     def test_invalid_profiles(self):
         for change in ("cycle","duplicate","unsupported","owner","profile","flash","uart"):
             m=copy.deepcopy(self.m)
