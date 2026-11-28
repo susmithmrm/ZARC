@@ -4,7 +4,7 @@ Partner-facing view of the architecture. No new normative requirements, unsuppor
 
 ## Capability landscape
 
-Lab means limited laboratory evidence; Binding means native API code, not physical qualification; Candidate means architecture direction; Planned means not implemented as a complete integration; Opportunity means potential future extension. The expanded native provider lane passed on the recorded 65d47614 baseline; the newer four-profile and independent-worker revisions require completed CI runs. Consult the implementation status and live CI.
+Lab means limited laboratory evidence; Binding means native API code, not physical qualification; Candidate means architecture direction; Planned means not implemented as a complete integration; Opportunity means potential future extension. Desktop, generated service, COVESA, native simulator and Pages workflows passed on commit `2e42477`; check the live CI for later revisions. Simulator results are not physical qualification.
 
 | Area | Capability | Approach | Maturity | Remaining evidence |
 |---|---|---|---|---|
@@ -39,6 +39,10 @@ Lab means limited laboratory evidence; Binding means native API code, not physic
 | Assurance | [Supplier conformance](https://github.com/susmithmrm/ZARC/blob/main/docs/architecture/10-Supplier-Ecosystem-Roadmap.md) | Structured target descriptor, supplier admission and review records | Laboratory evidence | Partner submissions and configuration-specific approval |
 
 ## Partner contribution paths
+
+### Chinese and Korean documentation
+
+The [draft glossary](../localization/GLOSSARY.md), [Chinese quick start](../localization/quickstart.zh-CN.md), [Korean quick start](../localization/quickstart.ko.md), and [translation workflow](../localization/WORKFLOW.md) preserve the English build commands. Native-language technical review and partner acceptance remain open.
 
 | Role | Work | Deliverable | Entry point |
 |---|---|---|---|

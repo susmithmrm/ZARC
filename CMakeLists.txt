@@ -153,6 +153,8 @@ if(BUILD_TESTING)
       ${CMAKE_CURRENT_SOURCE_DIR}/tests/dependency_boundary_test.py)
     add_test(NAME contribution_workflow_contract COMMAND ${Python3_EXECUTABLE}
       ${CMAKE_CURRENT_SOURCE_DIR}/tests/contribution_workflow_test.py)
+    add_test(NAME localization_contract COMMAND ${Python3_EXECUTABLE}
+      ${CMAKE_CURRENT_SOURCE_DIR}/tests/localization_test.py)
     add_test(NAME telemetry_bridge_contract COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/telemetry_bridge_test.py)
     add_test(NAME telemetry_controller_integration COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/telemetry_bridge_test.py $<TARGET_FILE:zarc_controller_lab_pc>)
     set_tests_properties(telemetry_controller_integration PROPERTIES TIMEOUT 20)
