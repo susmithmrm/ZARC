@@ -46,3 +46,16 @@ Each objective (OBJ-SYS, OBJ-RT, OBJ-PL, OBJ-SVC, OBJ-CON, OBJ-HOST, OBJ-NET, OB
 
 ## Cross-target verification
 Conformance covers approved ISA/ABI, numeric golden vectors, memory placement, execution mode, native driver behavior, silicon diagnostics and hardware timing where applicable. Review coding standards, static analysis and deviations for each supported release. Refined requirements require fresh acceptance review.
+
+## Candidate status report
+
+After running CTest, capture its results and generate the current trace, failures, evidence gaps and target-manifest status together:
+
+```bash
+ctest --preset desktop-linux --output-junit build/linux/test-results.xml
+python tools/project_status.py --junit build/linux/test-results.xml \
+  --json-out build/linux/project-status.json \
+  --markdown-out build/linux/project-status.md
+```
+
+Without `--junit`, tests are reported as `NOT_RUN`. Invalid or absent target manifests are not listed as supported; current simulator descriptors remain candidates. The report preserves each requirement's open evidence gap and never declares qualification or product acceptance. A successful command means the report was generated, not that the release gate passed.
