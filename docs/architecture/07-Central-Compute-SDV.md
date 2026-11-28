@@ -1,4 +1,16 @@
-# Z07 Central compute and SDV integration
+# Z07 — Central compute, host and fleet integration
+
+> **ZARC 2035 | Design baseline candidate | 28 November 2026.** The single normative-candidate register is [Z12](12-Requirements-Verification.csv) (267 requirements). This design describes the intended architecture, not implemented or qualified functionality. See [implementation evidence](../IMPLEMENTATION-STATUS.md).
+
+## Host boundary
+Trusted broker exclusively owns physical link where selected. Guest, host, controller and service lifecycle independent. Scoped principals submit typed intents; local owner validates. Quotas and reserved resources protect independent functions. Restart clears stale validity and reconciles fresh snapshots; no replay of expired intent.
+## Ecosystem
+Selected AAOS VHAL, S-CORE/SDV, SOME/IP, gRPC, Linux/QNX or hypervisor adapters preserve semantics; host adapters replaceable independently. VHAL AP_POWER_STATE_REQ (VMCU→Android), AP_POWER_STATE_REPORT (Android→VMCU); pin branch and validate direction and states. Guest readiness is not physical readiness. Shared clock, boot, memory, device and DMA ownership need target evidence.
+## Fleet and AI
+Fleet coordinator/cloud are external optional integrations. Report actual installed identity, freshness, health, staged/active/recovered status and compatibility. Policy-defined rollout pause belongs to coordinator; activation only in eligible mode. AI enters authorized advisory boundary; heavy perception stays on suitable processor. No cloud requirement for local control.
+
+## Retained engineering detail
+Existing design detail is retained for compatibility and trace continuity. Where wording differs, Z12 and the current architecture above govern. Historical examples are not evidence of new functionality.
 
 ## Deployment and trust boundaries (D13)
 

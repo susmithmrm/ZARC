@@ -1,4 +1,18 @@
-# Z06 Connectivity and interface specification
+# Z06 — Open connectivity and engineering contracts
+
+> **ZARC 2035 | Design baseline candidate | 28 November 2026.** The single normative-candidate register is [Z12](12-Requirements-Verification.csv) (267 requirements). This design describes the intended architecture, not implemented or qualified functionality. See [implementation evidence](../IMPLEMENTATION-STATUS.md).
+
+## Semantics
+Typed intent, authorized scope, request identity, version, expiry and bounded retention. Acceptance is not completion; timeout may mean unknown outcome. Snapshot/event reconciliation detects gaps; producer boot epoch distinct from link session. Explicit freshness uncertainty, ordering, backpressure, error and compatibility. No raw C structure wire ABI. Bindings independently verified.
+## Networks
+Legacy CAN/CAN FD/LIN and selected DBC/LDF/authorized ARXML migration coexist with Ethernet, 10BASE-T1S, TSN and optional CAN XL/FlexRay. Separate protocol, PHY, clocks, buffers and physical proof. Selected ISO-TP/DoIP/UDS, SOME/IP, IPC, UART and J1939/ISOBUS profiles require independent peers. Time-sync loss explicit. No mandatory universal protocol or new stack.
+## Engineering exchange
+Selected VSS/SOVD, S-CORE, XCP/A2L, ASAM TDF/MDF/ODX or ReqIF/FMI as allocated and licensed. Publish pinned contract/format versions and supported fields. Trace correlation preserves identity, boot epoch and time uncertainty. Independent consumers demonstrate semantics. No unrestricted vehicle memory, credentials or actuator operations.
+## Failure containment
+Bound links and workers; isolate endpoints and reconcile after loss. Preserve local authority. Test representative legacy and future topologies using benign isolated fixtures.
+
+## Retained engineering detail
+Existing design detail is retained for compatibility and trace continuity. Where wording differs, Z12 and the current architecture above govern. Historical examples are not evidence of new functionality.
 
 ## Semantic interface first
 

@@ -1,4 +1,26 @@
-# Z01 Executive architecture and strategy
+# Z01 — Strategy: one foundation for two generations
+
+> **ZARC 2035 | Design baseline candidate | 28 November 2026.** The single normative-candidate register is [Z12](12-Requirements-Verification.csv) (267 requirements). This design describes the intended architecture, not implemented or qualified functionality. See [implementation evidence](../IMPLEMENTATION-STATUS.md).
+
+## Mission
+Make ZARC the preferred open-source real-time platform for OEMs, Tier 1 and Tier 2 suppliers, semiconductor manufacturers and intelligent embedded developers by 2030–2035, while remaining compatible with distributed CAN/CAN FD/LIN ECUs. Preference must be earned through independent comparisons and actual adoption.
+
+| Stakeholder | Outcome | Proof |
+|---|---|---|
+| OEM | Topology freedom, long-term upgrades and cost control | Legacy and zonal portfolio, lifecycle cost |
+| Tier 1 | Reuse across customer programs | Independent component exchange and customer variants |
+| Tier 2 | Small intelligent components | Minimal native build and SDK |
+| Silicon | Native hardware integration | Two physical MCU vendors, exact support matrix |
+| AI and embedded | Optional inference and portable contracts | Bounded reference and benchmarks |
+| Quality and assurance | Reviewable evidence | Scoped product acceptance |
+
+## Competitive approach
+Compete on necessary engineering outcomes, not copying AUTOSAR layers. Respect licensed specifications; complement S-CORE, AAOS, Linux and QNX. Target 30% reusable platform effort and 25% lifecycle cost reductions as hypotheses (ADOPT-042); report negative results. No vendor endorsement or universal compliance.
+## Architecture principles
+One codebase, one Z12, native Zephyr first. Independently maintained micro-components are not mandatory dynamically loaded microservices. Every selected capability has resource, authority, lifecycle and evidence allocations. Hardware control stays local; management and AI are bounded. Preserve customer IP and avoid mandatory core forks.
+
+## Retained engineering detail
+Existing design detail is retained for compatibility and trace continuity. Where wording differs, Z12 and the current architecture above govern. Historical examples are not evidence of new functionality.
 
 ## Mission and proposition
 
