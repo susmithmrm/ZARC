@@ -147,6 +147,11 @@ if(BUILD_TESTING)
     add_test(NAME host_policy_contract COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/host_policy_test.py)
     add_test(NAME desktop_loopback COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/loopback_test.py $<TARGET_FILE:zarc_controller_lab_pc> $<TARGET_FILE:zarc_broker_pc>)
     set_tests_properties(desktop_loopback PROPERTIES TIMEOUT 20)
+    if(CMAKE_GENERATOR MATCHES "Ninja|Makefiles")
+      add_test(NAME compiler_flags_audit COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tools/coding_audit.py
+        --compile-commands ${CMAKE_BINARY_DIR}/compile_commands.json)
+    endif()
   endif()
   find_program(ZARC_NODE_EXECUTABLE node)
   if(ZARC_NODE_EXECUTABLE)
