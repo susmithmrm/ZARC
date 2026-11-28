@@ -65,6 +65,25 @@ class Gateway:
         self.backend = backend
         self._epoch = None
         self._owners = {}
+        # A restarted broker has no trustworthy observation state. A fresh
+        # successful snapshot is the barrier before it may issue writes.
+        self._snapshot_ready = False
+
+    def _clear_state(self):
+        self._owners.clear()
+        self._epoch = None
+        self._snapshot_ready = False
+
+    def _observe_backend_epoch(self, *, snapshot=False):
+        boot = getattr(self.backend, "boot", None)
+        session = getattr(self.backend, "session", None)
+        epoch = (boot, session) if identity(boot) and identity(session) else None
+        if epoch is not None and epoch != self._epoch:
+            self._owners.clear()
+            self._epoch = epoch
+            self._snapshot_ready = False
+        if snapshot:
+            self._snapshot_ready = epoch is not None
 
     def dispatch(self, principal, raw):
         try:
@@ -81,11 +100,19 @@ class Gateway:
                     return {"status":"UNKNOWN_OUTCOME"}
                 return self.backend.request_status(cmd.request_id,boot=cmd.boot,session=cmd.session)
             if cmd.operation == "update_status":
-                return self.backend.update_status()
+                result=self.backend.update_status()
+                self._observe_backend_epoch()
+                return result
             if cmd.operation == "health":
-                return self.backend.health(cmd.capability)
+                result=self.backend.health(cmd.capability)
+                self._observe_backend_epoch()
+                return result
             if cmd.operation == "snapshot":
-                return self.backend.snapshot(cmd.capability)
+                result=self.backend.snapshot(cmd.capability)
+                self._observe_backend_epoch(snapshot=result.get("status")=="COMPLETED")
+                return result
+            if not self._snapshot_ready:
+                return {"status":"UNAVAILABLE"}
             result=self.backend.request(cmd.capability,cmd.desired,cmd.validity)
             if result.get("status")=="ACCEPTED":
                 boot,session,rid=(result.get(k) for k in ("boot","session","request_id"))
@@ -94,26 +121,25 @@ class Gateway:
                     if epoch!=self._epoch:
                         self._owners.clear()
                         self._epoch=epoch
+                        self._snapshot_ready=False
+                        return {"status":"UNKNOWN_OUTCOME"}
                     key=(boot,session,rid)
                     owner=(principal.name,cmd.capability)
                     if key in self._owners and self._owners[key]!=owner:
                         self.backend.invalidate()
-                        self._owners.clear()
-                        self._epoch=None
+                        self._clear_state()
                         return {"status":"UNKNOWN_OUTCOME"}
                     if key not in self._owners and len(self._owners)>=MAX_RETAINED:
                         # Unexpected backend violation: an admission may have
                         # occurred, but cannot safely expose its retained result.
                         self.backend.invalidate()
-                        self._owners.clear()
-                        self._epoch=None
+                        self._clear_state()
                         return {"status":"UNKNOWN_OUTCOME"}
                     self._owners[key]=owner
             return result
         except (OSError, TimeoutError, ValueError):
             self.backend.invalidate()
-            self._owners.clear()
-            self._epoch=None
+            self._clear_state()
             # Never assert an admitted request was not executed after link loss.
             return {"status": "UNKNOWN_OUTCOME" if cmd.operation in ("request","request_status") else "UNAVAILABLE"}
 

@@ -105,7 +105,8 @@ class LabBackend:
             if len(data) != 11 or data[1] > 3 or data[2] > 3:
                 raise ValueError("invalid observation")
             result.update(value=data[1], quality=data[2],
-                          generation=int.from_bytes(data[3:11], "little"), boot=self.boot)
+                          generation=int.from_bytes(data[3:11], "little"),
+                          boot=self.boot, session=self.session)
         elif len(data) != 1:
             raise ValueError("invalid error response")
         return result
