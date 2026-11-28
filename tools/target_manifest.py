@@ -6,6 +6,7 @@ approved evidence may promote a configuration beyond CANDIDATE.
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 
@@ -16,8 +17,65 @@ CONTEXTS={"I0","R1","R2","C3","O4","M5"}
 HARDWARE_LIFECYCLE_FIELDS={"schema","board_revision","silicon_stepping","errata",
                            "vendor_safety_docs","components","review_status",
                            "review_reference"}
+BUDGET_CATEGORIES={"resource","boot","timing","power"}
 def number(x,minimum=1,maximum=0xffffffff):
     return type(x) is int and minimum<=x<=maximum
+
+def validate_profile_budget_declarations(record, profile=None):
+    """Validate caller-supplied budget coverage without asserting approval.
+
+    Each category carries its own declared limits and verification method. A
+    deviation must include a rationale and reference so it cannot disappear
+    inside an otherwise complete profile record. This is a structural gate
+    only: it does not establish accepted budgets, measured performance, or
+    product support.
+    """
+    if not isinstance(record,dict) or set(record)!={"schema","profile","categories"}:
+        raise ValueError("profile budget declaration fields")
+    if type(record["schema"]) is not int or record["schema"]!=1:
+        raise ValueError("profile budget declaration schema")
+    declared_profile=record["profile"]
+    if (not isinstance(declared_profile,str) or declared_profile not in PROFILES or
+            (profile is not None and declared_profile!=profile)):
+        raise ValueError("profile budget declaration profile mismatch")
+    categories=record["categories"]
+    if not isinstance(categories,dict) or set(categories)!=BUDGET_CATEGORIES:
+        raise ValueError("resource, boot, timing and power budget categories required")
+    deviations=[]
+    for category in sorted(BUDGET_CATEGORIES):
+        item=categories[category]
+        if not isinstance(item,dict) or set(item) not in (
+                {"status","limits","verification_method"},
+                {"status","limits","verification_method","deviation"}):
+            raise ValueError("invalid "+category+" budget declaration fields")
+        if item["status"] not in ("DECLARED","DEVIATION"):
+            raise ValueError("invalid "+category+" budget declaration status")
+        if not isinstance(item["verification_method"],str) or not item["verification_method"].strip():
+            raise ValueError("missing "+category+" budget verification method")
+        limits=item["limits"]
+        if not isinstance(limits,dict) or not limits:
+            raise ValueError("missing "+category+" budget limits")
+        for name,limit in limits.items():
+            if (not isinstance(name,str) or not re.fullmatch(r"[a-z][a-z0-9_]*",name) or
+                    not isinstance(limit,dict) or set(limit)!={"maximum","unit"} or
+                    type(limit["maximum"]) not in (int,float) or
+                    (type(limit["maximum"]) is float and not math.isfinite(limit["maximum"])) or
+                    limit["maximum"]<0 or
+                    not isinstance(limit["unit"],str) or not limit["unit"].strip()):
+                raise ValueError("invalid "+category+" budget limit")
+        has_deviation="deviation" in item
+        if item["status"]=="DEVIATION":
+            deviation=item.get("deviation")
+            if (not isinstance(deviation,dict) or set(deviation)!={"rationale","reference"} or
+                    any(not isinstance(deviation[k],str) or not deviation[k].strip()
+                        for k in ("rationale","reference"))):
+                raise ValueError("explicit "+category+" budget deviation required")
+            deviations.append(category)
+        elif has_deviation:
+            raise ValueError("deviation details require DEVIATION status")
+    return {"profile":declared_profile,"categories":sorted(BUDGET_CATEGORIES),
+            "deviations":deviations,"budget_approval":"NOT_ASSERTED",
+            "measurements":"NOT_ASSERTED","supported_admission":False}
 
 def _validate_hardware_lifecycle(record):
     """Validate a supplied lifecycle snapshot; never infer hardware facts."""
@@ -191,6 +249,8 @@ def validate(m):
             raise ValueError("missing "+key)
     if m.get("schema")!=1 or m.get("api_major")!=1 or m.get("maturity")!="CANDIDATE":
         raise ValueError("only schema/API 1 and candidate scope admitted")
+    if "profile_budgets" in m:
+        validate_profile_budget_declarations(m["profile_budgets"],m.get("profile"))
     if "hardware_lifecycle" in m:
         _validate_hardware_lifecycle(m["hardware_lifecycle"])
     profile=m.get("profile")

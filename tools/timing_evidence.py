@@ -71,6 +71,25 @@ PROFILE_UNITS={"boot_ms":"ms","latency_us":"us","jitter_us":"us",
                "ram_bytes":"bytes","flash_bytes":"bytes","cpu_permille":"permille",
                "power_mw":"mW"}
 
+PROFILE_PLAN_METADATA=("hardware_assumptions","staffing_assumptions","limitations")
+
+def validate_profile_plan(plan):
+    """Require caller-supplied context without inferring or approving evidence."""
+    if not isinstance(plan,dict):
+        raise ValueError("profile plan must be an object")
+    for key in ("profile","toolchain"):
+        if not isinstance(plan.get(key),str) or not plan[key].strip():
+            raise ValueError("missing "+key)
+    digest_value=plan.get("firmware_sha256")
+    if (not isinstance(digest_value,str) or len(digest_value)!=64 or
+            any(c not in "0123456789abcdef" for c in digest_value)):
+        raise ValueError("invalid firmware SHA-256")
+    for key in PROFILE_PLAN_METADATA:
+        values=plan.get(key)
+        if (not isinstance(values,list) or not values or
+                any(not isinstance(value,str) or not value.strip() for value in values)):
+            raise ValueError("missing or invalid "+key)
+
 def evaluate_profile(rows,profile):
     """Summarize an acquired per-profile trace without imposing universal limits."""
     if not isinstance(profile,str) or not profile.strip():
@@ -101,7 +120,8 @@ def evaluate_profile(rows,profile):
                       "mean":sum(value/len(samples) for value in samples)}
     return {"profile":profile,"samples":count,"metrics":summary,
             "verdict":"RECORDED",
-            "scope":"observed measurements only; no universal threshold, WCET or product-support claim"}
+            "scope":"observed measurements only; no universal threshold, WCET, product-support or approval claim",
+            "approval_asserted":False}
 
 def digest(path):
     h=hashlib.sha256()
@@ -127,13 +147,10 @@ def main():
         elif a.kind=="transport":
             result=evaluate_transport(rows,*(plan[k] for k in ("latency_limit_us","window_us","bit_rate","bits_per_byte","utilization_permille","minimum_samples")))
         else:
-            if not isinstance(plan.get("profile"),str) or not plan["profile"].strip():
-                raise ValueError("missing profile")
-            if not isinstance(plan.get("firmware_sha256"),str) or len(plan["firmware_sha256"])!=64 or any(c not in "0123456789abcdef" for c in plan["firmware_sha256"]):
-                raise ValueError("invalid firmware SHA-256")
-            if not isinstance(plan.get("toolchain"),str) or not plan["toolchain"].strip():
-                raise ValueError("missing toolchain")
+            validate_profile_plan(plan)
             result=evaluate_profile(rows,plan["profile"])
+            for key in PROFILE_PLAN_METADATA:
+                result[key]=plan[key]
     scope=(result["scope"] if a.kind=="profile" else
            "observed measurements only; responsible reviewer must establish trace completeness and clock uncertainty")
     result.update(configuration=plan["configuration"],plan_sha256=digest(a.plan),trace_sha256=digest(a.trace),scope=scope)

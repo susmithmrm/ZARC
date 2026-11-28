@@ -9,7 +9,8 @@ import unittest
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"tools"))
 from target_manifest import (validate,generate,reconcile_kconfig,
-                             hardware_lifecycle_delta)
+                             hardware_lifecycle_delta,
+                             validate_profile_budget_declarations)
 from timing_analysis import analyze
 
 class Tests(unittest.TestCase):
@@ -25,6 +26,79 @@ class Tests(unittest.TestCase):
                 "components":[{"id":"power-switch","revision":"rev-1",
                                 "substitutions":["switch-alt-a"]}],
                 "review_status":"REVIEWED","review_reference":"synthetic:review-1"}
+
+    @staticmethod
+    def profile_budgets():
+        return {"schema":1,"profile":"edge","categories":{
+            "resource":{"status":"DECLARED","limits":{"ram":{"maximum":64,"unit":"KiB"}},
+                        "verification_method":"compare measured map to declared limit"},
+            "boot":{"status":"DECLARED","limits":{"startup":{"maximum":500,"unit":"ms"}},
+                    "verification_method":"repeat cold-start measurement"},
+            "timing":{"status":"DECLARED","limits":{"control_deadline":{"maximum":10,"unit":"ms"}},
+                       "verification_method":"compare trace against allocated deadline"},
+            "power":{"status":"DECLARED","limits":{"average":{"maximum":1.5,"unit":"W"}},
+                     "verification_method":"measure current at declared operating mode"}}}
+
+    def test_profile_budget_declarations_require_all_categories_and_do_not_approve(self):
+        record=self.profile_budgets()
+        record["categories"]["resource"]["limits"]["accelerator"]={
+            "maximum":0,"unit":"allocations"}
+        result=validate_profile_budget_declarations(record,"edge")
+        self.assertEqual(result["categories"],["boot","power","resource","timing"])
+        self.assertEqual(result["deviations"],[])
+        self.assertEqual(result["budget_approval"],"NOT_ASSERTED")
+        self.assertEqual(result["measurements"],"NOT_ASSERTED")
+        self.assertFalse(result["supported_admission"])
+        for category in ("resource","boot","timing","power"):
+            incomplete=copy.deepcopy(record)
+            del incomplete["categories"][category]
+            with self.subTest(category=category),self.assertRaisesRegex(ValueError,"categories required"):
+                validate_profile_budget_declarations(incomplete)
+
+    def test_profile_budget_declarations_reject_malformed_values(self):
+        cases=[]
+        def mutate(label,change):
+            record=self.profile_budgets();change(record);cases.append((label,record))
+        mutate("schema bool",lambda r:r.update(schema=True))
+        mutate("unknown profile",lambda r:r.update(profile="invalid"))
+        mutate("missing metric",lambda r:r["categories"]["boot"].update(limits={}))
+        mutate("boolean limit",lambda r:r["categories"]["resource"]["limits"]["ram"].update(maximum=True))
+        mutate("negative limit",lambda r:r["categories"]["resource"]["limits"]["ram"].update(maximum=-1))
+        mutate("nonfinite limit",lambda r:r["categories"]["power"]["limits"]["average"].update(maximum=float("nan")))
+        mutate("infinite limit",lambda r:r["categories"]["power"]["limits"]["average"].update(maximum=float("inf")))
+        mutate("unit missing",lambda r:r["categories"]["timing"]["limits"]["control_deadline"].update(unit=" "))
+        mutate("verification missing",lambda r:r["categories"]["boot"].update(verification_method=""))
+        mutate("unknown category",lambda r:r["categories"].update(memory=r["categories"].pop("resource")))
+        for label,record in cases:
+            with self.subTest(label=label),self.assertRaises(ValueError):
+                validate_profile_budget_declarations(record)
+        with self.assertRaisesRegex(ValueError,"profile mismatch"):
+            validate_profile_budget_declarations(self.profile_budgets(),"integrated")
+        enormous=self.profile_budgets()
+        enormous["categories"]["resource"]["limits"]["ram"]["maximum"]=10**10000
+        self.assertFalse(validate_profile_budget_declarations(enormous)["supported_admission"])
+
+    def test_profile_budget_deviation_is_explicit_and_stays_unapproved(self):
+        record=self.profile_budgets()
+        record["categories"]["power"].update(status="DEVIATION",deviation={
+            "rationale":"caller supplied deviation fixture","reference":"fixture:deviation-1"})
+        result=validate_profile_budget_declarations(record)
+        self.assertEqual(result["deviations"],["power"])
+        self.assertEqual(result["budget_approval"],"NOT_ASSERTED")
+        self.assertFalse(result["supported_admission"])
+        missing=copy.deepcopy(record)
+        missing["categories"]["power"]["deviation"].pop("reference")
+        with self.assertRaisesRegex(ValueError,"explicit power budget deviation"):
+            validate_profile_budget_declarations(missing)
+        wrong_status=copy.deepcopy(record)
+        wrong_status["categories"]["power"]["status"]="DECLARED"
+        with self.assertRaisesRegex(ValueError,"deviation details require"):
+            validate_profile_budget_declarations(wrong_status)
+        candidate=copy.deepcopy(self.m)
+        candidate["profile_budgets"]=record
+        self.assertEqual(validate(candidate),[1,2])
+        candidate["profile_budgets"]["categories"].pop("power")
+        with self.assertRaises(ValueError):validate(candidate)
 
     def test_hardware_lifecycle_unchanged_is_not_hardware_acceptance(self):
         record=self.lifecycle()

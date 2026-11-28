@@ -41,5 +41,26 @@ Representative signals include sensor values, validity, timestamp, feedback, hea
 ## Software composition
 Reuse existing profile manifests, runtime dispatcher, native provider contracts and host mappings. Add target-specific overlays and benign device providers; no new general middleware. Proposed directories: products/reference-bench, config/targets/bench-*, tests/hil/reference-bench. These paths are proposals, not implemented files. Allocate baseline SYS/RT/PL/CON/VER and the applicable ZARC-ADOPT requirements in Z12 by applicability, not blanket closure.
 
+### Optional-service migration and coexistence example
+The portable composition API lets a required legacy/simulated core keep running when an optional integration is not configured or fails initialization. Configure only the legacy descriptor when the optional service is absent. When it is present, mark it `required=false` and retain its dependency on the legacy core:
+
+```c
+zarc_service_descriptor services[] = { optional_provider, legacy_core };
+zarc_composition composition = {0};
+
+if (zarc_composition_configure(&composition, services, 2u) == ZARC_COMPOSITION_OK) {
+    zarc_composition_status result = zarc_composition_start(&composition);
+    if ((result == ZARC_COMPOSITION_OK || result == ZARC_COMPOSITION_DEGRADED) &&
+        zarc_composition_admits(&composition, LEGACY_CORE_ID)) {
+        run_legacy_simulated_path();
+    }
+    if (zarc_composition_admits(&composition, OPTIONAL_PROVIDER_ID)) {
+        run_optional_integration();
+    }
+}
+```
+
+`tests/independent_service_test.c` exercises both cases through the public API: the optional service omitted, and an optional service whose initialization fails. It checks that the legacy simulated sample remains readable while the optional service is not admitted. The fixture demonstrates local software coexistence only; it does not prove an external peer, a selected migration target, or independent integrator acceptance.
+
 ## Electrical review checklist
 Verify module datasheets, 3.3 V logic tolerance, pull-ups, unique I2C addresses or mux, ADC range, transceiver standby, connector pinout, ground and branch current; separate motor rail, avoid backfeeding USB, add flyback protection where appropriate. Use certified enclosed supplies; no mains wiring. Inspect wiring unpowered and enable one branch at a time. Physical emergency disable disconnects actuator supply independently of MCU. Freeze actual wiring table after board selection.

@@ -1,4 +1,5 @@
 import csv
+import hashlib
 import json
 import subprocess
 import sys
@@ -6,7 +7,7 @@ import tempfile
 from pathlib import Path
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"tools"))
-from timing_evidence import evaluate_cycles,evaluate_transport,evaluate_profile
+from timing_evidence import evaluate_cycles,evaluate_transport,evaluate_profile,validate_profile_plan
 from change_impact import impact,dependency_changes,validate_dependency_reviews
 class Tests(unittest.TestCase):
     def test_cycles(self):
@@ -38,19 +39,49 @@ class Tests(unittest.TestCase):
         with self.assertRaises(ValueError):evaluate_profile([dict(row,ram_bytes=1.5)],"native-sim-edge")
         with self.assertRaises(ValueError):evaluate_profile([dict(row,profile="other")],"native-sim-edge")
         with self.assertRaises(ValueError):evaluate_profile([],"native-sim-edge")
+    @staticmethod
+    def profile_plan(**overrides):
+        plan=dict(profile="synthetic-profile",firmware_sha256="a"*64,toolchain="synthetic-toolchain",
+            hardware_assumptions=["synthetic hardware fixture"],
+            staffing_assumptions=["synthetic staffing fixture"],
+            limitations=["synthetic measurements only"])
+        plan.update(overrides)
+        return plan
+    def test_profile_plan_requires_caller_supplied_metadata(self):
+        self.assertIsNone(validate_profile_plan(self.profile_plan()))
+        for key in ("hardware_assumptions","staffing_assumptions","limitations"):
+            for invalid in (None,[],[" "]):
+                with self.subTest(key=key,invalid=invalid):
+                    with self.assertRaisesRegex(ValueError,key):
+                        validate_profile_plan(self.profile_plan(**{key:invalid}))
+            with self.subTest(key=key,invalid="not a list"):
+                with self.assertRaisesRegex(ValueError,key):
+                    validate_profile_plan(self.profile_plan(**{key:"not a list"}))
+        for missing in ("profile","toolchain","firmware_sha256"):
+            plan=self.profile_plan();del plan[missing]
+            with self.subTest(missing=missing),self.assertRaises(ValueError):
+                validate_profile_plan(plan)
+    def test_profile_plan_single_entry_metadata_is_valid_boundary(self):
+        plan=self.profile_plan(hardware_assumptions=["synthetic"],
+            staffing_assumptions=["synthetic"],limitations=["synthetic"])
+        self.assertIsNone(validate_profile_plan(plan))
     def test_profile_cli_records_raw_trace_and_configuration(self):
         root=Path(__file__).resolve().parents[1]
         with tempfile.TemporaryDirectory() as d:
             work=Path(d);plan=work/"plan.json";trace=work/"profile.csv"
             plan.write_text(json.dumps(dict(configuration="edge-lab",board="native_sim/native/64",
                 profile="native-sim-edge",firmware_sha256="a"*64,toolchain="gcc-15",
-                clock="monotonic",instrument="simulator",procedure="scenario-1")),encoding="utf-8")
+                clock="monotonic",instrument="simulator",procedure="scenario-1",
+                hardware_assumptions=["synthetic simulator fixture"],
+                staffing_assumptions=["synthetic test staffing"],
+                limitations=["synthetic trace; not a physical benchmark"])),encoding="utf-8")
             with trace.open("w",newline="",encoding="utf-8") as f:
                 writer=csv.DictWriter(f,fieldnames=["profile","boot_ms","latency_us","jitter_us",
                     "ram_bytes","flash_bytes","cpu_permille","power_mw"])
                 writer.writeheader();writer.writerow(dict(profile="native-sim-edge",boot_ms=12,
                     latency_us=100,jitter_us=4,ram_bytes=4096,flash_bytes=16384,
                     cpu_permille=300,power_mw=0))
+            plan_bytes=plan.read_bytes();trace_bytes=trace.read_bytes()
             result=subprocess.run([sys.executable,str(root/"tools/timing_evidence.py"),"profile",
                 "--plan",str(plan),"--trace",str(trace)],capture_output=True,text=True,check=False)
         self.assertEqual(result.returncode,0,result.stderr)
@@ -59,6 +90,13 @@ class Tests(unittest.TestCase):
         self.assertEqual(report["profile"],"native-sim-edge")
         self.assertEqual(report["metrics"]["power_mw"]["unit"],"mW")
         self.assertEqual(len(report["trace_sha256"]),64)
+        self.assertEqual(report["plan_sha256"],hashlib.sha256(plan_bytes).hexdigest())
+        self.assertEqual(report["trace_sha256"],hashlib.sha256(trace_bytes).hexdigest())
+        self.assertEqual(report["hardware_assumptions"],["synthetic simulator fixture"])
+        self.assertEqual(report["staffing_assumptions"],["synthetic test staffing"])
+        self.assertEqual(report["limitations"],["synthetic trace; not a physical benchmark"])
+        self.assertFalse(report["approval_asserted"])
+        self.assertIn("approval claim",report["scope"])
     def test_change(self):
         rows=[dict(Requirement="A",Candidate_code="src/a.c",Candidate_tests="tests/a.c"),
               dict(Requirement="B",Candidate_code="src/b.c",Candidate_tests="tests/b.c")]
