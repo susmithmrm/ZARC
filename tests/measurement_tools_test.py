@@ -7,7 +7,7 @@ from pathlib import Path
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"tools"))
 from timing_evidence import evaluate_cycles,evaluate_transport,evaluate_profile
-from change_impact import impact
+from change_impact import impact,dependency_changes,validate_dependency_reviews
 class Tests(unittest.TestCase):
     def test_cycles(self):
         rows=[dict(release_us=i*10,start_us=i*10,completion_us=i*10+3) for i in range(4)]
@@ -65,4 +65,97 @@ class Tests(unittest.TestCase):
         self.assertEqual(impact(rows,["src/a.c"])["direct"],["A"])
         self.assertEqual(impact(rows,["new.c"])["review_scope"],["A","B"])
         self.assertEqual(impact(rows,[])["compatibility"],"REVIEW_REQUIRED")
+
+    @staticmethod
+    def dep(name,version="1",source="https://example.invalid/repo",revision="a"*40,license="MIT"):
+        return dict(name=name,version=version,source=source,revision=revision,license=license)
+
+    @staticmethod
+    def review(change,**overrides):
+        record={k:change[k] for k in ("name","change","before","after")}
+        record.update(compatibility="ACCEPTED",support="ACCEPTED",license="ACCEPTED",
+                      reviewer="reviewer",evidence_reference="evidence/123",decision="ACCEPTED")
+        record.update(overrides)
+        return record
+
+    def test_dependency_delta_detects_add_remove_version_and_license_changes(self):
+        before=[self.dep("remove"),self.dep("version"),self.dep("license")]
+        after=[self.dep("add"),self.dep("version","2"),self.dep("license",license="BSD-3-Clause")]
+        changes=dependency_changes(before,after)
+        self.assertEqual({(c["name"],c["change"]) for c in changes},
+                         {("add","ADDED"),("remove","REMOVED"),
+                          ("version","UPDATED"),("license","UPDATED")})
+        self.assertEqual(dependency_changes(before,before),[])
+        source_delta=dependency_changes([self.dep("source")],
+            [self.dep("source",source="https://example.invalid/other")])
+        revision_delta=dependency_changes([self.dep("revision")],
+            [self.dep("revision",revision="b"*40)])
+        self.assertEqual(source_delta[0]["change"],"UPDATED")
+        self.assertEqual(revision_delta[0]["change"],"UPDATED")
+
+    def test_dependency_inventory_rejects_duplicate_and_incomplete_records(self):
+        with self.assertRaisesRegex(ValueError,"duplicate"):
+            dependency_changes([self.dep("dup"),self.dep(" dup ")],[])
+        with self.assertRaisesRegex(ValueError,"missing license"):
+            dependency_changes([], [{k:v for k,v in self.dep("bad").items() if k!="license"}])
+        with self.assertRaisesRegex(ValueError,"missing revision"):
+            dependency_changes([self.dep("bad",revision="")],[])
+
+    def test_dependency_reviews_fail_closed_for_unapproved_inventory(self):
+        changes=dependency_changes([], [self.dep("new")])
+        errors,report=validate_dependency_reviews(changes,[self.review(changes[0])],"CANDIDATE")
+        self.assertTrue(any("approved dependency inventory" in e for e in errors))
+        self.assertEqual(report["gate_status"],"BLOCKED")
+        self.assertFalse(report["approval_asserted"])
+
+    def test_dependency_reviews_require_one_matching_complete_acceptance(self):
+        changes=dependency_changes([self.dep("old")],[self.dep("old","2")])
+        complete=self.review(changes[0])
+        errors,report=validate_dependency_reviews(changes,[complete],"APPROVED")
+        self.assertEqual(errors,[])
+        self.assertEqual(report["gate_status"],"REVIEW_RECORDS_COMPLETE")
+        self.assertFalse(report["approval_asserted"])
+        for reviews in ([],[complete,complete],
+                        [dict(complete,compatibility="REJECTED")],
+                        [dict(complete,support="REJECTED")],
+                        [dict(complete,license="REJECTED")],
+                        [dict(complete,before=self.dep("old","0"))],
+                        [dict(complete,evidence_reference="")]):
+            errors,report=validate_dependency_reviews(changes,reviews,"APPROVED")
+            self.assertTrue(errors)
+            self.assertEqual(report["gate_status"],"BLOCKED")
+
+    def test_no_dependency_change_needs_no_review_record(self):
+        errors,report=validate_dependency_reviews([],[],"INCOMPLETE")
+        self.assertEqual(errors,[])
+        self.assertEqual(report["gate_status"],"NO_DEPENDENCY_CHANGE")
+        errors,_=validate_dependency_reviews([], [self.review({"name":"orphan","change":"ADDED",
+            "before":None,"after":self.dep("orphan")})],"APPROVED")
+        self.assertTrue(errors)
+
+    def test_dependency_change_cli_blocks_candidate_inventory(self):
+        root=Path(__file__).resolve().parents[1]
+        change={"name":"new","change":"ADDED","before":None,"after":self.dep("new")}
+        with tempfile.TemporaryDirectory() as d:
+            work=Path(d)
+            before=work/"before.json";after=work/"after.json";reviews=work/"reviews.json"
+            before.write_text("[]",encoding="utf-8")
+            after.write_text(json.dumps([self.dep("new")]),encoding="utf-8")
+            reviews.write_text(json.dumps([self.review(change)]),encoding="utf-8")
+            result=subprocess.run([sys.executable,str(root/"tools/change_impact.py"),
+                "--base","HEAD","--dependency-before",str(before),"--dependency-after",str(after),
+                "--dependency-reviews",str(reviews),"--dependency-inventory-status","CANDIDATE"],
+                capture_output=True,text=True,check=False)
+            accepted=subprocess.run([sys.executable,str(root/"tools/change_impact.py"),
+                "--base","HEAD","--dependency-before",str(before),"--dependency-after",str(after),
+                "--dependency-reviews",str(reviews),"--dependency-inventory-status","APPROVED"],
+                capture_output=True,text=True,check=False)
+        self.assertEqual(result.returncode,1)
+        report=json.loads(result.stdout)
+        self.assertEqual(report["dependency_review"]["gate_status"],"BLOCKED")
+        self.assertFalse(report["dependency_review"]["approval_asserted"])
+        self.assertEqual(accepted.returncode,0,accepted.stderr)
+        approved_report=json.loads(accepted.stdout)
+        self.assertEqual(approved_report["dependency_review"]["gate_status"],"REVIEW_RECORDS_COMPLETE")
+        self.assertFalse(approved_report["dependency_review"]["approval_asserted"])
 if __name__=="__main__":unittest.main()
