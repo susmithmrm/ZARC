@@ -25,7 +25,7 @@ The architecture baseline has 178 proposed requirements. The following increment
 | Build provenance and supplier admission | [Release engineering](RELEASE-ENGINEERING-INCREMENT.md) |
 | Requirement-level trace and evidence gate | [Verification register](REQUIREMENT-TRACE.csv) and [HIL procedure](HIL-AND-EVIDENCE.md) |
 
-All four CI lanes passed on ae8760a4: desktop 46140743432, generated service 46140743485, COVESA 46140743456, and native Zephyr 46140743467. The native simulator run executed 16/16 test cases; the MCUboot configuration was compile-only. The TCP adapter is exercised on native_sim only. These results do not establish physical Ethernet or product qualification. See [Actions](https://github.com/susmithmrm/ZARC/actions).
+All four CI lanes passed on d06c27ca: desktop 46142706636, generated service 46142706667, COVESA 46142706652, and native Zephyr 46142706663. The native simulator run covers the new queue transfer/completion/cancellation fixture; the MCUboot configuration remains compile-only. These results do not establish physical target behavior or product qualification. See [Actions](https://github.com/susmithmrm/ZARC/actions).
 
 ## Current stabilization increments
 
