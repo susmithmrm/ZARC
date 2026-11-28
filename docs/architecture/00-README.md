@@ -1,8 +1,8 @@
 # ZARC architecture — 2035 design baseline candidate
 
-**Mission:** the preferred open-source real-time platform for today's distributed ECUs and 2030–2035 intelligent vehicles. Modular, updatable, observable, accessible by authorized roles, deterministic, portable and AI-capable. Native Zephyr first. Current implementation is a lab reference.
+**Mission:** the preferred open-source real-time platform for today's distributed ECUs and 2030–2035 intelligent vehicles. Modular, updatable, observable, accessible by authorized roles, deterministic, portable and AI-capable. Native Zephyr first. Software implementation and verification are the next phase.
 
-The single normative-candidate register [Z12](12-Requirements-Verification.csv) contains 267 requirements; no accepted production qualification is claimed. Start with [strategy](01-Executive-Strategy.md), [system architecture](02-System-Architecture.md), [verification](09-Verification-Engineering.md), [diagrams](diagrams/README.md), [implementation realization](realization/16-Implementation-Realization.md), [trace](../REQUIREMENT-TRACE.csv) and [partner guide](19-Platform-Capabilities-and-Partner-Adoption.md).
+The single requirements register [Z12](12-Requirements-Verification.csv) contains 267 requirements; no accepted production qualification is claimed. Start with [strategy](01-Executive-Strategy.md), [system architecture](02-System-Architecture.md), [verification](09-Verification-Engineering.md), [diagrams](diagrams/README.md), [implementation realization](realization/16-Implementation-Realization.md), [trace](../REQUIREMENT-TRACE.csv) and [partner guide](19-Platform-Capabilities-and-Partner-Adoption.md).
 
 ## Document map
 
@@ -26,7 +26,7 @@ The single normative-candidate register [Z12](12-Requirements-Verification.csv) 
 
 [Diagram atlas](diagrams/README.md) renders the editable Mermaid diagrams directly on GitHub. [Engineering templates](templates/) are also available.
 
-Markdown files are editable normative-candidate design sources, CSV is an editable requirements register, Mermaid files are editable diagrams. IDs remain stable across revisions. PROPOSED denotes no accepted verification; implementation may exist partially as tracked in the derived trace. All targets are provisional unless stated as public upstream facts. Configuration-specific evidence is required before claiming support.
+Markdown files are editable normative-candidate design sources, CSV is an editable requirements register, Mermaid files are editable diagrams. IDs remain stable across revisions. PROPOSED denotes a specified requirement awaiting implementation-phase allocation and accepted verification. All targets are provisional unless stated as public upstream facts. Configuration-specific evidence is required before claiming support.
 
 ## Baseline review and scope
 
@@ -37,6 +37,6 @@ First implementation: benign non-safety bench companion controller with a truste
 IOC: I/O or companion controller. SDV: software-defined vehicle. OEM: original equipment manufacturer. BSP: board support package. FTTI: fault tolerant time interval. WCET: worst-case execution time. SIL/HIL: software/hardware in the loop. VHAL: vehicle hardware abstraction layer. AAOS: Android Automotive OS. VM: virtual machine. IPC: interprocessor/interprocess communication. SBOM: software bill of materials. DIA: development interface agreement. TARA: threat analysis and risk assessment. HARA: hazard analysis and risk assessment. QM: quality management classification, not a safety certification.
 
 
-## Change control
+## Phase control
 
-This revision supersedes the previous proposed register. Historical evidence is separate and retains original scope. Native configuration, source, tests and workflows are unchanged. New acceptance criteria, executable applicability and independent reviews remain open.
+Z12 is the only requirements baseline. The implementation phase shall assess retained source against the specification, establish implementation and test allocations, and collect configuration-specific evidence. No implementation or qualification acceptance is asserted.
