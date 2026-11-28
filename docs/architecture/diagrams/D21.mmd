@@ -1,19 +1,17 @@
 sequenceDiagram
-  participant C as Authorized client
-  participant H as Trusted Host
-  participant R as ZARC controller
-  participant F as Simulated device and feedback
-  C->>H: Typed intent and request ID
-  H->>R: Authorized intent
-  alt eligible and permitted
-    R-->>H: ACCEPTED (not completed)
-    H-->>C: ACCEPTED
-    R->>F: Approved local transition
-    F-->>R: Observed result
-    R-->>H: Observed state and quality
-    H-->>C: Outcome
-  else refused
-    R-->>H: REJECTED
-    H-->>C: Refusal
+  participant A as Authorized client
+  participant B as Trusted broker
+  participant C as ZARC local owner
+  participant F as Benign feedback
+  A->>B: Typed intent
+  B->>C: Scoped request
+  alt Eligible
+    C-->>B: Accepted pending
+    C->>F: Allocated local transition
+    F-->>C: Measured result
+    C-->>B: Observed outcome
+    B-->>A: Outcome and quality
+  else Refused
+    C-->>B: Refusal
+    B-->>A: Refusal
   end
-  Note over C,R: Timeout means unknown outcome; reconcile snapshot

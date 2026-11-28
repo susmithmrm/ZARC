@@ -1,16 +1,6 @@
 flowchart TD
-  %% Vehicle system context
-  N0_0["Vehicle mode authority"]
-  N0_1["Central services / IVI"]
-  N1_0["Trusted ZARC Host"]
-  N2_0["ZARC autonomous controller"]
-  N3_0["Vehicle network / devices"]
-  N3_1["Independent HW protection"]
-  N4_0["Physical endpoints"]
-  N0_0 --> N1_0
-  N0_1 --> N1_0
-  N1_0 <--> N2_0
-  N2_0 <--> N3_0
-  N3_0 --> N4_0
-  N3_1 --> N4_0
-  %% Host supplies desired intent and receives observation; local controller owns allocated physical outcomes.
+  O[OEM vehicle authority and applications] --> H[Optional trusted host]
+  H <--> C[ZARC local controller]
+  C --> I[Allocated physical I/O]
+  P[Independent hardware protection] --> I
+  C -. approved observations .-> V[Engineering view]

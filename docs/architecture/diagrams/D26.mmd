@@ -1,0 +1,7 @@
+flowchart TD
+  M[Approved model and preprocessing] --> A[Bounded advisory provider]
+  A -. typed advice .-> P[Local deterministic policy]
+  P --> I[Owned I/O]
+  F[External fleet coordinator] --> U[Eligible deployment-unit policy]
+  U --> M
+  U --> O[Actual version and recovery report]

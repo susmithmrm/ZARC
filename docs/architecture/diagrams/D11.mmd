@@ -1,14 +1,6 @@
 flowchart TD
-  %% Session reset and reconciliation
-  N0_0["Host or RT peer reset"]
-  N1_0["Invalidate old session and cache"]
-  N2_0["Negotiate identity and contract version"]
-  N3_0["Subscribe / snapshot and reconcile events"]
-  N4_0["Producer boot epoch + fresh state"]
-  N5_0["Allow eligible new intent"]
-  N0_0 --> N1_0
-  N1_0 --> N2_0
-  N2_0 --> N3_0
-  N3_0 --> N4_0
-  N4_0 --> N5_0
-  %% A new link session need not mean controller boot changed. Detect event gaps and do not replay stale intents.
+  R[Peer restart] --> I[Invalidate link session and cache]
+  I --> N[Negotiate supported contract]
+  N --> S[Snapshot and event reconciliation]
+  S --> E[Validate producer epoch and freshness]
+  E --> A[Admit eligible new intent]

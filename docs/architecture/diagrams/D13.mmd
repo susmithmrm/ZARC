@@ -1,18 +1,7 @@
 flowchart TD
-  %% Central compute and hypervisor
-  N0_0["AAOS IVI VM"]
-  N0_1["SDV service VM"]
-  N1_0["Linux/QNX client"]
-  N1_1["CommonAPI client"]
-  N2_0["Hypervisor isolation and lifecycle"]
-  N3_0["ZARC Host trusted service environment"]
-  N4_0["UART / Ethernet / IPC"]
-  N5_0["ZARC controller local authority"]
-  N0_0 --> N3_0
-  N0_1 --> N3_0
-  N1_0 --> N3_0
-  N1_1 --> N3_0
-  N2_0 --> N3_0
-  N3_0 <--> N4_0
-  N4_0 <--> N5_0
-  %% The trusted service environment alone owns the physical endpoint; VM topology is deployment-specific.
+  A[AAOS guest] --> B[Trusted broker]
+  S[SDV or S-CORE] --> B
+  L[Linux QNX or other host client] --> B
+  B <--> C[Selected transport]
+  C <--> R[Local controller authority]
+  B --> V[Authorized engineering view]

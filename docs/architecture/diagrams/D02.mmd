@@ -1,16 +1,8 @@
 flowchart TD
-  %% Allowed build and import dependencies
-  N0_0["Product composition root"]
-  N1_0["Service implementations"]
-  N1_1["Connect bindings"]
-  N2_0["Portable core / public domain contracts"]
-  N3_0["Native Zephyr APIs / approved target interface"]
-  N4_0["Board and vendor drivers"]
-  N0_0 --> N1_0
-  N0_0 --> N1_1
-  N1_0 --> N2_0
-  N1_1 --> N2_0
-  N1_0 --> N3_0
-  N1_1 --> N3_0
-  N3_0 --> N4_0
-  %% Core does not import services, products or vendor private headers. Host imports external schema only.
+  P[Product composition] --> A[Application micro-components]
+  P --> S[Optional automotive providers]
+  A --> K[Typed domain contracts]
+  S --> K
+  S --> Z[Native Zephyr APIs]
+  Z --> B[Native BSP and hardware]
+  P --> G[Derived system graph]

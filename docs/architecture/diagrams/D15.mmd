@@ -1,17 +1,7 @@
 flowchart TD
-  %% Coordinated shutdown and readiness
-  N0_0["Vehicle desired mode"]
-  N1_0["ZARC local policy / eligibility"]
-  N2_0["Host broker coordinates guests"]
-  N3_0["Observed guest readiness"]
-  N3_1["Timeout / unavailable"]
-  N4_0["Local checks and agreed response"]
-  N5_0["Observed outcome to vehicle"]
-  N0_0 --> N1_0
-  N1_0 --> N2_0
-  N2_0 --> N3_0
-  N2_0 --> N3_1
-  N3_0 --> N4_0
-  N3_1 --> N4_0
-  N4_0 --> N5_0
-  %% Timeout response allocated by OEM. Guest readiness is not electrical state.
+  V[Vehicle mode intent] --> C[Local eligibility]
+  C --> H[Host guest coordination]
+  H --> R{Readiness confirmed?}
+  R -->|Yes| P[Revalidate local conditions]
+  R -->|No| D[Allocated degraded response]
+  P --> O[Observed outcome]

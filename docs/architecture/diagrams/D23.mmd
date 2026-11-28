@@ -1,0 +1,7 @@
+flowchart TD
+  A[Versioned component A] --> C[Static composition]
+  B[Versioned component B] --> C
+  P[Optional provider] --> C
+  C --> U[Admitted deployment unit]
+  U --> F[Whole image or supported multi-image/module]
+  C --> G[System graph and conformance]

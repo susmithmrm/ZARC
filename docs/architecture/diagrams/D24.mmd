@@ -1,0 +1,11 @@
+flowchart LR
+  D[Intended] --> C[Configured]
+  C --> B[Built]
+  B --> I[Deployed]
+  I --> O[Observed]
+  D --> R[Reconciliation]
+  C --> R
+  B --> R
+  I --> R
+  O --> R
+  R --> E[Match or explicit discrepancy]

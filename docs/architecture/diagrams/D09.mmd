@@ -1,22 +1,12 @@
-flowchart TD
-  %% Service lifecycle and distinct restart paths
-  N0_0["REGISTERED / INITIALIZED"]
-  N1_0["STARTING / readiness checks"]
-  N2_0["READY"]
-  N2_1["DEGRADED / FAILED"]
-  N3_0["QUIESCING"]
-  N4_0["SUSPENDED"]
-  N4_1["STOPPED"]
-  N5_0["RESUME / revalidate"]
-  N5_1["Initialize / start again"]
-  N0_0 --> N1_0
-  N1_0 --> N2_0
-  N2_0 --> N2_1
-  N2_0 --> N3_0
-  N3_0 --> N4_0
-  N3_0 --> N4_1
-  N4_0 --> N5_0
-  N4_1 --> N5_1
-  N5_0 --> N2_0
-  N5_1 --> N1_0
-  %% Both return to READY only after checks; fully stopped service must initialize/start again.
+stateDiagram-v2
+  [*] --> Registered
+  Registered --> Initialized
+  Initialized --> Starting
+  Starting --> Ready
+  Starting --> Failed
+  Ready --> Quiescing
+  Ready --> Degraded
+  Quiescing --> Suspended
+  Quiescing --> Stopped
+  Suspended --> Starting: revalidate
+  Stopped --> Initialized: reinitialize

@@ -1,0 +1,7 @@
+flowchart TD
+  L[Local control] -. bounded snapshot .-> O[Observation catalog]
+  H[Health and diagnostic records] --> O
+  I[Artifact and model inventory] --> O
+  G[System graph] --> O
+  O --> P[Authorized view and provenance]
+  P --> E[Engineer or service consumer]

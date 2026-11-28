@@ -1,17 +1,16 @@
 sequenceDiagram
-  participant V as Vehicle mode authority
-  participant R as ZARC controller
-  participant H as Trusted Host
-  participant G as Hypervisor and guests
-  V->>R: Desired shutdown
-  R->>H: Approved quiesce and deadline
-  H->>G: Coordinate services and VMs
-  alt required readiness confirmed
-    G-->>H: Actual readiness
-    H-->>R: Aggregated status
-    R->>R: Recheck allocated local conditions
-    R-->>V: Observed result
-  else timeout or unready
-    H-->>R: Readiness unavailable
-    R-->>V: Approved degraded or fault response
+  participant V as Vehicle authority
+  participant R as Controller
+  participant H as Host broker
+  participant G as Guest
+  V->>R: Desired mode
+  R->>H: Bounded coordination
+  H->>G: Request readiness
+  alt Ready
+    G-->>H: Observed readiness
+    H-->>R: Aggregate readiness
+    R-->>V: Revalidated local outcome
+  else Timeout
+    H-->>R: Unavailable
+    R-->>V: Allocated degraded result
   end
