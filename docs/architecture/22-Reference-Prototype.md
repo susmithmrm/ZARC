@@ -15,7 +15,7 @@ flowchart TD
  Z -->|local GPIO I2C ADC| F[Front sensors and fan]
  C --> P[Bench power monitoring]
 ```
-One host, three physical MCUs initially. Edge profile runs independently on fourth optional board. Standard Ethernet via switch is not automotive Ethernet; introduce matched 100BASE-T1 media hardware only later. Use two CAN terminations at bus ends, common reference as appropriate, short bench cable, compatible transceivers and verified voltage levels. No pin numbers frozen until schematic and DTS review.
+Initial demonstration: one host and three physical MCUs. A fourth physical controller is mandatory for the selected hybrid/zonal portfolio acceptance under ADOPT-022; an independent edge demonstration may reuse an eligible board only in a separate configuration. The fourth controller must participate in the hybrid/zonal reference with approved independent failure domains. Three controllers alone cannot satisfy ADOPT-022. Standard Ethernet via switch is not automotive Ethernet; introduce matched 100BASE-T1 media hardware only later. Use two CAN terminations at bus ends, common reference as appropriate, short bench cable, compatible transceivers and verified voltage levels. No pin numbers frozen until schematic and DTS review.
 
 ## Functional allocation
 
@@ -27,7 +27,7 @@ One host, three physical MCUs initially. Edge profile runs independently on four
 | Optional edge | temperature, Hall, light | LED | autonomous operation |
 | Host | USB cameras, GNSS optional, telemetry | display only | perception/status visualization |
 
-Representative signals include sensor values, validity, timestamp, feedback, health, power and network state. Count physical channels separately from derived and simulated signals. Target 50 representative signals, not 50 unique physical sensors. Expensive radar, TPMS, exhaust, high voltage BMS and safety sensors are simulated and labeled. Camera raw streams go to PC, not MCU. All sensor data includes unit, quality, source and timestamp.
+Representative signals include sensor values, validity, timestamp, feedback, health, power and network state. Count physical channels separately from derived and simulated signals. Plan at least 50 representative signal contracts across the reference kits, not 50 unique physical sensors. Expensive radar, TPMS, exhaust, high voltage BMS and safety sensors are simulated and labeled. Camera raw streams go to PC, not MCU. All sensor data includes unit, quality, source and timestamp.
 
 ## Implementation sequence
 1. Record board revisions, schematics, pinned west manifest, actual pinmux and current budget. Flash stock Zephyr sample; test GPIO, UART, ADC, I2C, CAN, Ethernet individually where available.

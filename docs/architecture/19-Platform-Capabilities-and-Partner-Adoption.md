@@ -12,3 +12,6 @@ Choose intended function, deployment profile, physical target and stakeholder ro
 | Silicon | Native target port, driver and errata evidence |
 | AI/tools | Optional bounded provider and versioned exchange |
 No hardware support or commercial relationship inferred from an architecture candidate.
+
+## Partner admission and evidence
+Use the service contract, target admission and verification templates. Map each customer clause to Z12 or an explicit external product responsibility; assess regional rules and contracted quality processes, proprietary component isolation and approved evidence access. Independent component replacement (SUP-018), two customer variants (SUP-011/017), physical vendor portability (PL-006), distributed and zonal coexistence (ADOPT-022/044), and a measured comparison (VER-017, ADOPT-042) provide portfolio adoption evidence. ADOPT-082 requires representative OEM, Tier 1, Tier 2, semiconductor and embedded developer evaluations or explicit open gaps. A supplier's contribution is not endorsement.

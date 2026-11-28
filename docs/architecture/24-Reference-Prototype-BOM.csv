@@ -34,3 +34,4 @@ ID,Gate,Item,Use,Quantity,Estimated_unit_EUR,Estimated_total_EUR,Procurement_che
 "B33","A","Digital multimeter","Electrical verification","1","20","20","Reuse if available"
 "B34","B","USB logic analyzer","Low-speed debug","1","15","15","Not proof of FD timing"
 "B35","A","Existing PC","Central host","1","0","0","Assumed already owned"
+"B36","D","Fourth physical MCU controller and eligible link hardware","Hybrid/zonal portfolio extension; separate physical failure domain","1","60","60","Planning allowance; select admitted board, transceiver, supply and ownership before purchase"

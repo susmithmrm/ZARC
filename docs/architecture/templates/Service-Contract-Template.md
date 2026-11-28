@@ -1,9 +1,21 @@
-# ZARC service contract template
+# ZARC component and service contract template
 
-Service ID and owner: TBD. Version: TBD. Applicable profiles: TBD. Dependencies and provided capability: TBD. Local authority and allocated HW resource: TBD.
+Informative allocation template for [Z12](../12-Requirements-Verification.csv); use the actual requirement IDs and approved configuration. All entries start TBD.
 
-| Operation or event | Types and units | Role and preconditions | Bounds and deadline | Result and observed outcome | Test ID |
+| Descriptor field | Allocation |
+|---|---|
+| Stable component/service ID, supplier, maintainer, release, license | TBD |
+| Profile, placement, deployment unit, native/provider dependencies | TBD |
+| Provided and required typed ports; versions and interaction model | TBD |
+| Resource owner, authority, safety/criticality and access class | TBD |
+| Trigger, execution context, priority, deadline, memory/CPU/queue budget | TBD |
+| Lifecycle preconditions, transition deadlines, failure disposition | TBD |
+| State schema, compatibility, update/replacement and recovery policy | TBD |
+| Observation fields, units, quality, freshness, retention and visibility limits | TBD |
+| Requirement IDs, conformance fixtures, independent review and support scope | TBD |
+
+| Operation or event | Types, units and version | Role and eligibility | Timing, bounds and lifetime | Result, validity and observed outcome | Verification ID |
 |---|---|---|---|---|---|
 | TBD | TBD | TBD | TBD | TBD | TBD |
 
-Specify execution class, resource budget, lifetime and overflow policy; readiness, health and diagnostics; init/start/quiesce/resume/stop; reset, idempotence and compatibility; failure behavior and recovery allocation. Include schema fixtures, target bindings, safety/cyber assumptions and version/change impact. Avoid any raw hardware-control interface as a generic service.
+Document idempotence, correlation, expiry, cancellation, overload, restart, dependencies and approved fallback. Distinguish acceptance from observed completion. Record protected or unavailable fields explicitly; no generic unrestricted hardware access. Use allocated local or remote conformance tests and independently reviewable component metadata under SYS-011/017, SVC-001/011/028, PL-025 and SUP-018. No template completion implies acceptance.

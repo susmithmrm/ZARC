@@ -34,4 +34,15 @@ Prerequisite: approved low-voltage bench, pinned builds, wiring and output disab
 Test ID, full requirement IDs, target serial/revision, firmware hash, Zephyr/toolchain version, manifest hash, wiring revision, instrument/timebase, conditions, expected/actual, raw trace path, result PASS/FAIL/BLOCKED/NOT RUN, reviewer, date. Simulator and physical evidence separate. No inferred PASS. Record median, p95, p99, maximum observed latency and deadline misses; observed maximum is not WCET. Publish flash/RAM/stack, queue high-water, CPU and power measurements per profile. G1 provisional 10 ms benign local deadline and 20% memory headroom remain applicable only to their allocated lab profile.
 
 ## Exit gates
-A: one physical benign indicator with feedback; B: two physical nodes and local autonomy; C: three nodes, sensor suite and live twin; D: independent second-vendor evidence and repeatable SDK; E: separately scoped advanced automotive networking and integrated RT. No gate implies roadworthiness, ISO 26262 or production cybersecurity qualification.
+A: one physical benign indicator with feedback; B: two physical nodes and local autonomy; C: three-node initial demonstration, sensor suite and illustrative twin; D: extend to at least four physical controllers for the hybrid/zonal reference, conventional CAN/CAN FD/LIN peer fixtures, independent second-vendor evidence and repeatable SDK; E: separately scoped advanced automotive networking and integrated RT. No gate implies roadworthiness, ISO 26262 or production cybersecurity qualification.
+
+## Additional Z12 acceptance allocations
+| Test | Planned evidence | Trace |
+|---|---|---|
+| D19 | Separate standalone physical CAN, CAN FD and LIN peer fixtures; at least four physical controllers with allocated independent failure domains in the hybrid/zonal reference | ADOPT-022 |
+| D20 | Independent reproduction of at least 50 configured representative signal contracts; distinguish simulated from physically exercised channels | ADOPT-045 |
+| D21 | Reconcile intended, configured, built, deployed and observed identities, including unavailable or mismatched facts | SYS-018, PL-024, VER-024 |
+| D22 | Verify local authorized observation, allocated resource indicators and bounded collection; distributed trace correlation on selected peer paths | SVC-028, SVC-029, CON-032 |
+| D23 | Independent component exchange and eligible deployment-unit compatibility and recovery, subject to hardware availability | SUP-018, PL-025, ASR-030 |
+
+Demonstration IDs are scenario labels, not replacements for Z12 verification IDs. These cases do not close a requirement unless its complete applicable acceptance criteria and evidence are accepted.
