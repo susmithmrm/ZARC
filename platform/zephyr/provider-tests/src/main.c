@@ -16,6 +16,7 @@
 #include "sensor_sample.h"
 #include <zephyr/pm/device.h>
 #include <zephyr/pm/device_runtime.h>
+#include <zephyr/net/socket.h>
 
 K_MSGQ_DEFINE(uart_rx,sizeof(struct zarc_native_bytes),8,8);
 K_MSGQ_DEFINE(can_rx_queue,sizeof(struct can_frame),4,4);
@@ -24,10 +25,155 @@ static struct zarc_native_uart uart_adapter;
 static struct zarc_native_can can_adapter;
 static struct zarc_native_ipc ipc_adapter;
 static struct zarc_native_watchdog watchdog_adapter;
+static struct zarc_native_tcp tcp_adapter;
 
 static const zarc_frame sample={
  .operation=ZARC_OP_SNAPSHOT,.length=4,.boot=7,.session=3,.request_id=11,.payload={1,0,0,0}
 };
+
+static int loopback_listener(struct sockaddr_in *address)
+{
+ int fd=zsock_socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
+ if(fd<0)return -errno;
+ struct sockaddr_in local={.sin_family=AF_INET,.sin_port=0};
+ if(zsock_inet_pton(AF_INET,"127.0.0.1",&local.sin_addr)!=1||
+    zsock_bind(fd,(const struct sockaddr *)&local,sizeof(local))<0||
+    zsock_listen(fd,1)<0){int error=errno;(void)zsock_close(fd);return -error;}
+ socklen_t length=sizeof(*address);
+ if(zsock_getsockname(fd,(struct sockaddr *)address,&length)<0){int error=errno;(void)zsock_close(fd);return -error;}
+ return fd;
+}
+
+static int socket_send_all(int fd,const uint8_t *data,size_t length)
+{
+ size_t sent=0;int64_t deadline=k_uptime_get()+1000;
+ while(sent<length){
+  int64_t remaining=deadline-k_uptime_get();if(remaining<=0)return -ETIMEDOUT;
+  struct zsock_pollfd wait={.fd=fd,.events=ZSOCK_POLLOUT};
+  int ready=zsock_poll(&wait,1,(int)remaining);
+  if(ready<0){if(errno==EINTR)continue;return -errno;}
+  if(ready==0)return -ETIMEDOUT;
+  ssize_t count=zsock_send(fd,data+sent,length-sent,ZSOCK_MSG_DONTWAIT);
+  if(count>0){sent+=(size_t)count;continue;}
+  if(count<0&&(errno==EINTR||errno==EAGAIN||errno==EWOULDBLOCK))continue;
+  return count==0?-EPIPE:-errno;
+ }
+ return 0;
+}
+
+static int socket_receive_exact(int fd,uint8_t *data,size_t length)
+{
+ size_t received=0;int64_t deadline=k_uptime_get()+1000;
+ while(received<length){
+  int64_t remaining=deadline-k_uptime_get();if(remaining<=0)return -ETIMEDOUT;
+  struct zsock_pollfd wait={.fd=fd,.events=ZSOCK_POLLIN};
+  int ready=zsock_poll(&wait,1,(int)remaining);
+  if(ready<0){if(errno==EINTR)continue;return -errno;}
+  if(ready==0)return -ETIMEDOUT;
+  ssize_t count=zsock_recv(fd,data+received,length-received,ZSOCK_MSG_DONTWAIT);
+  if(count>0){received+=(size_t)count;continue;}
+  if(count<0&&(errno==EINTR||errno==EAGAIN||errno==EWOULDBLOCK))continue;
+  return count==0?-ECONNRESET:-errno;
+ }
+ return 0;
+}
+
+ZTEST(zarc_providers,test_tcp_frame_loopback_and_recovery)
+{
+ struct sockaddr_in local={0};int listener=loopback_listener(&local);
+ zassert_true(listener>=0,"loopback listener: %d",listener);
+ zarc_native_tcp_init(&tcp_adapter);
+ zassert_equal(zarc_native_tcp_connect(&tcp_adapter,&local,ZARC_NATIVE_TCP_TIMEOUT_MAX_MS),0);
+ zassert_true(tcp_adapter.fd>=0);
+ zassert_equal(zarc_native_tcp_connect(&tcp_adapter,&local,10),-EALREADY);
+ int peer=zsock_accept(listener,NULL,NULL);
+ zassert_true(peer>=0,"accept: %d",errno);
+
+ zassert_equal(zarc_native_tcp_send(&tcp_adapter,&sample,ZARC_NATIVE_TCP_TIMEOUT_MAX_MS),0);
+ uint8_t frame_bytes[ZARC_NATIVE_FRAME_MAX];size_t frame_length=ZARC_FRAME_HEADER+sample.length;
+ zassert_equal(socket_receive_exact(peer,frame_bytes,frame_length),0);
+ zarc_frame decoded={0};
+ zassert_true(zarc_frame_decode(frame_bytes,frame_length,&decoded));
+ zassert_equal(decoded.request_id,sample.request_id);
+ zassert_mem_equal(decoded.payload,sample.payload,sample.length);
+
+ zarc_frame invalid=sample;invalid.operation=0;
+ zassert_equal(zarc_native_tcp_send(&tcp_adapter,&invalid,10),-EINVAL);
+ zassert_equal(zarc_native_tcp_send(&tcp_adapter,&sample,0),-EINVAL);
+ zarc_frame maximum=sample;maximum.length=ZARC_PAYLOAD_MAX;
+ for(size_t i=0;i<maximum.length;++i)maximum.payload[i]=(uint8_t)i;
+ zassert_equal(zarc_native_tcp_send(&tcp_adapter,&maximum,100),0);
+ frame_length=ZARC_FRAME_HEADER+ZARC_PAYLOAD_MAX;
+ zassert_equal(socket_receive_exact(peer,frame_bytes,frame_length),0);
+ zassert_true(zarc_frame_decode(frame_bytes,frame_length,&decoded));
+ zassert_equal(decoded.length,ZARC_PAYLOAD_MAX);
+ zassert_mem_equal(decoded.payload,maximum.payload,ZARC_PAYLOAD_MAX);
+
+ zarc_frame response=sample;response.operation=ZARC_OP_EVENT;response.request_id=29;
+ response.payload[0]=7;
+ zassert_true(zarc_frame_encode(&response,frame_bytes,sizeof(frame_bytes),&frame_length));
+ zassert_equal(socket_send_all(peer,frame_bytes,7),0);
+ struct zarc_native_bytes bytes={0};
+ zassert_equal(zarc_native_tcp_receive(&tcp_adapter,&bytes,100),0);
+ zassert_equal(bytes.len,7);
+ zarc_stream stream={0};size_t consumed=0;
+ zassert_equal(zarc_stream_feed(&stream,bytes.data,bytes.len,&consumed,&decoded),ZARC_STREAM_MORE);
+ zassert_equal(consumed,bytes.len);
+ zassert_equal(stream.used,7);
+ zassert_equal(zarc_native_tcp_receive(&tcp_adapter,&bytes,20),-ETIMEDOUT);
+ zassert_equal(stream.used,7,"partial frame state remains with the caller across idle timeout");
+ zassert_true(tcp_adapter.fd>=0,"partial-frame timeout must not close the socket");
+ zassert_equal(zarc_native_tcp_receive(&tcp_adapter,&bytes,20),-ETIMEDOUT);
+ zassert_true(tcp_adapter.fd>=0,"repeated idle timeout must preserve the socket");
+ zassert_equal(socket_send_all(peer,frame_bytes+7,frame_length-7),0);
+ bool complete=false;int64_t deadline=k_uptime_get()+500;
+ while(!complete&&k_uptime_get()<deadline){
+  zassert_equal(zarc_native_tcp_receive(&tcp_adapter,&bytes,100),0);
+  consumed=0;zarc_stream_status status=zarc_stream_feed(&stream,bytes.data,bytes.len,&consumed,&decoded);
+  zassert_equal(consumed,bytes.len);zassert_not_equal(status,ZARC_STREAM_INVALID);
+  complete=status==ZARC_STREAM_FRAME;
+ }
+ zassert_true(complete,"fragmented TCP frame not reconstructed");
+ zassert_equal(decoded.request_id,response.request_id);
+ zassert_equal(decoded.payload[0],response.payload[0]);
+
+ zassert_equal(zarc_native_tcp_receive(&tcp_adapter,&bytes,20),-ETIMEDOUT);
+ zassert_true(tcp_adapter.fd>=0,"ordinary receive timeout must keep the session socket");
+ zassert_equal(zsock_close(peer),0);
+ zassert_equal(zarc_native_tcp_receive(&tcp_adapter,&bytes,100),-ECONNRESET);
+ zassert_equal(tcp_adapter.fd,-1);
+ zassert_equal(zarc_native_tcp_send(&tcp_adapter,&sample,10),-ENOTCONN);
+ zassert_equal(zarc_native_tcp_close(&tcp_adapter),0);
+ zassert_equal(zarc_native_tcp_close(&tcp_adapter),0);
+ zassert_equal(zsock_close(listener),0);
+}
+
+ZTEST(zarc_providers,test_tcp_invalid_inputs_and_refused_peer)
+{
+ zarc_native_tcp tcp;zarc_native_tcp_init(&tcp);
+ struct zarc_native_bytes bytes={0};
+ zassert_equal(zarc_native_tcp_send(&tcp,&sample,1),-ENOTCONN);
+ zassert_equal(zarc_native_tcp_receive(&tcp,&bytes,1),-ENOTCONN);
+ struct sockaddr_in remote={.sin_family=AF_INET,.sin_port=0};
+ zassert_equal(zsock_inet_pton(AF_INET,"127.0.0.1",&remote.sin_addr),1);
+ zassert_equal(zarc_native_tcp_connect(NULL,&remote,1),-EINVAL);
+ zassert_equal(zarc_native_tcp_connect(&tcp,NULL,1),-EINVAL);
+ zassert_equal(zarc_native_tcp_connect(&tcp,&remote,1),-EINVAL);
+ remote.sin_port=htons(1);
+ zassert_equal(zarc_native_tcp_connect(&tcp,&remote,0),-EINVAL);
+ zassert_equal(zarc_native_tcp_connect(&tcp,&remote,ZARC_NATIVE_TCP_TIMEOUT_MAX_MS+1u),-EINVAL);
+ remote.sin_family=AF_INET6;
+ zassert_equal(zarc_native_tcp_connect(&tcp,&remote,1),-EINVAL);
+ remote.sin_family=AF_INET;
+ struct sockaddr_in unused={0};int listener=loopback_listener(&unused);
+ zassert_true(listener>=0);
+ uint16_t unused_port=unused.sin_port;zassert_equal(zsock_close(listener),0);
+ unused.sin_port=unused_port;
+ int ret=zarc_native_tcp_connect(&tcp,&unused,ZARC_NATIVE_TCP_TIMEOUT_MAX_MS);
+ zassert_true(ret<0,"a closed loopback port must not connect");
+ zassert_equal(tcp.fd,-1,"failed connect must release the descriptor");
+ zassert_equal(zarc_native_tcp_close(&tcp),0);
+}
 
 ZTEST(zarc_providers,test_uart_loopback){
  const struct device *dev=DEVICE_DT_GET(DT_NODELABEL(zarc_uart));

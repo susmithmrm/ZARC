@@ -49,4 +49,20 @@ int zarc_native_ipc_open(struct zarc_native_ipc *,const struct device *,const ch
 int zarc_native_ipc_send(struct zarc_native_ipc *,const zarc_frame *);
 int zarc_native_ipc_close(struct zarc_native_ipc *);
 #endif
+#if defined(CONFIG_NET_SOCKETS)
+#include <zephyr/net/socket.h>
+#define ZARC_NATIVE_TCP_TIMEOUT_MAX_MS 2147483647u
+/* Single-owner, caller-polled TCP transport for the existing framed protocol.
+ * It does not select a network interface, configure TLS/authentication, or
+ * claim Ethernet PHY behavior. The owner must handle every error by reconciling
+ * the session; receive returns stream bytes and never assumes frame boundaries. */
+struct zarc_native_tcp {
+ int fd;
+};
+void zarc_native_tcp_init(struct zarc_native_tcp *);
+int zarc_native_tcp_connect(struct zarc_native_tcp *,const struct sockaddr_in *,uint32_t timeout_ms);
+int zarc_native_tcp_send(struct zarc_native_tcp *,const zarc_frame *,uint32_t timeout_ms);
+int zarc_native_tcp_receive(struct zarc_native_tcp *,struct zarc_native_bytes *,uint32_t timeout_ms);
+int zarc_native_tcp_close(struct zarc_native_tcp *);
+#endif
 #endif
