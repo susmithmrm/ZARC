@@ -1,4 +1,8 @@
-# Implementation status — main branch
+# Implementation status — evidence ledger
+
+**2035 architecture revision:** Z12 now has 267 proposed requirements. The historical report below describes the preceding 178-entry baseline and recorded CI results. The current derived trace has 142 PARTIAL_OPEN and 125 OPEN records, none accepted. New and revised obligations require fresh evidence. No source, test, workflow or native configuration changed in this documentation revision.
+
+## Historical implementation evidence (prior baseline)
 
 The architecture baseline has 178 proposed requirements. The following increments extend the original desktop prototype; they are not accepted product evidence.
 

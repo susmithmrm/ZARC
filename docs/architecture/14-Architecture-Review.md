@@ -1,4 +1,25 @@
-# Z14 Architecture review and disposition
+# Z14 — 2035 architecture rebaseline review
+
+> **ZARC 2035 | Proposed design baseline | 28 November 2026.** The single normative-candidate register is [Z12](12-Requirements-Verification.csv) (267 requirements). This is not evidence of implementation or production qualification.
+
+## Disposition
+Rebased the 178-entry repository register using the previously reviewed 254-entry CAND-02 and a targeted modern architecture review: 13 additional IDs and 17 strengthened candidate records. All existing IDs retained; 267 canonical rows and matching trace and allocation. Exact duplicate statements, duplicate requirement/verification IDs and mandatory fields checked. Semantic overlap and independent standards review remain approval blockers.
+| Objective | Definition |
+|---|---|
+| OBJ-SYS | Topology, component contracts, authority, system graph |
+| OBJ-RT | Deterministic native execution |
+| OBJ-PL | Hardware and deployment portability |
+| OBJ-SVC | Lifecycle, services, observability |
+| OBJ-CON | Semantic/standards interoperability |
+| OBJ-HOST | Host and fleet boundaries |
+| OBJ-NET | Network and IPC integration |
+| OBJ-ASR | Safety, cybersecurity, lifecycle assurance |
+| OBJ-VER | Verification and evidence |
+| OBJ-SUP | Supplier adoption and economics |
+No implementation tests run by this documentation change. Existing candidate paths do not satisfy revised acceptance automatically. Physical hardware, vendor dependencies and independent qualification remain open.
+
+## Retained engineering detail and historical context
+Existing design detail is retained for trace continuity. The current Z12 and preceding architecture govern where wording differs; historical counts, findings, examples and acceptance claims are scoped to their original revision.
 
 **ZARC 1.1 | Desk-based architecture review | 27 November 2026**
 

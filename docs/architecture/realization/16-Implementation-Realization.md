@@ -1,4 +1,8 @@
-# ZARC realization specification
+# ZARC realization — architecture-to-code allocation
+
+The 2035 design is a proposed architecture baseline. [Z12](../12-Requirements-Verification.csv) governs; [development allocation](17-Development-Allocation.csv) is derived. Existing portable C17, native Zephyr simulator and host adapters remain unchanged. Introduce component descriptors and graph through native composition, bounded observation, deployment inventory and recovery, then optional ecosystem and AI integration. Reuse existing candidate mechanisms. Map new work to actual source and tests only when implemented. Physical and independent evidence remain open.
+
+## Retained realization detail (prior baseline)
 
 27 November 2026 • Engineering implementation specification • Companion to architecture 1.1
 

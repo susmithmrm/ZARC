@@ -1,4 +1,20 @@
-# Z09 Verification and engineering infrastructure
+# Z09 — Verification, traceability and evidence
+
+> **ZARC 2035 | Proposed design baseline | 28 November 2026.** The single normative-candidate register is [Z12](12-Requirements-Verification.csv) (267 requirements). This is not evidence of implementation or production qualification.
+
+## Verification contract
+Z12 is the single source for normative IDs, objective, profile, acceptance, verification method, design allocation, gate, owner and status. Derived trace and development allocation must match these canonical fields. Previous implementation and test paths are candidates, not accepted evidence for revised criteria.
+## Applicability
+ALL refers to the admitted configuration or portfolio obligation. SELECTED derives from approved manifest, capability and contract allocation; E/C/Z/I are deployment profiles. No arbitrary per-requirement switches. Unknown predicates, absent implied dependencies and unresolved allocations block affected admission (VER-023). Portfolio obligations cannot be waived by individual image flags.
+## Verification ladder
+Unit and contract → desktop/native simulation → physical target and HIL → independent integration, safety and security review → customer production acceptance. Test positive, negative and boundary cases as applicable. Record exact source, configuration, toolchain, hardware identity, workload, uncertainty, expected/observed result, reviewer, raw trace and verdict. No fabricated physical evidence, no simulator-to-production inference.
+## Architecture evidence
+Verify independent component exchange, graph consistency, allocated resource visibility, actual versus intended deployment, trace correlation, authorized access, update/recovery and native control deadlines under observation pressure. Test architectural diagrams and catalogs against the resolved graph (VER-024). AI benchmark evidence reports model, precision, accuracy, latency, memory and energy; AI-assisted work receives accountable review.
+## Gates
+G0 allocation and architecture; G1 native/portable lab behavior; G2 physical portability, lifecycle and SDK; G3 independent protocol and host integration; G4 allocated safety/security and partner review; G5 exact release and maintenance acceptance. Gate assignment is not acceptance. Benchmark equivalent workloads, scope, assurance, licensing and staffing; publish limitations. No blanket certification.
+
+## Retained engineering detail and historical context
+Existing design detail is retained for trace continuity. The current Z12 and preceding architecture govern where wording differs; historical counts, findings, examples and acceptance claims are scoped to their original revision.
 
 ## Verification pyramid (D19)
 

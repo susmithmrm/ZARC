@@ -32,3 +32,16 @@ Research checked 27 November 2026. Public sources establish upstream capabilitie
 - <a id="s27"></a> **S27** — Zephyr workqueues: FIFO handler behavior, pending work lifetime, queued-item semantics and blocking. https://docs.zephyrproject.org/latest/kernel/services/threads/workqueue.html
 - <a id="s28"></a> **S28** — Zephyr system/device PM API and runtime usage references: feature and driver specific. https://docs.zephyrproject.org/latest/doxygen/html/group__subsys__pm__device.html ; https://docs.zephyrproject.org/latest/samples/subsys/pm/device_pm/README.html
 - <a id="s29"></a> **S29** — Zephyr UART overview: alternative UART APIs and exclusive callback caution. https://docs.zephyrproject.org/latest/hardware/peripherals/uart.html
+
+
+## 2035 review source map (public references; pin exact releases before use)
+- AUTOSAR Classic: https://www.autosar.org/standards/classic-platform
+- Eclipse S-CORE: https://eclipse.dev/score/
+- Zephyr sysbuild and tracing: https://docs.zephyrproject.org/latest/build/sysbuild/index.html ; https://docs.zephyrproject.org/latest/services/tracing/index.html
+- ASAM: https://www.asam.net/standards/
+- COVESA: https://covesa.global/
+- Uptane: https://uptane.org/
+- FMI: https://fmi-standard.org/
+- IATF customer-specific requirements: https://www.iatfglobaloversight.org/oem-requirements/customer-specific-requirements/
+- Public industry strategy entry points: https://www.bmwgroup.com/ ; https://group.mercedes-benz.com/ ; https://www.nxp.com/ ; https://www.infineon.com/ ; https://www.toyota.com/ ; https://www.hyundaimotorgroup.com/
+These sources describe upstream capabilities and industry direction, not ZARC implementation or endorsements. Exact standards, versions, licenses and jurisdictional requirements require responsible review.

@@ -1,4 +1,12 @@
-# Suggested modern SDV vehicle reference architecture
+# ZARC — Distributed to intelligent SDV reference architecture
+
+> **ZARC 2035 | Proposed design baseline | 28 November 2026.** The single normative-candidate register is [Z12](12-Requirements-Verification.csv) (267 requirements). This is not evidence of implementation or production qualification.
+
+## Four placements, one foundation
+Standalone distributed ECUs over legacy networks; domain/hybrid controllers; central compute with zones and edge nodes; heterogeneous central AI with real-time islands. Common component descriptors, typed contracts, native configuration and resource authority remain invariant. Optional observation and management plane reconciles inventory, health, correlations and deployment units without blocking local control. Existing sedan visualization remains a simulated, read-only reference, not a production design or actual measured vehicle topology.
+
+## Retained engineering detail and historical context
+Existing design detail is retained for trace continuity. The current Z12 and preceding architecture govern where wording differs; historical counts, findings, examples and acceptance claims are scoped to their original revision.
 
 **Status: proposed, informative architecture reference.** It does not amend the authoritative Z12 requirements register or establish product qualification. [Rendered GitHub Pages view](https://susmithmrm.github.io/ZARC/modern-architecture.html) · [Vector source](../../site/assets/modern-sdv.svg).
 
