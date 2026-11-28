@@ -1,5 +1,5 @@
-# Simulator UART ownership correction
+# Simulator UART ownership verification
 
-Unmodified Zephyr v4.2.0 native_sim failed the UART shutdown fixture on dc2a880b (run 46059688703). The upstream uart_emul_rx_stop clears the queued next-buffer pointer without emitting its release event. ZARC intentionally waits for both RX buffers to be released, plus RX disabled and TX completion. The CI-only correction captures the queued pointer and emits its release before RX_DISABLED; it changes no physical driver or ZARC ownership rule. The original source revision and actual resulting patch are archived. This is a candidate downstream simulator workaround, not an upstream accepted fix.
+For the pinned native-simulator workspace, the verification plan requires both receive buffers to be released before receive shutdown is complete. Use the repository's simulator-only correction procedure where required by the pinned emulator. Do not apply the correction to physical drivers or product BSPs.
 
-Local native verification must apply the same script to a clean v4.2.0 workspace before running the expanded provider suite. Do not apply to production BSPs. Actual physical UART still requires driver conformance, stress and timing evidence. Remove the correction after selecting an upstream version with verified equivalent behavior. CI on the corrected variant is pending.
+Before verification, record the upstream version, exact simulator configuration and applied patch. Evaluate removal when an upstream version with equivalent behavior is admitted. Physical UART needs independent driver conformance, ownership, stress and timing evidence. No physical or upstream approval is implied.

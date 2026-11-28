@@ -1,5 +1,0 @@
-# Asynchronous effect lifetime
-
-Each emitted benign indicator effect now carries a boot identity, monotonically increasing endpoint token and exclusive deadline. Admission reserves endpoint ownership independently of the request ledger. A timeout or matching physical observation does not itself release a provider's queued/executing work; new local and remote work is refused until the sole owner proves completion or synchronized removal. Stale or duplicate release identities are rejected. The existing explicit pre-execution cancellation contract releases ownership only on owner-proven removal.
-
-The desktop simulation checks its deadline before producing a simulated effect and releases ownership when finished or discarded. The native test checks its deadline and releases after the device thread has joined. Physical providers still need an approved execution and cancellation handshake; a timestamp check alone is not sufficient for physical output safety. No actual vehicle control is introduced. Trace candidates RT-020, SVC-012, CON-005, SYS-008. Tests cover expiry with retained owner, independent endpoints and stale release.

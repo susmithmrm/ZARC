@@ -1,6 +1,6 @@
 # Verification trace and hardware evidence
 
-The [authoritative Z12 register](architecture/12-Requirements-Verification.csv) defines the 178 requirement IDs, design references, verification methods and acceptance conditions. The [requirement trace](REQUIREMENT-TRACE.csv) maps those IDs to candidate implementation/test paths and records the open evidence gate. A candidate path does not claim that a requirement is verified or accepted.
+The [authoritative Z12 register](architecture/12-Requirements-Verification.csv) defines the requirement IDs, design references, verification methods and acceptance conditions. The [requirement trace](REQUIREMENT-TRACE.csv) defines open evidence allocations; implementation and test paths are assigned in the next phase. A candidate path does not claim that a requirement is verified or accepted.
 
 Run the structural check from the repository root:
 
@@ -24,4 +24,4 @@ The observation evaluator accepts a JSON plan containing board, firmware_sha256,
 python tools/hil_observations.py --plan /path/to/approved-plan.json --trace /path/to/raw-trace.json
 ```
 
-No hardware runs have been performed. Actual target selection, electrical evidence, complete scenario suite, HIL traces, watchdog reset, flash interruption, resource and timing measurements and responsible approval are required.
+Actual target selection, electrical evidence, complete scenario suite, HIL traces, watchdog reset, flash interruption, resource and timing measurements and responsible approval are required.

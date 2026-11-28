@@ -1,5 +1,0 @@
-# Independent native provider ownership
-
-The continuous reference application now uses a separate Zephyr worker for simulated device ownership. The sole runtime owner sends immutable effect identities and sample queries through bounded native message queues. The worker owns its device state, rejects stale tokens, discards expired work and produces an independent later readback. The caller releases an effect only after matching provider completion. A missing reply fails the reference run rather than inventing completion or blindly retrying.
-
-Each of the four simulator manifests declares the controller owner and provider worker, stack sizes, priorities and a bounded fixture queue wait. The synchronous 4 ms wait is a laboratory self-suspending path; do not apply the simple fully-preemptive no-self-suspension response-time model to it. Physical drivers must use the approved scheduling and asynchronous provider contract. No measured WCET, hardware latency or physical control claim is made. Native CI must verify this revision.

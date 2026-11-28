@@ -1,34 +1,6 @@
-﻿ID,Severity,Area,Finding,Basis,Disposition_ref,Requirement_suffixes,Document_status,Residual_evidence
-F01,High,RTOS,Zbus described as nonblocking without observer context,S25,Z03,RT-018,Document corrected,Measure target observer/publisher path G1
-F02,High,RTOS,Deadline scheduler assumptions not explicit,S26,Z03,RT-019,Document corrected,Select exact scheduler and priorities G1
-F03,High,RTOS,Work item coalescing and lifetime not covered,S27,Z03,RT-017;RT-020,Document corrected,Execute occurrence and cancellation tests G1
-F04,High,Timing,Single-core response time approach lacks applicability limits,Architecture analysis,Z03,RT-009;RT-022,Document corrected,Allocate tasks and perform appropriate analysis G1/G3
-F05,Medium,Timing,Lab thresholds assigned to ALL profiles,Z12,Z03;Z09;Z12,RT-010;RT-011;RT-012;RT-013,Document corrected,Approve profile-specific limits G0
-F06,High,Power,Device PM and physical rail state insufficiently separated,S28,Z03;Z05,RT-021,Document corrected,Verify wake timing and driver PM G2
-F07,High,Dependencies,Build arrows and runtime dispatch ambiguous,D02/Z02,Z02;D02,PL-002,Document corrected,Dependency gate on implementations G1/G2
-F08,High,Ownership,No explicit reset/boot/maintenance ownership or arbitration,System review,Z02,SYS-007;SYS-008,Document corrected,OEM allocation and board review G0
-F09,High,Lifecycle,STOPPED and SUSPENDED incorrectly share resume path,D09/Z05,Z05;D09,SVC-006;SVC-011,Document corrected,Transition fixtures G1
-F10,High,Lifecycle,Cancellation and independent failure-domain semantics absent,Z05,Z05,SVC-012;SVC-013,Document corrected,Lifecycle HIL G1
-F11,High,Interface,Boot versus link epoch conflated,Z06,Z06;D11,CON-009,Document corrected,Reset/peer fixtures G1
-F12,High,Interface,No explicit request collision and bounded retention semantics,Z06,Z06,CON-006;CON-016,Document corrected,Contract and stress fixtures G1
-F13,High,Interface,Receiver-relative timeout cannot prove prior transit freshness,Z06,Z06,CON-014,Document corrected,Clock/age allocation and tests G1
-F14,High,Interface,Snapshot subscription gap/race not defined,Z06,Z06,CON-015,Document corrected,Generation/event fixtures G1
-F15,High,UART,Async assumed without native driver capability and exclusive API,S29,Z06,CON-017,Document corrected,Select board/driver and measure G1
-F16,Medium,Transport,Transport classes need distinct capability mapping,Z06,Z06,CON-018,Document corrected,Provider conformance G1/G3
-F17,High,Android,Power property direction and state-dependent field underspecified,S08,Z07;D14,HOST-009,Document corrected,Pinned AAOS property integration G3
-F18,High,Host,Delegation and redundant broker ownership need explicit review,Z07,Z06;Z07,HOST-010,Document corrected,Host identity/authority integration G3
-F19,High,Hypervisor,Virtualization architecture not evidence of isolation,Z07,Z07,HOST-011,Document corrected,Vendor isolation and shared fault evidence G3
-F20,High,Supplier,"Configuration inputs, source/API vs ABI and support maturity unclear",Z04,Z04,PL-009;PL-010;PL-011,Document corrected,Vendor build/port tests G2
-F21,Critical,Safety,Lifecycle fault allocation and safety communication evidence remain incomplete,Z08/S03,Z08,ASR-009;ASR-010,Document boundary corrected,OEM item/HARA/FTTI and independent assessment G4/G5
-F22,High,Security,Supply chain and joint safety/security recovery decision need trace,Z08/S21,Z08,ASR-011,Document corrected,"TARA, provisioning and approval G4"
-F23,High,Traceability,Parent objective IDs lacked definitions; conditional profiles ambiguous,Z12,Z09;Z12;Z14,VER-008,Document corrected,Approve applicability and target instances G0
-F24,Medium,Verification,Measured maximum and evidence representativeness require procedure,Z09,Z09,VER-009,Document corrected,Measurement harness and reviewer G1
-F25,High,Supplier,Change ownership and evidence expectation not independently allocated,Z10,Z10;Z12,SUP-004,Document corrected,Supplier agreement and maintenance G2
-F26,High,Feasibility,No board or toolchain selected; no native build or HIL evidence,ADR-004/005,Z14,PL-006;VER-002,Open engineering blocker,Board/vendor and branch decision G0; native build G1
-F27,High,Interoperability,"Wire codec, SOME/IP implementation, AAOS and IPC versions remain open",ADR-007/010/011/012,Z06;Z07;Z14,CON-011;HOST-004;HOST-006;NET-001;NET-002,Open engineering blocker,Select versions and independent peers G1/G3
-F28,Critical,Qualification,No exact product safety/security qualification or approved support evidence,Z08/Z14,Z08;Z14,ASR-001;ASR-003;ASR-008,Open engineering blocker,OEM and responsible independent evidence reviews G4/G5
-"F2035-01","High","Architecture","Component exchange and system graph incomplete","2035 architecture review","Z02;Z10;Z12","SYS-011;SYS-018;SUP-018","Requirements proposed","Independent component exchange and graph tooling"
-"F2035-02","High","Lifecycle","Deployment-unit policies and activation state compatibility incomplete","2035 architecture review","Z04;Z08;Z12","PL-025;ASR-030;HOST-015","Requirements proposed","Physical recovery and coordinator integration"
-"F2035-03","High","Visibility","Designed built deployed and observed identity reconciliation incomplete","2035 architecture review","Z04;Z05;Z06;Z09","PL-024;SVC-028;SVC-029;CON-032;VER-024","Requirements proposed","Runtime introspection and physical evidence"
-"F2035-04","High","Access","Object visibility and customer quality allocation incomplete","2035 architecture review","Z08;Z10","ASR-029;SUP-017","Requirements proposed","Role review and customer acceptance"
-"F2035-05","High","Governance","Continuous vendor roadmap comparison and qualification open","2035 architecture review","Z10","SUP-015;ADOPT-082","Requirements proposed","Independent pilot and industry reviews"
+"ID","Severity","Area","Finding","Basis","Disposition_ref","Requirement_suffixes","Document_status","Residual_evidence"
+"F01","High","Architecture","Component exchange and system graph require verification","Z12","Z02;Z10","SYS-011;SYS-018;SUP-018","Open","Independent component exchange and graph evidence"
+"F02","High","Lifecycle","Deployment-unit update and state compatibility require verification","Z12","Z04;Z08","PL-025;ASR-030;HOST-015","Open","Physical recovery and coordinator integration"
+"F03","High","Visibility","Architecture identity and observation require verification","Z12","Z04;Z05;Z06;Z09","PL-024;SVC-028;SVC-029;CON-032;VER-024","Open","Runtime introspection and physical evidence"
+"F04","High","Access","Customer-specific requirements and object visibility require review","Z12","Z08;Z10","ASR-029;SUP-017","Open","Role and customer acceptance review"
+"F05","High","Assurance","Independent industry adoption and qualification required","Z12","Z08;Z10","SUP-015;ADOPT-082","Open","Independent evaluation and assessment"

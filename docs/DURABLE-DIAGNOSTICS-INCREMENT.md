@@ -1,5 +1,0 @@
-# Durable bounded diagnostic journal
-
-The diagnostic store defines a fixed 1180-byte versioned little-endian snapshot containing a revision, record count, rejected-record count, critical-overflow latch, CRC and up to sixteen explicit 72-byte fault records. No native struct padding or pointers are stored. Restore checks version, length, range, integrity, unique coalescing identity and unused bytes before replacing live data. CRC detects corruption only; approved storage trust, retention, privacy and rollback policy remain separate.
-
-The NVS adapter stores the snapshot under a dedicated key and checks the complete readback. It requires a maintenance owner to load and reconcile an existing journal before enabling writes; uncertain writes latch a fault and block further persistence until remount and explicit recovery. Flash sector size, endurance, rate limits and the approved power-interruption behavior remain configuration-specific. Portable tests and a simulator NVS remount fixture cover the encoding and restoration, not physical endurance or target timing.

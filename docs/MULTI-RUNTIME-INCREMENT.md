@@ -1,5 +1,0 @@
-# Multi-endpoint runtime and logical lifecycle
-
-The common runtime accepts up to four allocated benign endpoints with per-endpoint health, observation and admission. A missing or faulty endpoint does not disable a separate healthy endpoint, while aggregate required health still fails. A batch rejects duplicate and unknown endpoint identities before dispatch. Local and trusted remote admission use the same controller and effect ownership. Remote access is disabled by default. The caller supplies authenticated principal and freshness; this is not a new security mechanism.
-
-Logical suspend requires all accepted work and provider ownership to drain. It disconnects the link and invalidates observations. Resume reinitializes health and scheduling and requires fresh, strictly ordered observations before admission; old source sequences remain invalid. No physical PM action is implied. Tests exercise disconnection, independent faults, unresolved ownership, suspend/resume and replay rejection. Existing single-endpoint API remains compatible. Physical policies, native transports and production profile composition remain open.

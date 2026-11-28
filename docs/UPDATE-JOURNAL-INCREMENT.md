@@ -1,7 +1,0 @@
-# Update journal and confirmation intent
-
-The update journal encodes a fixed 77-byte payload under a distinct versioned configuration schema. It retains active/candidate identities, immutable policy fields and update phase using the existing two-slot committed-record store. Loading rejects policy mismatch, invalid phase or invalid image relationships. CRC is corruption detection only; verified image metadata and policy must come from the approved trust boundary.
-
-The optional native MCUboot path now persists CONFIRMING before calling the bootloader confirmation API. It requires actual verified running-image metadata matching the candidate. Only an observed confirmed candidate reconciles that state to ACTIVE; an unconfirmed or mismatched running image remains unresolved and must follow approved recovery. If the final journal write fails, the durable CONFIRMING state can be reconciled at the next boot. The portable confirmation convenience path remains a decision-model test, not the native commit sequence.
-
-The NVS journal callback stages and persists a new record, then commits and persists it with read-back verification. On any uncertain write it refuses further writes until the maintenance owner remounts/reloads. Test vectors cover interrupted staging, configuration mismatch, confirmation intent and verified confirmed recovery. Actual signed boot, power interruption, key provisioning, journal wear and target image identity integration remain open. No production signing or remote flash API is introduced.

@@ -1,5 +1,0 @@
-# Health, diagnostics and configuration model
-
-New portable modules distinguish alive, completion-deadline and logical supervision, using monotonic ticks, a boot epoch and ordered reports. The health snapshot is input to an approved watchdog policy, not a hardware watchdog driver. Faults are bounded and coalesced by identity, with explicit saturation and latched critical overflow. The configuration model uses two byte-array slots, fixed little-endian fields, revision, CRC32 and a final commit marker. It preserves a valid prior record across interrupted staging. Unsupported committed schema is unavailable; migration and authorization remain external.
-
-Trace candidates: RT-015 (health), RT-016 (policy input only), SVC-008/009 (bounded fault records), SVC-010 (host byte model). See tests/supervision_tests.c. No requirement is closed. Hardware flash, authentication, independent supervision source validation, durable diagnostics, wear, reset reaction and actual watchdog integration are still outstanding. Full builds and tests must be confirmed by CI.

@@ -1,9 +1,0 @@
-# Trusted host gateway increment
-
-The host package implements certificate-authenticated TLS 1.3 guest sessions using the platform Python/OpenSSL TLS library, an explicit certificate-fingerprint allowlist, per-principal domain scopes and bounded fixed-window request quota. Guest input cannot select its principal. Requests have strict size, operation and schema validation. A serialized gateway owns a private desktop backend and never automatically replays a write after a transport failure. The downstream lab backend connects to the existing controller and uses its real request framing.
-
-The gateway is deliberately loopback-only and not a released vehicle broker. TLS trust roots, client/server certificates and key paths are supplied by deployment, never committed. Actual MCU peer authentication, identity delegation, revocation/rotation procedure, rate and latency qualification, bounded handshake concurrency, protected keys and trust-store administration remain necessary. The current quota is a host fixture and not a hard real-time scheduling bound. Do not connect to real vehicle actuators or trust the unauthenticated desktop link as production security.
-
-Trace candidates: HOST-001/002/003/010 and ASR-004/005. Host unit tests cover denied roles, quotas, malformed requests and ambiguous transport failure. End-to-end certificate handshake verification and the selected MCU trust mechanism remain outstanding until separately tested.
-
-The TLS integration fixture creates temporary CA and leaf certificates using OpenSSL, connects the actual gateway to the desktop controller, checks reader/operator permissions and rejects an unknown or absent certificate. It runs when the OpenSSL CLI is available; skipped tests do not establish evidence. No production keys are committed.

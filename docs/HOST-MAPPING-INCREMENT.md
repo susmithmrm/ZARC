@@ -1,9 +1,0 @@
-# Android Automotive and SDV mapping
-
-The AAOS power property adapter implements the request/report directions, valid predecessor states, shutdown parameters, postponement bounds, and terminal readiness interpretation. It uses the candidate AOSP android16-release power enums; the referenced request and report files have blob IDs 1031ebbfaa218d112d8eff56c0e702fe04153190 and e94fc76cf481e1f00836d0c52bd7dd0dbd3ce1c6. Product-specific allowed shutdown parameters must be supplied. It does not control rails or implement Android's power manager.
-
-Reference: [AOSP power management](https://source.android.com/docs/automotive/power/power), [request AIDL](https://android.googlesource.com/platform/hardware/interfaces/+/refs/heads/android16-release/automotive/vehicle/aidl_property/android/hardware/automotive/vehicle/VehicleApPowerStateReq.aidl), [report AIDL](https://android.googlesource.com/platform/hardware/interfaces/+/refs/heads/android16-release/automotive/vehicle/aidl_property/android/hardware/automotive/vehicle/VehicleApPowerStateReport.aidl).
-
-The typed service mapper validates deployment service/instance/method/version IDs, converts explicit big-endian payload fields and sends approved operations to the host authorization gateway. It preserves the distinction between admission and observed physical state. The protobuf schema is a candidate shared semantic interface; no claim of generated or registered VSIDL service. IDs in unit tests are fixtures only.
-
-Trace candidates: HOST-004/005/006/009 and CON-001/003/004. Tests verify the mapping and deny unauthorized requests. Actual VHAL Binder/gRPC backend, pinned AOSP CTS/VTS, VSIDL service deployment, COVESA CommonAPI/vsomeip binding, service discovery, event subscription and independent SOME/IP peer verification remain open. No private lab framing is represented as standard SOME/IP.
