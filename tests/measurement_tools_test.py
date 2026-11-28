@@ -115,6 +115,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(errors,[])
         self.assertEqual(report["gate_status"],"REVIEW_RECORDS_COMPLETE")
         self.assertFalse(report["approval_asserted"])
+        self.assertFalse(report["release_authorized"])
         for reviews in ([],[complete,complete],
                         [dict(complete,compatibility="REJECTED")],
                         [dict(complete,support="REJECTED")],
@@ -158,4 +159,5 @@ class Tests(unittest.TestCase):
         approved_report=json.loads(accepted.stdout)
         self.assertEqual(approved_report["dependency_review"]["gate_status"],"REVIEW_RECORDS_COMPLETE")
         self.assertFalse(approved_report["dependency_review"]["approval_asserted"])
+        self.assertFalse(approved_report["dependency_review"]["release_authorized"])
 if __name__=="__main__":unittest.main()

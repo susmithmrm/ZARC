@@ -77,7 +77,8 @@ def validate_dependency_reviews(changes,reviews,inventory_status):
         if reviews:
             errors.append("review record supplied without a dependency change")
         return errors,{"gate_status":"NO_DEPENDENCY_CHANGE" if not errors else "BLOCKED",
-                       "change_count":0,"review_records":0,"approval_asserted":False}
+                       "change_count":0,"review_records":0,"approval_asserted":False,
+                       "release_authorized":False}
     if inventory_status!="APPROVED":
         errors.append("approved dependency inventory required for release review")
 
@@ -120,7 +121,7 @@ def validate_dependency_reviews(changes,reviews,inventory_status):
     status="BLOCKED" if errors else "REVIEW_RECORDS_COMPLETE"
     return errors,{"gate_status":status,"change_count":len(changes),
         "review_records":len(reviews),"inventory_status":inventory_status,
-        "approval_asserted":False}
+        "approval_asserted":False,"release_authorized":False}
 
 def _read_json(path):
     return json.loads(path.read_text(encoding="utf-8"))
