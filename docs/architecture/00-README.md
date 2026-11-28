@@ -1,20 +1,8 @@
-# ZARC architecture baseline
+# ZARC architecture — 2035 design baseline candidate
 
-**Zephyr Automotive Real-Time Control | Version 1.2 | 28 November 2026**
+**Mission:** the preferred open-source real-time platform for today's distributed ECUs and 2030–2035 intelligent vehicles. Modular, updatable, observable, accessible by authorized roles, deterministic, portable and AI-capable. Native Zephyr first. Current implementation is a lab reference.
 
-ZARC defines a modular, Zephyr-native software foundation for the physical control layer of software-defined vehicles. The proposed architecture is intended for OEM, Tier 1, Tier 2 and semiconductor partners. It is an engineering design baseline, not a product release or qualification claim.
-
-## Implementation realization
-
-Start with [the realization specification](realization/16-Implementation-Realization.md) and [the development allocation](realization/17-Development-Allocation.csv). RT-001 applies to embedded execution adapters. The reviewed architecture is maintained in the linked Markdown sources and requirements register. The earlier consolidated PDF is a historical local artifact and is not shipped in this repository.
-
-## Reference design and prototype
-
-[Suggested modern SDV vehicle architecture](18-Modern-SDV-Reference-Architecture.md) · [Rendered public page](https://susmithmrm.github.io/ZARC/modern-architecture.html). This is a reference design; requirements are maintained only in Z12.
-
-[Platform capability and partner adoption guide](19-Platform-Capabilities-and-Partner-Adoption.md) · [Public onboarding page](https://susmithmrm.github.io/ZARC/platform-adoption.html).
-
-[Reference prototype](22-Reference-Prototype.md) · [Demonstration plan](23-Reference-Demonstration-Plan.md) · [BOM](24-Reference-Prototype-BOM.csv). All requirements are maintained exclusively in Z12; allocations and evidence records are derived and must match its IDs.
+The single normative-candidate register [Z12](12-Requirements-Verification.csv) contains 267 requirements; no accepted production qualification is claimed. Start with [strategy](01-Executive-Strategy.md), [system architecture](02-System-Architecture.md), [verification](09-Verification-Engineering.md), [diagrams](diagrams/README.md), [implementation realization](realization/16-Implementation-Realization.md), [trace](../REQUIREMENT-TRACE.csv) and [partner guide](19-Platform-Capabilities-and-Partner-Adoption.md).
 
 ## Document map
 
@@ -38,7 +26,7 @@ Start with [the realization specification](realization/16-Implementation-Realiza
 
 [Diagram atlas](diagrams/README.md) renders the editable Mermaid diagrams directly on GitHub. [Engineering templates](templates/) are also available.
 
-Markdown files are editable normative-candidate design sources, CSV is an editable requirements register, Mermaid files are editable diagrams. IDs remain stable across revisions. A requirement marked PROPOSED has not been implemented or verified. All targets are provisional unless stated as public upstream facts. Configuration-specific evidence is required before claiming support.
+Markdown files are editable normative-candidate design sources, CSV is an editable requirements register, Mermaid files are editable diagrams. IDs remain stable across revisions. PROPOSED denotes no accepted verification; implementation may exist partially as tracked in the derived trace. All targets are provisional unless stated as public upstream facts. Configuration-specific evidence is required before claiming support.
 
 ## Baseline review and scope
 
@@ -48,8 +36,7 @@ First implementation: benign non-safety bench companion controller with a truste
 
 IOC: I/O or companion controller. SDV: software-defined vehicle. OEM: original equipment manufacturer. BSP: board support package. FTTI: fault tolerant time interval. WCET: worst-case execution time. SIL/HIL: software/hardware in the loop. VHAL: vehicle hardware abstraction layer. AAOS: Android Automotive OS. VM: virtual machine. IPC: interprocessor/interprocess communication. SBOM: software bill of materials. DIA: development interface agreement. TARA: threat analysis and risk assessment. HARA: hazard analysis and risk assessment. QM: quality management classification, not a safety certification.
 
-## Review status
 
-Version 1.1 supersedes v1.0 as a corrected architecture candidate. Z14 and Z15 document source-backed corrections and remaining decisions. The v1.1 architecture review did not execute implementation tests. The subsequent desktop starter has separate local and CI test evidence documented in [implementation status](../IMPLEMENTATION-STATUS.md). No target-specific vendor, timing, safety, security or qualification validation has been established. Use the release gate definitions and profiles in Z09 rather than treating all proposed requirements as currently applicable. The separate machine-readable findings register and requirements CSV are controlled review inputs.
+## Change control
 
-Requirements are grouped by engineering objective in Z12; legacy ADOPT identifiers remain stable for traceability and do not constitute an extension. Platform portfolio and supplier deliverables are assessed at platform scope, not as mandatory firmware modules. Refined acceptance criteria require renewed evidence review.
+This revision supersedes the previous proposed register. Historical evidence is separate and retains original scope. Native configuration, source, tests and workflows are unchanged. New acceptance criteria, executable applicability and independent reviews remain open.

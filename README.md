@@ -1,6 +1,29 @@
 # ZARC — Zephyr Automotive Real-Time Control
 
-ZARC is a Zephyr-first automotive controller and integration framework with a portable C17 core. The repository includes desktop, host-service, and native Zephyr simulator references; these do not claim physical target support or product qualification. Open `ZARC.code-workspace` in VS Code. CMake 3.21+ and a C17 compiler are required for the desktop quick start.
+**Open, modular, observable and continuously evolvable real-time software for intelligent vehicles and embedded systems.**
+
+ZARC aims to become the preferred open-source real-time platform for automotive OEMs, Tier 1 and Tier 2 suppliers, semiconductor manufacturers and embedded developers by 2030–2035, while remaining compatible with today's distributed electronic architectures.
+
+| Deployment | Intended profile |
+|---|---|
+| Distributed CAN/CAN FD/LIN ECU | Edge (E) |
+| Hybrid/domain and central compute companion | Companion (C) |
+| Zonal I/O and power supervision | Zone (Z) |
+| Heterogeneous SoC real-time domain | Island (I) |
+
+## Architecture principles
+
+- Native Zephyr first, portable C17 domain logic, independently versioned components and static composition by default.
+- Deployment-unit replacement and update policy; compatible state migration and approved recovery.
+- Authorized system visibility: topology, health, diagnostics, timing, resources, versions and provenance.
+- Local deterministic authority independent of host, cloud and advisory AI; management is bounded.
+- Open interfaces, multi-vendor portability, measurable lifecycle economics, one requirements baseline.
+
+**Status:** engineering reference only. The proposed 267-entry [Z12](docs/architecture/12-Requirements-Verification.csv) describes the intended design, not completed capabilities. See [implementation evidence](docs/IMPLEMENTATION-STATUS.md) and the [derived trace](docs/REQUIREMENT-TRACE.csv). Physical ports, independent assurance and supplier production acceptance remain open; no endorsements or qualification claims.
+
+## Explore and integrate
+
+[Project site](https://susmithmrm.github.io/ZARC/) · [Vehicle architecture](https://susmithmrm.github.io/ZARC/modern-architecture.html) · [Partner guide](https://susmithmrm.github.io/ZARC/platform-adoption.html) · [Architecture index](docs/architecture/00-README.md) · [Diagrams](docs/architecture/diagrams/README.md)
 
 ## Quick start
 
@@ -29,20 +52,6 @@ Build `zarc_controller_lab_pc` using the desktop preset and start it with a nonz
 
 See [implementation status](docs/IMPLEMENTATION-STATUS.md) and the [requirement trace](docs/REQUIREMENT-TRACE.csv) for implemented software and remaining evidence. The repository includes independent desktop controller/broker processes, session and request retention, health and diagnostics, persistent configuration and update journals, and native Zephyr simulator profiles. Physical target ports, product-specific allocations and qualification remain open. No real automotive hardware is operated by the reference application.
 
-## Suggested modern vehicle architecture
-
-[Rendered reference design on GitHub Pages](https://susmithmrm.github.io/ZARC/modern-architecture.html) · [Engineering topology and authority boundaries](docs/architecture/18-Modern-SDV-Reference-Architecture.md). This proposed topology is informative and does not change the controlled requirements baseline.
-
-## Integrate with ZARC
-
-[Platform capabilities and partner adoption](https://susmithmrm.github.io/ZARC/platform-adoption.html) · [Engineering adoption guide](docs/architecture/19-Platform-Capabilities-and-Partner-Adoption.md). Choose a deployment profile, target and role; follow candidate scope and evidence gates.
-
-## Documentation
-
-[Architecture index](docs/architecture/00-README.md) · [Diagram atlas](docs/architecture/diagrams/README.md) · [Project site](https://susmithmrm.github.io/ZARC/) · [Review findings](docs/REPOSITORY-AUDIT.md)
-
 ## License
 
-ZARC is licensed under the [MIT License](LICENSE). Third-party dependencies retain their respective licenses.
-
-The authoritative requirements register is [Z12](docs/architecture/12-Requirements-Verification.csv). Reference prototype, demonstration and BOM are linked from the architecture index.
+[MIT](LICENSE). Third-party dependencies retain their respective licenses. No compulsory ZARC-specific runtime royalties; selected vendor dependencies may have separate terms.
