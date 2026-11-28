@@ -47,6 +47,11 @@ static void test_overlap_and_optional_service_failure(void){
  CHECK(zarc_advisory_read(&store,out,sizeof out,&length)==ZARC_ADVISORY_OK);
  CHECK(length==3&&out[0]==20&&out[1]==30&&out[2]==40);
 
+ uint8_t replacement[3]={7,8,9};
+ CHECK(zarc_advisory_publish(&store,replacement,sizeof replacement)==ZARC_ADVISORY_OK);
+ CHECK(zarc_advisory_read(&store,storage+1,sizeof replacement,&length)==ZARC_ADVISORY_OK);
+ CHECK(length==sizeof replacement&&storage[1]==7&&storage[2]==8&&storage[3]==9);
+
  CHECK(zarc_advisory_set_available(&store,false)==ZARC_ADVISORY_OK);
  CHECK(store.length==0);
  CHECK(zarc_advisory_publish(&store,out,3)==ZARC_ADVISORY_UNAVAILABLE);

@@ -33,7 +33,7 @@ zarc_advisory_result zarc_advisory_read(const zarc_advisory_store *store,
  if(!initialized(store)||!out||!length)return ZARC_ADVISORY_INVALID;
  if(!store->available){*length=0;return ZARC_ADVISORY_UNAVAILABLE;}
  if(store->length>capacity){*length=store->length;return ZARC_ADVISORY_CAPACITY;}
- if(store->length)memcpy(out,store->storage,store->length);
+ if(store->length)memmove(out,store->storage,store->length);
  *length=store->length;
  return ZARC_ADVISORY_OK;
 }

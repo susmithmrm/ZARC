@@ -12,7 +12,7 @@ typedef enum {
  ZARC_ADVISORY_CAPACITY
 } zarc_advisory_result;
 
-/* Caller zero-initializes before init. Storage remains unavailable until the
+/* Caller zero-initializes before init and serializes every operation. Storage remains unavailable until the
  * owner enables it. Disabling clears the published length. This is bounded
  * caller-owned storage for opaque bytes only: no controller, domain, transport,
  * or effect interface, no dynamic allocation, and no analytics implementation. */
