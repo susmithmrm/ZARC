@@ -1,5 +1,5 @@
 # 22 — ZARC reference SDV bench prototype
-Status: proposed, not built. No road vehicle connection, high voltage, real braking/steering, airbag or safety-critical actuation. Use low-voltage current-limited supplies, fused branches, guarded small motors and independent physical output disable. All values below are planning targets.
+Status: planned physical reference; implementation and verification are open. No road vehicle connection, high voltage, real braking/steering, airbag or safety-critical actuation. Use low-voltage current-limited supplies, fused branches, guarded small motors and independent physical output disable. All values below are planning targets.
 
 ## Objectives
 Demonstrate native Zephyr, physical feedback, local autonomy, multiple controllers, hardware portability, host integration and live 3D sedan. Start with benign lamps, fan and servo; no real vehicle control. Use existing PC for Linux host and browser. Initial board candidates NUCLEO-H755ZI-Q and NUCLEO-H563ZI; NXP MR-CANHUBK344 as later automotive target. Confirm pinned Zephyr board support, driver APIs, electrical limits and pin assignment before ordering. Integrated RT profile requires separate heterogeneous SoC evaluation; dual-core MCU alone is not proof of integrated HPC isolation.
@@ -31,36 +31,18 @@ Representative signals include sensor values, validity, timestamp, feedback, hea
 
 ## Implementation sequence
 1. Record board revisions, schematics, pinned west manifest, actual pinmux and current budget. Flash stock Zephyr sample; test GPIO, UART, ADC, I2C, CAN, Ethernet individually where available.
-2. Bind physical indicator provider to existing runtime with independently sensed feedback; preserve ownership and deadline semantics.
+2. Bind physical indicator provider to the admitted runtime with independently sensed feedback; preserve ownership and deadline semantics.
 3. Add sensor providers one at a time. Test disconnection and stale readings. Add fan/servo only with separate rated supply and output disable.
 4. Connect second board using physical CAN FD; verify independent peer, session restart, bounded queues and local autonomy. Add third node.
-5. Connect host through existing broker, initially UART; then independent Ethernet peer. Read telemetry into 3D twin via local read-only bridge; static GitHub Pages is not a hardware gateway.
+5. Connect host through the selected broker, initially UART; then independent Ethernet peer. Read telemetry into 3D twin via local read-only bridge; static GitHub Pages is not a hardware gateway.
 6. Optional automotive NXP port, LIN, T1 Ethernet and edge profile; later actual integrated SoC and AAOS VHAL.
 7. Collect raw traces, manifests, build hashes, measurements and acceptance review. Do not claim production or safety qualification.
 
 ## Software composition
-Reuse existing profile manifests, runtime dispatcher, native provider contracts and host mappings. Add target-specific overlays and benign device providers; no new general middleware. Proposed directories: products/reference-bench, config/targets/bench-*, tests/hil/reference-bench. These paths are proposals, not implemented files. Allocate baseline SYS/RT/PL/CON/VER and the applicable ZARC-ADOPT requirements in Z12 by applicability, not blanket closure.
+Select native profile manifests, runtime composition, provider contracts and host mappings during implementation. Add target-specific overlays and benign device providers; no new general middleware. Proposed directories: products/reference-bench, config/targets/bench-*, tests/hil/reference-bench. These paths are proposals, not implemented files. Allocate baseline SYS/RT/PL/CON/VER and the applicable ZARC-ADOPT requirements in Z12 by applicability, not blanket closure.
 
-### Optional-service migration and coexistence example
-The portable composition API lets a required legacy/simulated core keep running when an optional integration is not configured or fails initialization. Configure only the legacy descriptor when the optional service is absent. When it is present, mark it `required=false` and retain its dependency on the legacy core:
-
-```c
-zarc_service_descriptor services[] = { optional_provider, legacy_core };
-zarc_composition composition = {0};
-
-if (zarc_composition_configure(&composition, services, 2u) == ZARC_COMPOSITION_OK) {
-    zarc_composition_status result = zarc_composition_start(&composition);
-    if ((result == ZARC_COMPOSITION_OK || result == ZARC_COMPOSITION_DEGRADED) &&
-        zarc_composition_admits(&composition, LEGACY_CORE_ID)) {
-        run_legacy_simulated_path();
-    }
-    if (zarc_composition_admits(&composition, OPTIONAL_PROVIDER_ID)) {
-        run_optional_integration();
-    }
-}
-```
-
-`tests/independent_service_test.c` exercises both cases through the public API: the optional service omitted, and an optional service whose initialization fails. It checks that the legacy simulated sample remains readable while the optional service is not admitted. The fixture demonstrates local software coexistence only; it does not prove an external peer, a selected migration target, or independent integrator acceptance.
+### Optional-service coexistence verification
+Plan a required local component and an independently replaceable optional provider. Demonstrate that the required local function retains its allocated behavior when the optional provider is omitted or unavailable. The implementation phase selects the actual component API and tests; independent physical peer and migration evidence remain open.
 
 ## Electrical review checklist
 Verify module datasheets, 3.3 V logic tolerance, pull-ups, unique I2C addresses or mux, ADC range, transceiver standby, connector pinout, ground and branch current; separate motor rail, avoid backfeeding USB, add flyback protection where appropriate. Use certified enclosed supplies; no mains wiring. Inspect wiring unpowered and enable one branch at a time. Physical emergency disable disconnects actuator supply independently of MCU. Freeze actual wiring table after board selection.

@@ -1,5 +1,5 @@
 # 23 — Reference demonstration and verification plan
-Prerequisite: approved low-voltage bench, pinned builds, wiring and output disable checked. No tests executed yet. All acceptance limits provisional until profile allocation.
+Prerequisite: approved low-voltage bench, pinned builds, wiring and output disable checked. Verification is planned for the implementation phase. All acceptance limits provisional until profile allocation.
 
 | Test | Action | Expected result / evidence | Trace |
 |---|---|---|---|
@@ -31,7 +31,7 @@ Prerequisite: approved low-voltage bench, pinned builds, wiring and output disab
 6. Show evidence dashboard, limitations and roadmap (1 min).
 
 ## Evidence template
-Test ID, full requirement IDs, target serial/revision, firmware hash, Zephyr/toolchain version, manifest hash, wiring revision, instrument/timebase, conditions, expected/actual, raw trace path, result PASS/FAIL/BLOCKED/NOT RUN, reviewer, date. Simulator and physical evidence separate. No inferred PASS. Record median, p95, p99, maximum observed latency and deadline misses; observed maximum is not WCET. Publish flash/RAM/stack, queue high-water, CPU and power measurements per profile. Existing G1 provisional 10 ms benign local deadline and 20% memory headroom remain applicable only to their allocated lab profile.
+Test ID, full requirement IDs, target serial/revision, firmware hash, Zephyr/toolchain version, manifest hash, wiring revision, instrument/timebase, conditions, expected/actual, raw trace path, result PASS/FAIL/BLOCKED/NOT RUN, reviewer, date. Simulator and physical evidence separate. No inferred PASS. Record median, p95, p99, maximum observed latency and deadline misses; observed maximum is not WCET. Publish flash/RAM/stack, queue high-water, CPU and power measurements per profile. G1 provisional 10 ms benign local deadline and 20% memory headroom remain applicable only to their allocated lab profile.
 
 ## Exit gates
 A: one physical benign indicator with feedback; B: two physical nodes and local autonomy; C: three nodes, sensor suite and live twin; D: independent second-vendor evidence and repeatable SDK; E: separately scoped advanced automotive networking and integrated RT. No gate implies roadworthiness, ISO 26262 or production cybersecurity qualification.
