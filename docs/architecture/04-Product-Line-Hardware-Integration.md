@@ -1,6 +1,6 @@
 # Z04 — Product line, silicon and deployment units
 
-> **ZARC 2035 | Design baseline candidate | 28 November 2026.** The single normative-candidate register is [Z12](12-Requirements-Verification.csv) (267 requirements). This design describes the intended architecture, not implemented or qualified functionality. See [implementation evidence](../IMPLEMENTATION-STATUS.md).
+> **ZARC 2035 | Architecture specification | Design phase.** The single requirements register is [Z12](12-Requirements-Verification.csv) (267 requirements). Implementation and verification are planned for the next phase. See [implementation plan](../IMPLEMENTATION-STATUS.md).
 
 ## Native integration
 Use maintained/owned Zephyr ports, approved vendor SDK, pinctrl/devicetree, Kconfig, west, CMake and sysbuild. Thin adapters for domain semantics or genuine vendor gaps. Manifest resolves ISA, ABI, board, stepping, core/mode, memory, toolchain, features and artifact identities. Record errata, electrical limits, licensing, hardware protection and provider ownership. Unsupported targets are not native support.
@@ -18,74 +18,5 @@ PL-025 inventory includes every releasable artifact; no universal hot updates. P
 ## Portfolio
 Common benign source on at least two independent physical MCU vendors; automotive MCU, general-purpose MCU and eligible heterogeneous SoC. Arm/RISC-V and DSP/NPU depend on port/driver eligibility. Evidence per exact profile, not brand-level support. Native peripherals, sensing, actuation, 12/48 V supervision, factory provisioning, calibration and replacement require specific electrical and safety allocations. No real vehicle actuation in lab reference.
 
-## Retained engineering detail
-Existing design detail is retained for compatibility and trace continuity. Where wording differs, Z12 and the current architecture above govern. Historical examples are not evidence of new functionality.
-
-## Composition model (D08)
-
-A supported build is the immutable composition of ZARC release, pinned Zephyr/toolchain, target board/SoC revision, BSP and vendor modules, product policy, enabled service/transport set, interface versions, security/boot/update profile and verification configuration. A board is wiring, target is composed configuration, product is policy. Do not infer vehicle function from board name. Source portability is not supported-target evidence.
-
-| Layer | Normative owner | Deliverable |
-|---|---|---|
-| Zephyr and upstream modules | Maintainers/vendors | Pinned revisions, license and supported API |
-| SoC/board BSP | Semiconductor/board supplier | DTS, pinctrl, clocks, reset, memory, drivers, errata |
-| Target integration | Integrating Tier 1/vendor | Device binding, target manifest, approved resources |
-| Product configuration | OEM/Tier 1 | Capability IDs, policy, service variants, calibration |
-| ZARC common services | Platform maintainers | Public contracts and test suite |
-| Evidence pack | Each responsible supplier | Scoped results, assumptions and changes |
-
-## Mandatory target descriptor fields
-
-Target ID/revision; SoC/arch/board qualifier and silicon stepping; Zephyr/SDK/compiler revisions; selected profile and required services; physical resource ownership and mapping; DTS overlay/Kconfig and generated configuration hashes; flash/boot/update partitions; watchdog/reset/clock and power capabilities; selected link providers; available resource budgets; security provisioning requirements; isolation capabilities and limitations; physical and simulation test profiles; evidence references. Descriptor is validated at build time and generates compact capability tables; no general YAML/JSON interpreter in control path. Unknown required capability or incompatible resource assignment fails build/admission. Product variants can change approved policy without copying generic source. Never allow unrestricted runtime reconfiguration of allocated safety behavior.
-
-## Proposed embedded repository layout and dependency rules
-
-The current desktop tree contains `src/`, `include/zarc/`, `apps/`, `tests/` and a future `platform/zephyr/` boundary. The following layout is a target design, not the current tree.
-
-west.yml; app/{edge,companion,zonal,integrated}; modules/zarc/{core,services,connect}; platform/{board_support,target_adapters}; products/{reference,customer}; host/{broker,adapters}; interfaces/{schemas,mappings,fixtures}; config/{targets,profiles,budgets}; tests/{unit,contract,sim,hil}; assurance/{requirements,evidence}; docs/. Use west modules and standard Zephyr board/SoC/driver conventions; avoid duplicating upstream board definitions. CMake/Kconfig select variants and reject illegal combinations; devicetree describes hardware, product manifest declares logical policy. Sysbuild supports multi-image composition subject to version [S06](13-References.md#s06). Generate manifest from actual build and review differences. Code ownership checks reject generic-to-board/product dependencies, private-header coupling and unauthorized symbol overrides.
-
-## Vendor porting contract
-
-1. Agree product/profile requirements and target capabilities with OEM/Tier 1.
-2. Validate SoC support, silicon stepping, errata, boot/reset/power and independent protection; select Zephyr revision and toolchain.
-3. Supply native board/SoC configuration, native device drivers or upstream/backport plan; document third-party licenses.
-4. Implement only required target adapters and mapping, no generic service edits for normal port.
-5. Allocate IRQ/DMA, memory, partitions, clocks, watchdog, power and electrical limits; report unsupported capability explicitly.
-6. Build and run target conformance, representative resource/timing measurements, simulation if suitable and physical HIL; compare against expected logical contract.
-7. Submit evidence bundle: manifest, config hash, source commits, assumptions, measured budgets, limitations, defects, test data and supplier sign-off.
-8. Approve supported profile only for tested configuration; re-evaluate changes and publish maintenance owner.
-Potential hardware discovery: NXP S32 families, Infineon AURIX/TRAVEO, Renesas RH850, ST automotive families, TI automotive MCU and heterogeneous SoCs. These are candidate vendor engagements, not supported boards. Initial use requires published or vendor-provided support evidence. No generic portability claim for a processor family or all boards.
-
-## Feature profile matrix
-
-| Capability | E | C | Z | I |
-|---|---|---|---|---|
-| Core/local policy/health | Required | Required | Required | Required |
-| Power domain coordination | Optional | Required | Optional | Allocation-dependent |
-| Edge device services | Typical | Optional | Required | Allocation-dependent |
-| Host broker | Optional | Required | Typical | Typical |
-| UART | Optional | First candidate | Optional | Debug/optional |
-| Ethernet/SOME-IP | Optional | Extension | Candidate | Host-mediated/optional |
-| IPC | Optional | Optional | Optional | Required candidate |
-| Diagnostics/update | Product-dependent | Product-dependent | Product-dependent | Product-dependent |
-
-Security, verification and protection requirements cannot be silently disabled by profile. A support statement identifies board, feature set, limitations, test and release evidence.
-
-## Configuration authority and ABI policy
-
-Kconfig selects features; devicetree identifies physical device topology and bindings; the product descriptor carries vehicle/logical policy; a generated manifest records resolved values. If input representations conflict, configuration fails rather than applying undocumented precedence. Target adapters are linked in composition root; supplier code does not edit Core or replace arbitrary weak symbols. Native Zephyr APIs are source interfaces and may change across releases; ZARC does not promise cross-compiler binary ABI for arbitrary modules. Define versioned C-facing domain contracts where needed, stable semantic IDs and explicit ownership of all buffer lifetimes. Require upstream release migration review, driver errata and configuration compatibility for customers. Portable public interfaces must not expose raw Zephyr objects to host or unrelated suppliers as a cross-process ABI.
-
-## Target readiness maturity levels
-
-| Level | Meaning |
-|---|---|
-| Candidate | Declared hardware discovery; no support |
-| Buildable | Pinned native build and documented source scope |
-| Bench validated | Selected profile passes agreed physical/HIL and resource tests |
-| Supported | Exact configuration admitted with maintenance owner and accepted evidence |
-| Assessed scope | Separately defined independent safety/cyber evidence; not implied by support |
-
-The target manifest must publish actual level and limitations. Do not make support contingent on unsupported vendor peripheral behavior; substitute an approved driver/provider or mark capability unavailable.
-
-## Worldwide target admission
-Evaluate Arm Cortex-M/R/A, RISC-V and vendor-specific architectures (TriCore, RH850, Power Architecture, C28x) by actual maintained Zephyr port, toolchain, licensing and vendor support. Candidate families include NXP S32, ST Stellar, Infineon AURIX/TRAVEO, Renesas RH850/R-Car, TI AM26x/Jacinto, GigaDevice GD32A and SemiDrive E3; application SoCs from Qualcomm, Samsung, Telechips, NVIDIA and others are host/companion candidates unless an eligible RT domain is demonstrated. No blanket native support. Record lockstep/split-lock, TCM, ECC, external memory and boot dependencies in target-specific evidence.
+## Target admission
+Resolve exact pinmux, clocks, electrical assumptions, interrupts, native device readiness and assigned I/O ownership before activation. Separate model, simulator, compiled target, physically exercised target and accepted product configuration. Use configuration-specific identity and evidence, not vendor name or ISA as proof. Hardware integration package includes supported compiler/ABI, native driver dependencies, errata, constraints and independently reviewable conformance fixtures.
