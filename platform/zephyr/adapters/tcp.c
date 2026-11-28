@@ -25,7 +25,7 @@ static int wait_ready(struct zarc_native_tcp *tcp,short events,int64_t deadline)
   if(fd.revents&events)return 0;
   if(fd.revents&(ZSOCK_POLLERR|ZSOCK_POLLHUP|ZSOCK_POLLNVAL)){
    int error=0;socklen_t length=sizeof(error);
-   if(zsock_getsockopt(tcp->fd,ZSOCK_SOL_SOCKET,ZSOCK_SO_ERROR,&error,&length)<0)return -errno;
+   if(zsock_getsockopt(tcp->fd,SOL_SOCKET,SO_ERROR,&error,&length)<0)return -errno;
    return error? -error : -ECONNRESET;
   }
  }
@@ -52,7 +52,7 @@ int zarc_native_tcp_connect(struct zarc_native_tcp *tcp,const struct sockaddr_in
   ret=wait_ready(tcp,ZSOCK_POLLOUT,deadline);
   if(ret<0){fail_closed(tcp);return ret;}
   int error=0;socklen_t length=sizeof(error);
-  if(zsock_getsockopt(fd,ZSOCK_SOL_SOCKET,ZSOCK_SO_ERROR,&error,&length)<0){error=errno;fail_closed(tcp);return -error;}
+  if(zsock_getsockopt(fd,SOL_SOCKET,SO_ERROR,&error,&length)<0){error=errno;fail_closed(tcp);return -error;}
   if(error){fail_closed(tcp);return -error;}
  }
  return 0;
