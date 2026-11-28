@@ -164,4 +164,56 @@ ZTEST(zarc_native_lab,test_repeated_events_and_reserved_overflow)
  zassert_equal(snapshot.value,ZARC_OFF);
  zassert_equal(snapshot.quality,ZARC_QUALITY_VALID);
 }
+ZTEST(zarc_native_lab,test_effect_queue_transfer_completion_and_cancel)
+{
+ k_msgq_purge(&effect_queue);k_msgq_purge(&observation_queue);atomic_clear(&device_error);
+ const zarc_endpoint_config config={1,500};
+ uint64_t now=ticks();
+ zassert_true(zarc_controller_init(&controller,&config,1,303,500,now));
+ zassert_true(zarc_controller_ready(&controller,1,true));
+ zassert_true(zarc_controller_feedback(&controller,1,303,1,now,now,ZARC_OFF));
+ zassert_equal(zarc_controller_open(&controller,1,1,1,0,now),ZARC_CONN_COMPLETED);
+
+ zarc_intent intent={.session=1,.operation=ZARC_OP_DOMAIN,.request_id=11,
+  .domain=1,.desired=ZARC_ON,.validity=200};
+ zarc_controller_effect produced,transferred;
+ bool reserved=k_msgq_num_free_get(&effect_queue)>0;
+ now=ticks();
+ zassert_true(reserved);
+ zassert_equal(zarc_controller_request(&controller,&intent,true,true,0,now,
+  reserved,&produced),ZARC_CONN_ACCEPTED);
+ zassert_equal(k_msgq_put(&effect_queue,&produced,K_NO_WAIT),0);
+ zassert_equal(k_msgq_get(&effect_queue,&transferred,K_NO_WAIT),0);
+ zassert_equal(transferred.id,produced.id);
+ zassert_equal(transferred.desired,produced.desired);
+ zassert_equal(transferred.boot,produced.boot);
+ zassert_equal(transferred.token,produced.token);
+ zassert_equal(transferred.deadline,produced.deadline);
+ zassert_equal(transferred.emitted,produced.emitted);
+ now=ticks();
+ zassert_true(zarc_controller_feedback(&controller,transferred.id,transferred.boot,
+  2,now,now,transferred.desired));
+ zassert_true(zarc_controller_effect_released(&controller,&transferred,now));
+
+ intent.request_id=12;intent.desired=ZARC_OFF;
+ reserved=k_msgq_num_free_get(&effect_queue)>0;
+ now=ticks();
+ zassert_true(reserved);
+ zassert_equal(zarc_controller_request(&controller,&intent,true,true,0,now,
+  reserved,&produced),ZARC_CONN_ACCEPTED);
+ zassert_equal(k_msgq_put(&effect_queue,&produced,K_NO_WAIT),0);
+ zassert_equal(zarc_controller_cancel(&controller,1,1,12,false,true,ticks()),
+  ZARC_CANCEL_DENIED);
+ zassert_equal(zarc_controller_cancel(&controller,1,1,12,true,false,ticks()),
+  ZARC_CANCEL_IN_FLIGHT);
+ zassert_equal(zarc_controller_cancel(&controller,1,1,99,true,true,ticks()),
+  ZARC_CANCEL_UNKNOWN);
+ /* No consumer is running: this owner can purge the queued effect before
+  * confirming removal to the controller. This is a simulator-only fixture. */
+ k_msgq_purge(&effect_queue);
+ zassert_equal(k_msgq_num_used_get(&effect_queue),0u);
+ zassert_equal(zarc_controller_cancel(&controller,1,1,12,true,true,ticks()),
+  ZARC_CANCEL_REMOVED);
+ zassert_false(zarc_controller_effect_released(&controller,&produced,ticks()));
+}
 ZTEST_SUITE(zarc_native_lab,NULL,NULL,NULL,NULL,NULL);
