@@ -38,7 +38,7 @@ int main(void) {
  CHECK(memcmp(wire,expected,sizeof expected)==0);
  CHECK(!zarc_calibration_encode(&record,wire,sizeof wire-1u));
  CHECK(zarc_calibration_decode(wire,sizeof wire,&decoded));
- CHECK(memcmp(&record,&decoded,sizeof record)==0);
+ CHECK(same_record(&record,&decoded));
  CHECK(!zarc_calibration_decode(wire,sizeof wire-1u,&decoded));
  CHECK(!zarc_calibration_decode(wire,sizeof wire+1u,&decoded));
  decoded=record;
