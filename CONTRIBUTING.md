@@ -28,3 +28,11 @@ accurately identified. Changes that alter the architecture or acceptance basis
 need an explicit decision in the existing architecture decision records before
 the implementation is treated as accepted. Review comments and the merge
 decision remain attached to the pull request for traceability.
+
+## Design and implementation gates
+
+During the design phase, keep documentation aligned with Z12 without changing implementation evidence. Implementation-phase submissions must use exact approved applicability and allocation, with configuration-specific acceptance and no parallel baseline. Keep source-independent component contracts, native configuration, deployment policy and authorized visibility consistent with the system graph. Report unresolved hardware, vendor and reviewer dependencies rather than claiming closure.
+
+## Governance
+
+The maintainer documents the decision, accountable owner, review scope and applicable independence; disclose conflicts of interest and seek independent review when required. Record delegated maintenance and succession responsibilities before a supported release. Confidential customer material belongs to its authorized product workspace, not public issues. Use Z10 and ADOPT-039 for governance and support review.

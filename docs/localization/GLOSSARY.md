@@ -21,5 +21,13 @@ technical reviewers before partner use.
 | unknown outcome | 结果未知 | 결과 알 수 없음 |
 | support window | 支持期限 | 지원 기간 |
 
+| deployment unit | 部署单元 | 배포 단위 |
+| component descriptor | 组件描述符 | 구성 요소 설명자 |
+| system graph | 系统图 | 시스템 그래프 |
+| observability | 可观测性 | 관측 가능성 |
+| authorized visibility | 授权可见性 | 권한 기반 가시성 |
+| state compatibility | 状态兼容性 | 상태 호환성 |
+| advisory inference | 建议性推理 | 자문형 추론 |
+
 See [the translation and review workflow](WORKFLOW.md) before editing or
 publishing localized material.

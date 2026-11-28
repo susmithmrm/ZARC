@@ -4,10 +4,11 @@
    source. Translate the explanatory text; copy command and code blocks exactly.
 2. Use the shared [EN / 简体中文 / 한국어 glossary](GLOSSARY.md). Add a term
    only when the source uses it and preserve its meaning across both languages.
+   Maintain the component, lifecycle and authorized observation terminology consistently.
 3. Update [Chinese](quickstart.zh-CN.md) and [Korean](quickstart.ko.md)
    versions together. Keep each translation marked
    as a draft until a native-language technical reviewer checks meaning,
-   terminology, commands, and scope limitations.
+   terminology, commands, design-phase status, canonical requirement count and scope limitations.
 4. Record the reviewed source revision, reviewer, date, and review reference in
    the change that updates translation status. Do not imply partner acceptance
    without a separate recorded review.

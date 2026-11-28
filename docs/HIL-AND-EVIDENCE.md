@@ -8,7 +8,7 @@ Run the structural check from the repository root:
 python tools/verify_evidence.py --trace-only
 ```
 
-A release gate additionally requires an externally reviewed evidence JSON, a selected configuration and exact commit. It checks one entry per requirement, approved applicability, verdict, verification method, review fields and hash of a raw evidence artifact. It cannot independently authenticate reviewers or judge the adequacy of evidence; that remains an engineering responsibility. Mandatory ALL requirements cannot be excluded. A release with missing evidence fails.
+A release gate additionally requires an externally reviewed evidence JSON, a selected configuration and exact commit. It checks one entry per requirement, approved applicability, verdict, verification method, review fields and hash of a raw evidence artifact. It cannot independently authenticate reviewers or judge the adequacy of evidence; that remains an engineering responsibility. The structural tool treats ALL as mandatory; the implementation phase must integrate Z09's explicit configuration, release and portfolio scope and the VER-023 applicability resolver. A portfolio obligation cannot be waived by an individual image selection. A release with missing evidence fails.
 
 ```sh
 python tools/verify_evidence.py --evidence /path/to/evidence.json --configuration approved-bench --commit FULL_COMMIT_SHA
@@ -25,3 +25,7 @@ python tools/hil_observations.py --plan /path/to/approved-plan.json --trace /pat
 ```
 
 Actual target selection, electrical evidence, complete scenario suite, HIL traces, watchdog reset, flash interruption, resource and timing measurements and responsible approval are required.
+
+## Coverage and evidence allocation
+
+Apply [Z09](architecture/09-Verification-Engineering.md) and the [verification record template](architecture/templates/Verification-Record-Template.md). The implementation phase must validate the evidence tooling against the full Z12 selection and reviewer rules; a structural trace check does not demonstrate that the tool implements every required acceptance rule. Separate software, simulated, physical and independent qualification records. For portfolio acceptance, plan conventional CAN, CAN FD and LIN peer tests, a hybrid/zonal reference of at least four physical controllers, two MCU vendors and the allocated target classes. No hardware work is authorized by this document alone.

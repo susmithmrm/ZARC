@@ -1,6 +1,6 @@
 # Z13 Authoritative source register
 
-Research checked 27 November 2026. Public sources establish upstream capabilities and published directions, not ZARC implementation, adoption, measurements or qualification. Pin exact releases and licensed standard texts when baselining requirements. References marked as candidates do not establish project maturity or fitness.
+Public sources establish upstream capabilities and published directions, not ZARC implementation, adoption, measurements or qualification. Pin exact releases and licensed standard texts when baselining requirements. References marked as candidates do not establish project maturity or fitness.
 
 - <a id="s01"></a> **S01** — Zephyr project documentation and release process: native kernel/device/build facilities and lifecycle. https://docs.zephyrproject.org/latest/ ; https://docs.zephyrproject.org/latest/project/release_process.html
 - <a id="s02"></a> **S02** — Zephyr Twister and pytest harness: test orchestration and multi-DUT support. https://docs.zephyrproject.org/latest/develop/twister/harness/pytest.html
@@ -34,7 +34,7 @@ Research checked 27 November 2026. Public sources establish upstream capabilitie
 - <a id="s29"></a> **S29** — Zephyr UART overview: alternative UART APIs and exclusive callback caution. https://docs.zephyrproject.org/latest/hardware/peripherals/uart.html
 
 
-## 2035 review source map (public references; pin exact releases before use)
+## 2035 design reference map (public references; pin exact releases before use)
 - AUTOSAR Classic: https://www.autosar.org/standards/classic-platform
 - Eclipse S-CORE: https://eclipse.dev/score/
 - Zephyr sysbuild and tracing: https://docs.zephyrproject.org/latest/build/sysbuild/index.html ; https://docs.zephyrproject.org/latest/services/tracing/index.html
@@ -45,3 +45,6 @@ Research checked 27 November 2026. Public sources establish upstream capabilitie
 - IATF customer-specific requirements: https://www.iatfglobaloversight.org/oem-requirements/customer-specific-requirements/
 - Public industry strategy entry points: https://www.bmwgroup.com/ ; https://group.mercedes-benz.com/ ; https://www.nxp.com/ ; https://www.infineon.com/ ; https://www.toyota.com/ ; https://www.hyundaimotorgroup.com/
 These sources describe upstream capabilities and industry direction, not ZARC implementation or endorsements. Exact standards, versions, licenses and jurisdictional requirements require responsible review.
+
+## Source applicability
+Use exact released or licensed editions of ISO 26262, ISO 21448, ISO/SAE 21434, ISO 24089, ISO/PAS 8800 and applicable regional rules for allocated product obligations (ADOPT-030). The standards register is a research input and does not imply legal or standards conformance. Evaluate ASAM SOVD, ODX, MDF, TDF and XCP/A2L; COVESA VSS; and benchmark methods such as MLPerf Tiny (https://mlcommons.org/benchmarks/tiny/) only for selected scope. Review relevant industrial, off-highway and commercial-vehicle standards separately. SUP-015 governs recurring industry and competitor review and ADOPT-082 governs independent adoption-readiness evidence. Confidential OEM requirements are obtained from the responsible partner, not inferred from public sources.

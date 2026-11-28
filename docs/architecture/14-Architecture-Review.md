@@ -21,3 +21,9 @@ The design review checks unique IDs and verification identities, populated norma
 
 ## Open external evidence
 Physical target support, vendor dependencies, independent assessment, production quality processes, customer requirements and commercial acceptance require scope-specific evidence. No supplier endorsement or qualification is asserted.
+
+## Documentation admission checks
+- Cross-check every requirement's statement, acceptance, objective, applicability, gate, owner and design allocation. Derived records preserve exact canonical fields and stable IDs.
+- Review design documents, diagrams and public-facing descriptions for consistent native execution, mandatory local observability, optional networked management and AI, deployment-unit policies and legacy/future interoperability. Check all relative and repository links and diagram source correspondence.
+- Distinguish the three-controller initial bench from the four-controller physical portfolio acceptance. Check the target matrix, localization and templates against approved selection and evidence scope.
+- Independent semantic/standards review remains an admission dependency; no documentation review is evidence of implementation or qualification.

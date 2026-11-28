@@ -21,6 +21,10 @@ ZARC aims to become the preferred open-source real-time platform for automotive 
 
 **Phase:** requirements and architecture. Implementation and verification are planned next. The single 267-entry [Z12](docs/architecture/12-Requirements-Verification.csv) defines required outcomes. See [implementation plan](docs/IMPLEMENTATION-STATUS.md) and [derived trace](docs/REQUIREMENT-TRACE.csv). No product qualification or partner endorsement is claimed.
 
+## Design commitments
+
+The minimum platform includes a resolved native composition, versioned contracts, deployment-unit policy and authorized visibility. A standalone controller may use local engineering extraction; it need not run a host, cloud, networked management or AI service. Portfolio-level acceptance covers both distributed legacy networks and future multi-controller zonal/centralized architectures, independent silicon vendors, supplier component exchange and measurable lifecycle economics. No claim of support or market leadership follows from specification alone.
+
 ## Explore and integrate
 
 [Project site](https://susmithmrm.github.io/ZARC/) · [Vehicle architecture](https://susmithmrm.github.io/ZARC/modern-architecture.html) · [Partner guide](https://susmithmrm.github.io/ZARC/platform-adoption.html) · [Architecture index](docs/architecture/00-README.md) · [Diagrams](docs/architecture/diagrams/README.md)
