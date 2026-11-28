@@ -1,4 +1,5 @@
 #include "zarc/calibration.h"
+#include "zarc/sensor.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -50,6 +51,17 @@ int main(void) {
  CHECK(zarc_calibration_apply(&record,record.sensor_id,0,&value)&&value==-2);
  CHECK(zarc_calibration_apply(&record,record.sensor_id,321,&value)&&value==3208);
  CHECK(zarc_calibration_apply(&record,record.sensor_id,1000,&value)&&value==9998);
+ zarc_sensor_config sensor_config={.id=record.sensor_id,.unit_id=record.unit_id,
+  .calibration_id=record.calibration_id,.scale10=record.scale10,
+  .minimum=record.minimum,.maximum=record.maximum,.max_age=10u};
+ zarc_sensor sensor={0};zarc_sensor_sample sample;
+ CHECK(zarc_sensor_init(&sensor,&sensor_config,7u,0u));
+ CHECK(zarc_calibration_apply(&record,record.sensor_id,321,&value));
+ CHECK(zarc_sensor_publish(&sensor,7u,1u,1u,1u,value,ZARC_SAMPLE_VALID));
+ CHECK(zarc_sensor_snapshot(&sensor,2u,&sample));
+ CHECK(sample.value==3208&&sample.quality==ZARC_SAMPLE_VALID&&
+       sample.unit_id==record.unit_id&&sample.calibration_id==record.calibration_id&&
+       sample.scale10==record.scale10);
  value=123;
  CHECK(!zarc_calibration_apply(&record,record.sensor_id+1u,10,&value)&&value==123);
  CHECK(!zarc_calibration_apply(&record,record.sensor_id,-1,&value)&&value==123);
