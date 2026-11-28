@@ -8,9 +8,14 @@ sequenceDiagram
   alt Eligible
     C-->>B: Accepted pending
     C->>F: Allocated local transition
-    F-->>C: Measured result
-    C-->>B: Observed outcome
-    B-->>A: Outcome and quality
+    alt Feedback confirmed
+      F-->>C: Measured result
+      C-->>B: Observed outcome
+      B-->>A: Outcome and quality
+    else Confirmation unavailable
+      C-->>B: Unknown outcome
+      B-->>A: Reconcile authorized observation
+    end
   else Refused
     C-->>B: Refusal
     B-->>A: Refusal

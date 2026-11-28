@@ -1,6 +1,6 @@
 flowchart TD
-  O[OEM vehicle authority and applications] --> H[Optional trusted host]
+  O[OEM vehicle authority and applications] -. selected external interface .-> H[Optional trusted host or peer]
   H <--> C[ZARC local controller]
   C --> I[Allocated physical I/O]
   P[Independent hardware protection] --> I
-  C -. approved observations .-> V[Engineering view]
+  C -. authorized observation .-> V[Local or external engineering view]

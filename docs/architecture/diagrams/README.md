@@ -1,6 +1,6 @@
 # ZARC 2035 — Diagram atlas
 
-[Architecture index](../00-README.md). All diagrams describe the intended design, not verified production topology. Arrows represent logical dependencies or information; authority, timing and evidence follow Z12.
+[Architecture index](../00-README.md). All diagrams describe the intended design, not verified production topology. Arrows represent logical dependencies or information; authority, timing and evidence follow [Z12](../12-Requirements-Verification.csv). Diagrams are informative, not alternative requirements. D09 is a reference lifecycle, not a universal state enumeration; D18 explicitly separates recovery from successful activation.
 
 ## D01 — System context
 
@@ -8,11 +8,11 @@
 
 ```mermaid
 flowchart TD
-  O[OEM vehicle authority and applications] --> H[Optional trusted host]
+  O[OEM vehicle authority and applications] -. selected external interface .-> H[Optional trusted host or peer]
   H <--> C[ZARC local controller]
   C --> I[Allocated physical I/O]
   P[Independent hardware protection] --> I
-  C -. approved observations .-> V[Engineering view]
+  C -. authorized observation .-> V[Local or external engineering view]
 ```
 
 ## D02 — Build dependency direction
@@ -51,9 +51,11 @@ flowchart TD
 ```mermaid
 flowchart TD
   N[Optional legacy or Ethernet peer] <--> C[Optional communication provider]
-  C --> A[Local component and health]
+  C <--> A[Local component and health]
   A --> Z[Native Zephyr drivers]
   Z --> I[Sensor and benign output]
+  A -. authorized local observation .-> V[Local engineering view]
+  P[Independent hardware protection where allocated] --> I
 ```
 
 ## D05 — Companion profile
@@ -116,16 +118,20 @@ flowchart TD
 ```mermaid
 stateDiagram-v2
   [*] --> Registered
-  Registered --> Initialized
+  Registered --> Initialized: checks succeed
+  Registered --> Failed: initialization refused
   Initialized --> Starting
-  Starting --> Ready
-  Starting --> Failed
+  Starting --> Ready: mandatory checks pass
+  Starting --> Failed: bounded cleanup
   Ready --> Quiescing
-  Ready --> Degraded
+  Ready --> Degraded: allocated fault
   Quiescing --> Suspended
   Quiescing --> Stopped
+  Quiescing --> Failed: allocated failure
   Suspended --> Starting: revalidate
   Stopped --> Initialized: reinitialize
+  Degraded --> Quiescing: approved transition
+  Failed --> Registered: approved recovery
 ```
 
 ## D10 — Intent versus observed outcome
@@ -249,13 +255,16 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  I[Actual installed inventory] --> C[Compatibility and eligibility review]
-  C --> S[Stage approved unit]
+  I[Actual installed inventory] --> C{Authentic compatible and eligible?}
+  C -->|No| J[Refuse; report unchanged or unavailable state]
+  C -->|Yes| S[Stage approved unit]
   S --> A[Activate in allocated mode]
   A --> H{Health and state compatible?}
-  H -->|Yes| F[Confirm and report actual identity]
-  H -->|No| R[Approved recovery or degraded state]
-  R --> F
+  H -->|Yes| F[Confirm approved activation]
+  H -->|No| R[Approved recovery or allocated unavailable state]
+  F --> O[Report actual active identity and disposition]
+  R --> O
+  J --> O
 ```
 
 ## D19 — Evidence progression
@@ -300,9 +309,14 @@ sequenceDiagram
   alt Eligible
     C-->>B: Accepted pending
     C->>F: Allocated local transition
-    F-->>C: Measured result
-    C-->>B: Observed outcome
-    B-->>A: Outcome and quality
+    alt Feedback confirmed
+      F-->>C: Measured result
+      C-->>B: Observed outcome
+      B-->>A: Outcome and quality
+    else Confirmation unavailable
+      C-->>B: Unknown outcome
+      B-->>A: Reconcile authorized observation
+    end
   else Refused
     C-->>B: Refusal
     B-->>A: Refusal
@@ -338,11 +352,14 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-  A[Versioned component A] --> C[Static composition]
+  A[Versioned component A] --> C[Static composition by default]
   B[Versioned component B] --> C
   P[Optional provider] --> C
-  C --> U[Admitted deployment unit]
-  U --> F[Whole image or supported multi-image/module]
+  C --> U[Admitted deployment-unit allocation]
+  D[Versioned configuration calibration or model] --> U
+  U --> F[Whole image]
+  U --> M[Selected multi-image or isolated module]
+  U --> V[Data-only or vendor/service replacement policy]
   C --> G[System graph and conformance]
 ```
 
@@ -384,10 +401,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  M[Approved model and preprocessing] --> A[Bounded advisory provider]
-  A -. typed advice .-> P[Local deterministic policy]
+  M[Approved model and preprocessing] --> A[Optional bounded local advisory provider]
+  E[Optional external AI advisory provider] -. approved typed advice .-> P[Local deterministic policy]
+  A -. approved typed advice .-> P
   P --> I[Owned I/O]
-  F[External fleet coordinator] --> U[Eligible deployment-unit policy]
+  F[Optional external fleet coordinator] --> U[Eligible deployment-unit policy]
   U --> M
   U --> O[Actual version and recovery report]
 ```

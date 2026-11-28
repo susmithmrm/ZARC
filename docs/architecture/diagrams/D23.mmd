@@ -1,7 +1,10 @@
 flowchart TD
-  A[Versioned component A] --> C[Static composition]
+  A[Versioned component A] --> C[Static composition by default]
   B[Versioned component B] --> C
   P[Optional provider] --> C
-  C --> U[Admitted deployment unit]
-  U --> F[Whole image or supported multi-image/module]
+  C --> U[Admitted deployment-unit allocation]
+  D[Versioned configuration calibration or model] --> U
+  U --> F[Whole image]
+  U --> M[Selected multi-image or isolated module]
+  U --> V[Data-only or vendor/service replacement policy]
   C --> G[System graph and conformance]

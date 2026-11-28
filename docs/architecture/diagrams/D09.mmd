@@ -1,12 +1,16 @@
 stateDiagram-v2
   [*] --> Registered
-  Registered --> Initialized
+  Registered --> Initialized: checks succeed
+  Registered --> Failed: initialization refused
   Initialized --> Starting
-  Starting --> Ready
-  Starting --> Failed
+  Starting --> Ready: mandatory checks pass
+  Starting --> Failed: bounded cleanup
   Ready --> Quiescing
-  Ready --> Degraded
+  Ready --> Degraded: allocated fault
   Quiescing --> Suspended
   Quiescing --> Stopped
+  Quiescing --> Failed: allocated failure
   Suspended --> Starting: revalidate
   Stopped --> Initialized: reinitialize
+  Degraded --> Quiescing: approved transition
+  Failed --> Registered: approved recovery

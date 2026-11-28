@@ -1,8 +1,11 @@
 flowchart TD
-  I[Actual installed inventory] --> C[Compatibility and eligibility review]
-  C --> S[Stage approved unit]
+  I[Actual installed inventory] --> C{Authentic compatible and eligible?}
+  C -->|No| J[Refuse; report unchanged or unavailable state]
+  C -->|Yes| S[Stage approved unit]
   S --> A[Activate in allocated mode]
   A --> H{Health and state compatible?}
-  H -->|Yes| F[Confirm and report actual identity]
-  H -->|No| R[Approved recovery or degraded state]
-  R --> F
+  H -->|Yes| F[Confirm approved activation]
+  H -->|No| R[Approved recovery or allocated unavailable state]
+  F --> O[Report actual active identity and disposition]
+  R --> O
+  J --> O

@@ -1,5 +1,7 @@
 flowchart TD
   N[Optional legacy or Ethernet peer] <--> C[Optional communication provider]
-  C --> A[Local component and health]
+  C <--> A[Local component and health]
   A --> Z[Native Zephyr drivers]
   Z --> I[Sensor and benign output]
+  A -. authorized local observation .-> V[Local engineering view]
+  P[Independent hardware protection where allocated] --> I
