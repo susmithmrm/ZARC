@@ -1,4 +1,5 @@
 #include "zarc/sensor.h"
+#include <limits.h>
 bool zarc_sensor_init(zarc_sensor *s, const zarc_sensor_config *c,
                       uint64_t boot, uint64_t now)
 {
@@ -46,5 +47,37 @@ bool zarc_sensor_snapshot(zarc_sensor *s, uint64_t now, zarc_sensor_sample *out)
         now - out->sample_tick >= s->config.max_age)
         out->quality = ZARC_SAMPLE_STALE;
     if (out->quality != ZARC_SAMPLE_VALID) out->value = 0;
+    return true;
+}
+
+static uint64_t magnitude_i64(int64_t value)
+{
+    /* Avoid negating INT64_MIN, which is not representable as int64_t. */
+    return value < 0 ? (uint64_t)(-(value + 1)) + UINT64_C(1) : (uint64_t)value;
+}
+
+bool zarc_sensor_quantize_ratio(int64_t numerator, int64_t denominator,
+                                int32_t *out)
+{
+    if (!out || !denominator ||
+        (numerator == INT64_MIN && denominator == -1)) return false;
+
+    int64_t quotient = numerator / denominator;
+    int64_t remainder = numerator % denominator;
+    uint64_t remainder_magnitude = magnitude_i64(remainder);
+    uint64_t denominator_magnitude = magnitude_i64(denominator);
+    uint64_t half_threshold = denominator_magnitude / UINT64_C(2) +
+                              denominator_magnitude % UINT64_C(2);
+
+    /* C integer division truncates toward zero. Adjust only when the exact
+     * remainder is at least half the divisor; ties therefore round away from
+     * zero for both signs. The threshold expression cannot overflow. */
+    if (remainder_magnitude >= half_threshold) {
+        bool positive = (numerator < 0) == (denominator < 0);
+        quotient += positive ? INT64_C(1) : -INT64_C(1);
+    }
+    if (quotient < INT32_MIN || quotient > INT32_MAX) return false;
+
+    *out = (int32_t)quotient;
     return true;
 }

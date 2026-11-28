@@ -1,4 +1,5 @@
 #include "zarc/sensor.h"
+#include <limits.h>
 #include <stdio.h>
 #define CHECK(x) do { if (!(x)) { fprintf(stderr, "line %d: %s\n", __LINE__, #x); return 1; } } while (0)
 int main(void)
@@ -26,6 +27,21 @@ int main(void)
     CHECK(zarc_sensor_snapshot(&s, 11, &o) && o.quality == ZARC_SAMPLE_FAULT && o.value == 0);
     CHECK(zarc_sensor_publish(&s, 7, 3, 12, 12, 12500, ZARC_SAMPLE_VALID));
     CHECK(zarc_sensor_snapshot(&s, 12, &o) && o.quality == ZARC_SAMPLE_VALID && o.value == 12500);
+
+    int32_t quantized = 99;
+    CHECK(zarc_sensor_quantize_ratio(5, 2, &quantized) && quantized == 3);
+    CHECK(zarc_sensor_quantize_ratio(-5, 2, &quantized) && quantized == -3);
+    CHECK(zarc_sensor_quantize_ratio(5, -2, &quantized) && quantized == -3);
+    CHECK(zarc_sensor_quantize_ratio(-5, -2, &quantized) && quantized == 3);
+    CHECK(zarc_sensor_quantize_ratio(4, 3, &quantized) && quantized == 1);
+    CHECK(zarc_sensor_quantize_ratio(-4, 3, &quantized) && quantized == -1);
+    CHECK(zarc_sensor_quantize_ratio(INT64_MIN, 1, &quantized) == false && quantized == -1);
+    CHECK(zarc_sensor_quantize_ratio(INT64_MAX, 1, &quantized) == false && quantized == -1);
+    CHECK(zarc_sensor_quantize_ratio(INT64_MIN, -1, &quantized) == false && quantized == -1);
+    CHECK(zarc_sensor_quantize_ratio(INT32_MIN, 1, &quantized) && quantized == INT32_MIN);
+    CHECK(zarc_sensor_quantize_ratio(INT32_MAX, 1, &quantized) && quantized == INT32_MAX);
+    CHECK(!zarc_sensor_quantize_ratio(1, 0, &quantized) && quantized == INT32_MAX);
+    CHECK(!zarc_sensor_quantize_ratio(1, 1, NULL));
     CHECK(zarc_sensor_init(&s, &c, 8, 0));
     CHECK(!zarc_sensor_publish(&s, 7, 4, 0, 0, 0, ZARC_SAMPLE_VALID));
     c.minimum = 1; c.maximum = 0;

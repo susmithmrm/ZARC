@@ -35,4 +35,11 @@ bool zarc_sensor_publish(zarc_sensor *, uint64_t boot, uint64_t sequence,
                          uint64_t sample_tick, uint64_t now, int32_t value,
                          zarc_sample_quality quality);
 bool zarc_sensor_snapshot(zarc_sensor *, uint64_t now, zarc_sensor_sample *);
+/* Convert an exact signed ratio to the sensor's int32 engineering scale.
+ * Uses integer arithmetic only, truncation plus nearest rounding with ties
+ * away from zero. Returns false for a zero denominator, null output, or a
+ * rounded result outside int32_t; output is unchanged on failure. No FPU,
+ * floating-point rounding mode, or intermediate multiplication is involved. */
+bool zarc_sensor_quantize_ratio(int64_t numerator, int64_t denominator,
+                                int32_t *out);
 #endif
