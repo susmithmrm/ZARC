@@ -11,6 +11,15 @@ int main(void){
  CHECK(zarc_controller_open(&c,1,10,1,0,0)==ZARC_CONN_COMPLETED);
  zarc_intent q={.session=1,.operation=ZARC_OP_DOMAIN,.request_id=7,.domain=1,.desired=ZARC_ON,.validity=10};
  CHECK(zarc_controller_request(&c,&q,false,true,0,1,true,&e)==ZARC_CONN_DENIED&&!e.emitted);
+ CHECK(c.link.count==0&&c.endpoints[0].internal_id==0&&!c.endpoints[0].domain.pending);
+ const uint32_t invalid_domains[]={0,3,UINT32_MAX};
+ for(size_t i=0;i<sizeof invalid_domains/sizeof invalid_domains[0];++i){
+  q.domain=invalid_domains[i];
+  CHECK(zarc_controller_request(&c,&q,true,true,0,1,true,&e)==ZARC_CONN_INVALID&&!e.emitted);
+  CHECK(c.link.count==0&&c.endpoints[0].internal_id==0&&!c.endpoints[0].domain.pending);
+  CHECK(zarc_controller_snapshot(&c,1,&o)&&o.value==ZARC_OFF&&o.quality==ZARC_QUALITY_VALID);
+ }
+ q.domain=1;
  CHECK(zarc_controller_request(&c,&q,true,true,0,1,false,&e)==ZARC_CONN_BUSY&&!e.emitted&&c.link.count==0);
  CHECK(zarc_controller_request(&c,&q,true,true,0,1,true,&e)==ZARC_CONN_ACCEPTED&&e.emitted);
  first=e;

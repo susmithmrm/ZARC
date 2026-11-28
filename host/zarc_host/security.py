@@ -3,6 +3,7 @@
 TLS authenticates the guest to the trusted broker. It does not authenticate the
 MCU link; that separate trust boundary must be qualified by the integrator.
 """
+from collections.abc import Mapping
 from dataclasses import dataclass
 from hashlib import sha256
 import ssl
@@ -17,8 +18,12 @@ class Principal:
     update_read: bool = False
 
     def __post_init__(self):
-        if not self.name or not 1 <= self.rate <= 100 or type(self.update_read) is not bool:
+        if (not isinstance(self.name, str) or not self.name.strip() or
+                type(self.rate) is not int or not 1 <= self.rate <= 100 or
+                type(self.update_read) is not bool):
             raise ValueError("invalid principal policy")
+        if not isinstance(self.read, frozenset) or not isinstance(self.write, frozenset):
+            raise ValueError("principal scopes must be immutable")
         if any(type(x) is not int or not 1 <= x <= 0xFFFFFFFF
                for x in self.read | self.write):
             raise ValueError("invalid capability")
@@ -44,15 +49,20 @@ class Policy:
     Construct only from approved local configuration.
     """
     def __init__(self, certificates, clock=time.monotonic):
-        if not certificates or len(certificates) > 64:
+        if not isinstance(certificates, Mapping) or not certificates or len(certificates) > 64:
             raise ValueError("certificate capacity")
+        if not callable(clock):
+            raise ValueError("invalid policy clock")
         self._entries = {}
         self._usage = {}
         self._clock = clock
         names = {}
         for digest, principal in certificates.items():
-            if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+            if (not isinstance(digest, str) or len(digest) != 64 or
+                    any(c not in "0123456789abcdef" for c in digest)):
                 raise ValueError("invalid SHA256 fingerprint")
+            if not isinstance(principal, Principal):
+                raise ValueError("invalid principal policy")
             if principal.name in names and names[principal.name] != principal:
                 raise ValueError("inconsistent rotated certificate policy")
             names[principal.name] = principal
@@ -68,13 +78,18 @@ class Policy:
 
     def identify_der(self, der):
         """Only a verified transport adapter may supply the authenticated DER."""
+        if not isinstance(der, (bytes, bytearray, memoryview)) or not der:
+            raise PermissionError("invalid peer certificate")
         principal = self._entries.get(sha256(der).hexdigest()) if der else None
         if principal is None:
             raise PermissionError("unknown certificate")
         return principal
 
     def authorize(self, principal, operation, capability):
-        if principal not in self._entries.values():
+        # Accept only an object resolved from an authenticated certificate.
+        # Dataclass equality would let a caller construct an equal Principal.
+        if not isinstance(principal, Principal) or not any(
+                principal is registered for registered in self._entries.values()):
             return False
         scope = principal.read if operation in ("snapshot","health") else (
             principal.write if operation in ("request","request_status") else frozenset())

@@ -72,6 +72,7 @@ PROFILE_UNITS={"boot_ms":"ms","latency_us":"us","jitter_us":"us",
                "power_mw":"mW"}
 
 PROFILE_PLAN_METADATA=("hardware_assumptions","staffing_assumptions","limitations")
+TIMESTAMP_EVENTS={"acquisition","output"}
 
 def validate_profile_plan(plan):
     """Require caller-supplied context without inferring or approving evidence."""
@@ -123,6 +124,128 @@ def evaluate_profile(rows,profile):
             "scope":"observed measurements only; no universal threshold, WCET, product-support or approval claim",
             "approval_asserted":False}
 
+def validate_timestamp_plan(plan):
+    """Require explicit, caller-supplied timestamp allocations and transition method."""
+    if not isinstance(plan,dict):
+        raise ValueError("timestamp plan must be an object")
+    for key in ("configuration","board","clock","instrument","procedure"):
+        value=plan.get(key)
+        if not isinstance(value,str) or not value.strip():
+            raise ValueError("missing "+key)
+    for key in ("timer_accuracy_us","capture_sync_uncertainty_us","allocated_jitter_us"):
+        value=plan.get(key)
+        if type(value) is not int or value<0:
+            raise ValueError("invalid "+key)
+    epochs=plan.get("clock_epochs_required")
+    if type(epochs) is not int or epochs<2:
+        raise ValueError("clock_epochs_required must cover a transition")
+    samples=plan.get("minimum_samples_per_event_per_epoch")
+    if type(samples) is not int or samples<1:
+        raise ValueError("minimum_samples_per_event_per_epoch must be positive")
+    for key in ("capture_method","clock_transition_method"):
+        value=plan.get(key)
+        if not isinstance(value,str) or not value.strip():
+            raise ValueError("missing "+key)
+
+def _signed_integer(row,key,index):
+    raw=row.get(key)
+    if type(raw) is int:
+        return raw
+    if not isinstance(raw,str) or not raw or raw.strip()!=raw:
+        raise ValueError(f"row {index}: invalid {key}")
+    digits=raw[1:] if raw.startswith("-") else raw
+    if not digits.isascii() or not digits.isdigit():
+        raise ValueError(f"row {index}: invalid {key}")
+    return int(raw)
+
+def _unsigned_integer(row,key,index):
+    raw=row.get(key)
+    if type(raw) is int:
+        value=raw
+    elif isinstance(raw,str) and raw and raw.strip()==raw and raw.isascii() and raw.isdigit():
+        value=int(raw)
+    else:
+        raise ValueError(f"row {index}: invalid {key}")
+    if value<0:
+        raise ValueError(f"row {index}: negative {key}")
+    return value
+
+def evaluate_timestamps(rows,plan):
+    """Compare caller-provided external timestamp observations with declared allocations.
+
+    The input records must already contain measurements made by the named
+    external instrument. This evaluator checks trace shape and supplied error
+    values; it does not authenticate acquisition or approve a target.
+    """
+    validate_timestamp_plan(plan)
+    previous_external=previous_scheduled=None
+    epochs=set()
+    counts={}
+    samples_by_epoch={}
+    max_timer_error=max_capture_error=max_jitter=0
+    timer_violations=capture_violations=jitter_violations=0
+    count=0
+    last_epoch=-1
+    for index,row in enumerate(rows,1):
+        epoch=row.get("clock_epoch")
+        if type(epoch) is not int:
+            if not isinstance(epoch,str) or not epoch or epoch.strip()!=epoch or not epoch.isascii() or not epoch.isdigit():
+                raise ValueError(f"row {index}: invalid clock_epoch")
+            epoch=int(epoch)
+        if epoch<0:
+            raise ValueError(f"row {index}: invalid clock_epoch")
+        if epoch<last_epoch or epoch>last_epoch+1:
+            raise ValueError(f"row {index}: clock epochs must be contiguous and ordered")
+        event=row.get("event")
+        if not isinstance(event,str) or event not in TIMESTAMP_EVENTS:
+            raise ValueError(f"row {index}: invalid event")
+        scheduled=_unsigned_integer(row,"scheduled_us",index)
+        external=_unsigned_integer(row,"external_us",index)
+        if previous_scheduled is not None and scheduled<previous_scheduled:
+            raise ValueError(f"row {index}: scheduled timestamps must not decrease")
+        if previous_external is not None and external<=previous_external:
+            raise ValueError(f"row {index}: external timestamps must increase")
+        previous_external=external;previous_scheduled=scheduled
+        timer_error=_signed_integer(row,"timer_error_us",index)
+        capture_error=_signed_integer(row,"capture_sync_error_us",index)
+        jitter=external-scheduled
+        max_timer_error=max(max_timer_error,abs(timer_error))
+        max_capture_error=max(max_capture_error,abs(capture_error))
+        max_jitter=max(max_jitter,abs(jitter))
+        timer_violations+=abs(timer_error)>plan["timer_accuracy_us"]
+        capture_violations+=abs(capture_error)>plan["capture_sync_uncertainty_us"]
+        jitter_violations+=abs(jitter)>plan["allocated_jitter_us"]
+        epochs.add(epoch)
+        counts[(epoch,event)]=counts.get((epoch,event),0)+1
+        samples_by_epoch.setdefault(epoch,{"acquisition":0,"output":0})[event]+=1
+        count+=1
+        last_epoch=epoch
+    if not count:
+        raise ValueError("timestamp trace has no measurements")
+    expected_epochs=set(range(max(epochs)+1))
+    if epochs!=expected_epochs or len(epochs)<plan["clock_epochs_required"]:
+        raise ValueError("timestamp trace does not cover required clock transitions")
+    for epoch in epochs:
+        for event in TIMESTAMP_EVENTS:
+            if counts.get((epoch,event),0)<plan["minimum_samples_per_event_per_epoch"]:
+                raise ValueError(f"insufficient {event} samples in clock epoch {epoch}")
+    violations={"timer_accuracy":timer_violations,
+                "capture_synchronization":capture_violations,
+                "allocated_jitter":jitter_violations}
+    return {"verdict":"RECORDED","within_allocations":not any(violations.values()),
+            "samples":count,"clock_epochs":sorted(epochs),"samples_by_epoch":samples_by_epoch,
+            "observed_max_timer_error_us":max_timer_error,
+            "timer_accuracy_us":plan["timer_accuracy_us"],
+            "observed_max_capture_sync_error_us":max_capture_error,
+            "capture_sync_uncertainty_us":plan["capture_sync_uncertainty_us"],
+            "observed_max_jitter_us":max_jitter,
+            "allocated_jitter_us":plan["allocated_jitter_us"],
+            "clock":plan["clock"],"instrument":plan["instrument"],
+            "capture_method":plan["capture_method"],
+            "clock_transition_method":plan["clock_transition_method"],
+            "violations":violations,"approval_asserted":False,
+            "scope":"caller-supplied external observations and allocations only; acquisition authenticity, target acceptance and independent approval are not asserted"}
+
 def digest(path):
     h=hashlib.sha256()
     with path.open("rb") as f:
@@ -131,7 +254,7 @@ def digest(path):
 
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument("kind",choices=("cycles","transport","profile"))
+    p.add_argument("kind",choices=("cycles","transport","profile","timestamps"))
     p.add_argument("--plan",type=Path,required=True)
     p.add_argument("--trace",type=Path,required=True)
     a=p.parse_args()
@@ -146,14 +269,18 @@ def main():
             result=evaluate_cycles(rows,plan["period_us"],plan["deadline_us"],plan["duration_us"])
         elif a.kind=="transport":
             result=evaluate_transport(rows,*(plan[k] for k in ("latency_limit_us","window_us","bit_rate","bits_per_byte","utilization_permille","minimum_samples")))
-        else:
+        elif a.kind=="profile":
             validate_profile_plan(plan)
             result=evaluate_profile(rows,plan["profile"])
             for key in PROFILE_PLAN_METADATA:
                 result[key]=plan[key]
-    scope=(result["scope"] if a.kind=="profile" else
+        else:
+            result=evaluate_timestamps(rows,plan)
+    scope=(result["scope"] if a.kind in ("profile","timestamps") else
            "observed measurements only; responsible reviewer must establish trace completeness and clock uncertainty")
     result.update(configuration=plan["configuration"],plan_sha256=digest(a.plan),trace_sha256=digest(a.trace),scope=scope)
     print(json.dumps(result,indent=2))
-    return 0 if a.kind=="profile" or result["verdict"]=="PASS" else 1
+    if a.kind=="profile":return 0
+    if a.kind=="timestamps":return 0 if result["within_allocations"] else 1
+    return 0 if result["verdict"]=="PASS" else 1
 if __name__=="__main__":raise SystemExit(main())

@@ -20,11 +20,69 @@ class Backend:
         self.calls.append(("request", cap, desired, validity))
         if self.fail:
             raise OSError("fixture loss")
-        return {"status": "ACCEPTED"}
+        return {"status": "ACCEPTED", "boot": self.boot,
+                "session": self.session, "request_id": 12}
     def invalidate(self):
         self.invalidated = True
 
 class Tests(unittest.TestCase):
+    def test_principal_policy_is_immutable_and_strictly_typed(self):
+        with self.assertRaises(ValueError):
+            Principal("mutable", {1}, frozenset({1}))
+        with self.assertRaises(ValueError):
+            Principal("mutable", frozenset({1}), {1})
+        with self.assertRaises(ValueError):
+            Principal("boolean-rate", frozenset({1}), frozenset(), True)
+        with self.assertRaises(ValueError):
+            Principal(" ", frozenset({1}), frozenset())
+        with self.assertRaises(ValueError):
+            Principal("invalid-update", frozenset({1}), frozenset(), update_read=1)
+        for rate in (0,101,-1,1.0):
+            with self.subTest(rate=rate),self.assertRaises(ValueError):
+                Principal("invalid-rate",frozenset({1}),frozenset(),rate)
+        for capability in (0,0x100000000):
+            with self.subTest(capability=capability),self.assertRaises(ValueError):
+                Principal("invalid-capability",frozenset({capability}),frozenset())
+        self.assertEqual(Principal("minimum",frozenset({1}),frozenset(),1).rate,1)
+        self.assertEqual(Principal("maximum",frozenset({0xFFFFFFFF}),frozenset(),100).rate,100)
+        principal=Principal("valid",frozenset({1}),frozenset({2}))
+        self.assertEqual(principal.read,frozenset({1}))
+        self.assertEqual(principal.write,frozenset({2}))
+
+    def test_policy_rejects_malformed_config_and_unregistered_equal_principal(self):
+        principal=Principal("operator",frozenset({1}),frozenset({1}))
+        for invalid in (None, [], {}):
+            with self.subTest(certificates=invalid),self.assertRaises(ValueError):
+                Policy(invalid)
+        with self.assertRaises(ValueError):
+            Policy({None:principal})
+        with self.assertRaises(ValueError):
+            Policy({"1"*64:object()})
+        for fingerprint in ("1"*63,"A"*64,"1"*65):
+            with self.subTest(fingerprint=fingerprint),self.assertRaises(ValueError):
+                Policy({fingerprint:principal})
+        with self.assertRaises(ValueError):
+            Policy({"1"*64:principal},clock=None)
+        entries={f"{value:064x}":principal for value in range(64)}
+        self.assertEqual(len(Policy(entries)._entries),64)
+        entries[f"{64:064x}"]=principal
+        with self.assertRaises(ValueError):
+            Policy(entries)
+
+        backend=Backend()
+        gateway=Gateway(Policy({"1"*64:principal}),backend)
+        forged=Principal("operator",frozenset({1}),frozenset({1}))
+        request=b'{"operation":"snapshot","capability":1}'
+        self.assertEqual(gateway.dispatch(forged,request)["status"],"DENIED")
+        self.assertFalse(backend.calls)
+
+    def test_policy_der_lookup_rejects_non_der_inputs(self):
+        principal=Principal("operator",frozenset({1}),frozenset({1}))
+        policy=Policy({"1"*64:principal})
+        for invalid in (None,"certificate",b""):
+            with self.subTest(der=invalid),self.assertRaises(PermissionError):
+                policy.identify_der(invalid)
+
     def test_policy(self):
         now = [1.0]
         observer = Principal("observer", frozenset({1}), frozenset(), 2)
@@ -69,6 +127,33 @@ class Tests(unittest.TestCase):
         self.assertEqual(gateway.dispatch(a,query)["status"],"COMPLETED")
         self.assertEqual(backend.calls,[(12,10,11)])
         self.assertEqual(gateway.dispatch(a,query.replace(b'"session":11',b'"session":12'))["status"],"UNKNOWN_OUTCOME")
+    def test_accepted_request_requires_valid_retained_identity(self):
+        principal=Principal("operator",frozenset({1}),frozenset({1}),100)
+        valid={"status":"ACCEPTED","boot":10,"session":11,"request_id":12}
+        malformed=(
+            {"status":"ACCEPTED"},
+            {**valid,"boot":True},
+            {**valid,"boot":0},
+            {**valid,"session":False},
+            {**valid,"session":0},
+            {**valid,"request_id":True},
+            {**valid,"request_id":0},
+            {**valid,"request_id":"12"},
+        )
+        for response in malformed:
+            with self.subTest(response=response):
+                class MalformedAccepted(Backend):
+                    def request(self,cap,desired,validity):
+                        return response
+                backend=MalformedAccepted()
+                gateway=Gateway(Policy({"1"*64:principal}),backend)
+                snapshot=b'{"operation":"snapshot","capability":1}'
+                write=b'{"operation":"request","capability":1,"desired":2,"validity":100}'
+                self.assertEqual(gateway.dispatch(principal,snapshot)["status"],"COMPLETED")
+                self.assertEqual(gateway.dispatch(principal,write),{"status":"UNKNOWN_OUTCOME"})
+                self.assertTrue(backend.invalidated)
+                self.assertFalse(gateway._owners)
+                self.assertFalse(gateway._snapshot_ready)
     def test_restart_requires_fresh_snapshot_and_drops_old_owners(self):
         a=Principal("a",frozenset({1}),frozenset({1}),100)
         class EpochBackend(Backend):

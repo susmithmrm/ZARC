@@ -116,26 +116,31 @@ class Gateway:
             result=self.backend.request(cmd.capability,cmd.desired,cmd.validity)
             if result.get("status")=="ACCEPTED":
                 boot,session,rid=(result.get(k) for k in ("boot","session","request_id"))
-                if all(identity(x) for x in (boot,session,rid)):
-                    epoch=(boot,session)
-                    if epoch!=self._epoch:
-                        self._owners.clear()
-                        self._epoch=epoch
-                        self._snapshot_ready=False
-                        return {"status":"UNKNOWN_OUTCOME"}
-                    key=(boot,session,rid)
-                    owner=(principal.name,cmd.capability)
-                    if key in self._owners and self._owners[key]!=owner:
-                        self.backend.invalidate()
-                        self._clear_state()
-                        return {"status":"UNKNOWN_OUTCOME"}
-                    if key not in self._owners and len(self._owners)>=MAX_RETAINED:
-                        # Unexpected backend violation: an admission may have
-                        # occurred, but cannot safely expose its retained result.
-                        self.backend.invalidate()
-                        self._clear_state()
-                        return {"status":"UNKNOWN_OUTCOME"}
-                    self._owners[key]=owner
+                if not all(identity(x) for x in (boot,session,rid)):
+                    # Never expose acceptance without a queryable immutable
+                    # identity for the downstream retained outcome.
+                    self.backend.invalidate()
+                    self._clear_state()
+                    return {"status":"UNKNOWN_OUTCOME"}
+                epoch=(boot,session)
+                if epoch!=self._epoch:
+                    self._owners.clear()
+                    self._epoch=epoch
+                    self._snapshot_ready=False
+                    return {"status":"UNKNOWN_OUTCOME"}
+                key=(boot,session,rid)
+                owner=(principal.name,cmd.capability)
+                if key in self._owners and self._owners[key]!=owner:
+                    self.backend.invalidate()
+                    self._clear_state()
+                    return {"status":"UNKNOWN_OUTCOME"}
+                if key not in self._owners and len(self._owners)>=MAX_RETAINED:
+                    # Unexpected backend violation: an admission may have
+                    # occurred, but cannot safely expose its retained result.
+                    self.backend.invalidate()
+                    self._clear_state()
+                    return {"status":"UNKNOWN_OUTCOME"}
+                self._owners[key]=owner
             return result
         except (OSError, TimeoutError, ValueError):
             self.backend.invalidate()

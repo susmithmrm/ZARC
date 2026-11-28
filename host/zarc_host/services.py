@@ -40,6 +40,10 @@ class Service:
 
     def dispatch(self, principal, *, service, instance, method, major, payload):
         b = self.binding
+        if (type(service) is not int or type(instance) is not int or
+                type(method) is not int or type(major) is not int or
+                type(payload) is not bytes):
+            return bytes([STATUSES.index("INVALID")])
         if (service,instance,major) != (b.service,b.instance,b.major):
             return bytes([STATUSES.index("INCOMPATIBLE")])
         if method == b.snapshot_method and len(payload) == 4:
@@ -64,9 +68,10 @@ class Service:
 
 def sdv_availability(service_ready, observation):
     """Service process availability never manufactures physical readiness."""
-    if not service_ready or observation is None:
-        return {"service_available": bool(service_ready), "physical_available": False}
+    if type(service_ready) is not bool or not service_ready or not isinstance(observation, dict):
+        return {"service_available": service_ready is True, "physical_available": False}
     return {"service_available": True,
             "physical_available": observation.get("status") == "COMPLETED"
+                                  and type(observation.get("quality")) is int
                                   and observation.get("quality") == 1,
             "observation": observation}

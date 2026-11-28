@@ -34,7 +34,8 @@ class PowerReport:
     ready: bool
 
 def decode_report(property_id, values):
-    if property_id != AP_POWER_STATE_REPORT or len(values) != 2:
+    if (type(property_id) is not int or property_id != AP_POWER_STATE_REPORT or
+            not isinstance(values, (tuple, list)) or len(values) != 2):
         raise ValueError("report direction or width")
     state, parameter = values
     if type(state) is not int or type(parameter) is not int or not 0 <= parameter <= 0x7FFFFFFF:
@@ -49,6 +50,9 @@ def decode_report(property_id, values):
     return PowerReport(state, parameter, state in terminal)
 
 def encode_request(request, parameter, previous_report, *, allowed_shutdown_params):
+    if (isinstance(request, bool) or not isinstance(request, (int, Request)) or
+            isinstance(previous_report, bool) or not isinstance(previous_report, (int, Report))):
+        raise ValueError("request or previous report type")
     request = Request(request)
     previous_report = Report(previous_report)
     allowed = {
@@ -63,7 +67,12 @@ def encode_request(request, parameter, previous_report, *, allowed_shutdown_para
     if type(parameter) is not int:
         raise ValueError("parameter")
     if request == Request.SHUTDOWN_PREPARE:
-        if parameter not in allowed_shutdown_params or not 1 <= parameter <= 7:
+        try:
+            approved = tuple(allowed_shutdown_params)
+        except TypeError as exc:
+            raise ValueError("invalid shutdown mode policy") from exc
+        if (any(type(mode) is not int for mode in approved) or
+                parameter not in approved or not 1 <= parameter <= 7):
             raise ValueError("unapproved shutdown mode")
     elif parameter != 0:
         raise ValueError("unexpected request parameter")

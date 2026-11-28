@@ -211,6 +211,14 @@ def validate_memory(m,e,sim):
             raise ValueError("invalid memory region")
         name=region.get("name")
         kind=region.get("kind")
+        allowed_fields={"name","kind","base","size","alignment","read","write",
+                        "execute","cacheable","dma","owner"}
+        if kind=="shared":
+            allowed_fields.add("coherency")
+        if kind=="external_ram":
+            allowed_fields.add("initialization")
+        if set(region)-allowed_fields:
+            raise ValueError("unknown memory region field")
         start=region.get("base")
         size=region.get("size")
         alignment=region.get("alignment")

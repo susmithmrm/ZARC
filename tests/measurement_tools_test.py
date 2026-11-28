@@ -7,7 +7,8 @@ import tempfile
 from pathlib import Path
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"tools"))
-from timing_evidence import evaluate_cycles,evaluate_transport,evaluate_profile,validate_profile_plan
+from timing_evidence import (evaluate_cycles,evaluate_transport,evaluate_profile,validate_profile_plan,
+                             evaluate_timestamps,validate_timestamp_plan)
 from change_impact import impact,dependency_changes,validate_dependency_reviews
 class Tests(unittest.TestCase):
     def test_cycles(self):
@@ -97,6 +98,119 @@ class Tests(unittest.TestCase):
         self.assertEqual(report["limitations"],["synthetic trace; not a physical benchmark"])
         self.assertFalse(report["approval_asserted"])
         self.assertIn("approval claim",report["scope"])
+    @staticmethod
+    def timestamp_plan(**overrides):
+        plan=dict(configuration="synthetic-timer-fixture",board="synthetic-board",
+            clock="caller-supplied timer",instrument="synthetic external counter",
+            procedure="synthetic paired capture",timer_accuracy_us=1,
+            capture_sync_uncertainty_us=2,allocated_jitter_us=3,
+            clock_epochs_required=2,minimum_samples_per_event_per_epoch=1,
+            capture_method="paired edge capture",clock_transition_method="explicit epoch label")
+        plan.update(overrides)
+        return plan
+    @staticmethod
+    def timestamp_rows():
+        return [
+            dict(clock_epoch=0,event="acquisition",scheduled_us=100,external_us=101,
+                 timer_error_us=1,capture_sync_error_us=-2),
+            dict(clock_epoch=0,event="output",scheduled_us=200,external_us=198,
+                 timer_error_us=-1,capture_sync_error_us=2),
+            dict(clock_epoch=1,event="acquisition",scheduled_us=300,external_us=303,
+                 timer_error_us=0,capture_sync_error_us=1),
+            dict(clock_epoch=1,event="output",scheduled_us=400,external_us=398,
+                 timer_error_us=1,capture_sync_error_us=-2)]
+    def test_timestamp_plan_requires_explicit_allocations_and_transition_coverage(self):
+        self.assertIsNone(validate_timestamp_plan(self.timestamp_plan()))
+        for key in ("timer_accuracy_us","capture_sync_uncertainty_us","allocated_jitter_us"):
+            for value in (-1,True,1.0,None):
+                with self.subTest(key=key,value=value),self.assertRaisesRegex(ValueError,key):
+                    validate_timestamp_plan(self.timestamp_plan(**{key:value}))
+        for key,value in (("clock_epochs_required",1),("clock_epochs_required",True),
+                          ("minimum_samples_per_event_per_epoch",0),
+                          ("minimum_samples_per_event_per_epoch",True),
+                          ("capture_method"," "),("clock_transition_method",None)):
+            with self.subTest(key=key,value=value),self.assertRaises(ValueError):
+                validate_timestamp_plan(self.timestamp_plan(**{key:value}))
+        for key in ("configuration","board","clock","instrument","procedure"):
+            plan=self.timestamp_plan();del plan[key]
+            with self.subTest(missing=key),self.assertRaisesRegex(ValueError,key):
+                validate_timestamp_plan(plan)
+    def test_timestamp_measurements_check_accuracy_sync_jitter_and_clock_epochs(self):
+        report=evaluate_timestamps(self.timestamp_rows(),self.timestamp_plan())
+        self.assertEqual(report["verdict"],"RECORDED")
+        self.assertTrue(report["within_allocations"])
+        self.assertEqual(report["clock_epochs"],[0,1])
+        self.assertEqual(report["samples_by_epoch"],{0:{"acquisition":1,"output":1},
+                                                       1:{"acquisition":1,"output":1}})
+        self.assertEqual(report["observed_max_timer_error_us"],1)
+        self.assertEqual(report["observed_max_capture_sync_error_us"],2)
+        self.assertEqual(report["observed_max_jitter_us"],3)
+        self.assertFalse(report["approval_asserted"])
+        zero_plan=self.timestamp_plan(timer_accuracy_us=0,capture_sync_uncertainty_us=0,
+                                      allocated_jitter_us=0)
+        zero_rows=self.timestamp_rows()
+        for row in zero_rows:
+            row["external_us"]=row["scheduled_us"]
+            row["timer_error_us"]=0
+            row["capture_sync_error_us"]=0
+        self.assertTrue(evaluate_timestamps(zero_rows,zero_plan)["within_allocations"])
+        rows=self.timestamp_rows()
+        rows[0]["timer_error_us"]=-2
+        rows[1]["capture_sync_error_us"]=3
+        rows[2]["external_us"]=304
+        failed=evaluate_timestamps(rows,self.timestamp_plan())
+        self.assertFalse(failed["within_allocations"])
+        self.assertEqual(failed["violations"],{"timer_accuracy":1,
+            "capture_synchronization":1,"allocated_jitter":1})
+    def test_timestamp_measurements_reject_bad_order_epoch_and_coverage(self):
+        rows=self.timestamp_rows()
+        with self.assertRaisesRegex(ValueError,"external timestamps must increase"):
+            evaluate_timestamps([rows[0],dict(rows[1],external_us=100),*rows[2:]],self.timestamp_plan())
+        with self.assertRaisesRegex(ValueError,"scheduled timestamps must not decrease"):
+            evaluate_timestamps([rows[0],dict(rows[1],scheduled_us=99),*rows[2:]],self.timestamp_plan())
+        with self.assertRaisesRegex(ValueError,"contiguous and ordered"):
+            evaluate_timestamps([rows[0],rows[1],dict(rows[2],clock_epoch=2),rows[3]],self.timestamp_plan())
+        with self.assertRaisesRegex(ValueError,"invalid event"):
+            evaluate_timestamps([dict(rows[0],event="heartbeat"),*rows[1:]],self.timestamp_plan())
+        with self.assertRaisesRegex(ValueError,"invalid event"):
+            evaluate_timestamps([dict(rows[0],event=[]),*rows[1:]],self.timestamp_plan())
+        with self.assertRaisesRegex(ValueError,"insufficient output samples"):
+            evaluate_timestamps([rows[0],rows[2],rows[3]],self.timestamp_plan())
+        with self.assertRaisesRegex(ValueError,"timestamp trace has no measurements"):
+            evaluate_timestamps([],self.timestamp_plan())
+        with self.assertRaisesRegex(ValueError,"invalid scheduled_us"):
+            evaluate_timestamps([dict(rows[0],scheduled_us=True),*rows[1:]],self.timestamp_plan())
+        with self.assertRaisesRegex(ValueError,"negative external_us"):
+            evaluate_timestamps([dict(rows[0],external_us=-1),*rows[1:]],self.timestamp_plan())
+    def test_timestamp_cli_hashes_external_trace_and_fails_outside_allocation(self):
+        root=Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as d:
+            work=Path(d);plan_path=work/"plan.json";trace_path=work/"timestamps.csv"
+            plan=self.timestamp_plan()
+            plan_path.write_text(json.dumps(plan),encoding="utf-8")
+            fields=["clock_epoch","event","scheduled_us","external_us","timer_error_us","capture_sync_error_us"]
+            with trace_path.open("w",newline="",encoding="utf-8") as f:
+                writer=csv.DictWriter(f,fieldnames=fields);writer.writeheader();writer.writerows(self.timestamp_rows())
+            plan_bytes=plan_path.read_bytes();trace_bytes=trace_path.read_bytes()
+            result=subprocess.run([sys.executable,str(root/"tools/timing_evidence.py"),"timestamps",
+                "--plan",str(plan_path),"--trace",str(trace_path)],capture_output=True,text=True,check=False)
+        self.assertEqual(result.returncode,0,result.stderr)
+        report=json.loads(result.stdout)
+        self.assertTrue(report["within_allocations"])
+        self.assertEqual(report["plan_sha256"],hashlib.sha256(plan_bytes).hexdigest())
+        self.assertEqual(report["trace_sha256"],hashlib.sha256(trace_bytes).hexdigest())
+        self.assertFalse(report["approval_asserted"])
+        bad_rows=self.timestamp_rows();bad_rows[-1]["timer_error_us"]=2
+        with tempfile.TemporaryDirectory() as d:
+            work=Path(d);plan_path=work/"plan.json";trace_path=work/"timestamps.csv"
+            plan_path.write_text(json.dumps(self.timestamp_plan()),encoding="utf-8")
+            with trace_path.open("w",newline="",encoding="utf-8") as f:
+                writer=csv.DictWriter(f,fieldnames=["clock_epoch","event","scheduled_us","external_us","timer_error_us","capture_sync_error_us"])
+                writer.writeheader();writer.writerows(bad_rows)
+            result=subprocess.run([sys.executable,str(root/"tools/timing_evidence.py"),"timestamps",
+                "--plan",str(plan_path),"--trace",str(trace_path)],capture_output=True,text=True,check=False)
+        self.assertEqual(result.returncode,1)
+        self.assertFalse(json.loads(result.stdout)["within_allocations"])
     def test_change(self):
         rows=[dict(Requirement="A",Candidate_code="src/a.c",Candidate_tests="tests/a.c"),
               dict(Requirement="B",Candidate_code="src/b.c",Candidate_tests="tests/b.c")]

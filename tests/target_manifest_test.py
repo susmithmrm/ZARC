@@ -288,6 +288,21 @@ class Tests(unittest.TestCase):
             elif case=="external":r["kind"]="external_ram"
             else:del r["dma"]
             with self.subTest(case=case),self.assertRaises(ValueError):validate(bad)
+        unknown=copy.deepcopy(m)
+        unknown["memory_regions"][1]["cachable"]=False
+        with self.assertRaisesRegex(ValueError,"unknown memory region field"):
+            validate(unknown)
+        shared=copy.deepcopy(m)
+        shared["memory_regions"].append(region("shared","shared",8192))
+        shared["memory_regions"][2]["coherency"]="synthetic coherency fixture"
+        self.assertEqual(validate(shared),[1,2])
+        shared["memory_regions"][2]["initialization"]="unsupported extra field"
+        with self.assertRaisesRegex(ValueError,"unknown memory region field"):
+            validate(shared)
+        external=copy.deepcopy(m)
+        external["memory_regions"].append(region("external","external_ram",8192,write=True))
+        external["memory_regions"][2]["initialization"]="synthetic init fixture"
+        self.assertEqual(validate(external),[1,2])
     def test_runtime_allocation(self):
         header=generate(self.m)
         self.assertIn("#define ZARC_RUNTIME_PERIOD_MS 10u",header)
