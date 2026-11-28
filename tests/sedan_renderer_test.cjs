@@ -1,5 +1,5 @@
 // Run the actual renderer using a minimal DOM contract; not a pixel/browser test.
-const fs=require("node:fs"),vm=require("node:vm"),assert=require("node:assert/strict");
+const fs=require("node:fs"),path=require("node:path"),vm=require("node:vm"),assert=require("node:assert/strict");
 class Element{
  constructor(tag){this.tagName=tag;this.children=[];this.attributes={};this.style={};this.dataset={};this.events={};}
  setAttribute(k,v){this.attributes[k]=v;}
@@ -11,7 +11,7 @@ class Element{
 const ids=["sedan-model","sedan-components","sedan-detail","sedan-layers","sedan-left","sedan-right","sedan-top","sedan-side","sedan-cabin","sedan-reset","sedan-opacity","sedan-zoom","sedan-interior","sedan-cutaway","sedan-labels"];
 const elements=Object.fromEntries(ids.map(id=>[id,new Element(id)]));
 const document={getElementById:id=>elements[id],createElement:tag=>new Element(tag),createElementNS:(_,tag)=>new Element(tag)};
-vm.runInNewContext(fs.readFileSync("site/sedan.js","utf8"),{document});
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,"..","site","sedan.js"),"utf8"),{document});
 assert.equal(elements["sedan-components"].children.length,44);
 assert.equal(elements["sedan-layers"].children.length,8);
 const model=elements["sedan-model"];
