@@ -37,6 +37,12 @@ class DependencyBoundaryTests(unittest.TestCase):
             [self.command("src/core.c", "-Iinclude", "-Iplatform/vendor/private/include")], self.root)
         self.assertTrue(any("private include path" in error for error in errors))
 
+    def test_forced_private_header_fails(self):
+        errors, _ = dependency_errors(
+            [self.command("src/core.c", "-Iinclude", "-include",
+                          "vendor/chip/private_config.h")], self.root)
+        self.assertTrue(any("private include path" in error for error in errors))
+
     def test_private_header_reference_in_generic_source_fails(self):
         (self.root / "src" / "core.c").write_text('#include "vendor/chip/registers.h"\n')
         errors, _ = dependency_errors([self.command("src/core.c", "-Iinclude")], self.root)

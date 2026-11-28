@@ -64,7 +64,8 @@ def dependency_errors(database: object, root: Path) -> tuple[list[str], dict]:
         i = 0
         while i < len(tokens):
             token = tokens[i]
-            if token in ("-I", "-isystem", "/I") and i + 1 < len(tokens):
+            if token in ("-I", "-isystem", "-iquote", "-idirafter", "/I",
+                         "-include", "-imacros", "/FI") and i + 1 < len(tokens):
                 includes.append(tokens[i + 1])
                 i += 2
                 continue
@@ -72,6 +73,16 @@ def dependency_errors(database: object, root: Path) -> tuple[list[str], dict]:
                 includes.append(token[2:])
             elif token.startswith("/I") and len(token) > 2:
                 includes.append(token[2:])
+            elif token.startswith("/FI") and len(token) > 3:
+                includes.append(token[3:])
+            elif token.startswith("-include=") or token.startswith("-imacros="):
+                includes.append(token.split("=", 1)[1])
+            elif token.startswith("-iquote") and len(token) > len("-iquote"):
+                includes.append(token[len("-iquote"):])
+            elif token.startswith("-isystem") and len(token) > len("-isystem"):
+                includes.append(token[len("-isystem"):])
+            elif token.startswith("-idirafter") and len(token) > len("-idirafter"):
+                includes.append(token[len("-idirafter"):])
             i += 1
         for include in includes:
             resolved = Path(include)
