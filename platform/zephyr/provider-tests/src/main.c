@@ -150,7 +150,7 @@ ZTEST(zarc_providers,test_tcp_frame_loopback_and_recovery)
 
 ZTEST(zarc_providers,test_tcp_invalid_inputs_and_refused_peer)
 {
- zarc_native_tcp tcp;zarc_native_tcp_init(&tcp);
+ struct zarc_native_tcp tcp;zarc_native_tcp_init(&tcp);
  struct zarc_native_bytes bytes={0};
  zassert_equal(zarc_native_tcp_send(&tcp,&sample,1),-ENOTCONN);
  zassert_equal(zarc_native_tcp_receive(&tcp,&bytes,1),-ENOTCONN);
