@@ -8,12 +8,118 @@ import tempfile
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"tools"))
-from target_manifest import validate,generate,reconcile_kconfig
+from target_manifest import (validate,generate,reconcile_kconfig,
+                             hardware_lifecycle_delta)
 from timing_analysis import analyze
 
 class Tests(unittest.TestCase):
     def setUp(self):
         self.m=json.loads((ROOT/"config/targets/native-sim-edge.json").read_text())
+
+    @staticmethod
+    def lifecycle():
+        return {"schema":1,"board_revision":"board-r1","silicon_stepping":"step-a0",
+                "errata":[{"id":"errata-1","reference":"synthetic:errata-1"}],
+                "vendor_safety_docs":[{"id":"safety-manual","revision":"rev-1",
+                                        "reference":"synthetic:safety-manual"}],
+                "components":[{"id":"power-switch","revision":"rev-1",
+                                "substitutions":["switch-alt-a"]}],
+                "review_status":"REVIEWED","review_reference":"synthetic:review-1"}
+
+    def test_hardware_lifecycle_unchanged_is_not_hardware_acceptance(self):
+        record=self.lifecycle()
+        report=hardware_lifecycle_delta(record,copy.deepcopy(record))
+        self.assertEqual(report["verdict"],"NO_CHANGE_RECORDED")
+        self.assertEqual(report["changes"],[])
+        self.assertEqual(report["hardware_acceptance"],"NOT_ASSERTED")
+
+    def test_empty_hardware_inventory_is_a_valid_boundary(self):
+        record=self.lifecycle()
+        record["errata"]=[]
+        record["vendor_safety_docs"]=[]
+        record["components"]=[]
+        self.assertEqual(hardware_lifecycle_delta(record,copy.deepcopy(record))["verdict"],
+                         "NO_CHANGE_RECORDED")
+
+    def test_hardware_lifecycle_changes_require_review(self):
+        cases=[]
+        def changed(path,mutate):
+            old=self.lifecycle();new=copy.deepcopy(old);mutate(new)
+            cases.append((path,old,new))
+        changed("board_revision",lambda m:m.update(board_revision="board-r2"))
+        changed("silicon_stepping",lambda m:m.update(silicon_stepping="step-a1"))
+        changed("errata",lambda m:m["errata"].append({"id":"errata-2","reference":"synthetic:errata-2"}))
+        changed("errata",lambda m:m["errata"][0].update(reference="synthetic:errata-1-r2"))
+        changed("errata",lambda m:m.update(errata=[]))
+        changed("vendor_safety_docs",lambda m:m["vendor_safety_docs"][0].update(revision="rev-2"))
+        changed("vendor_safety_docs",lambda m:m["vendor_safety_docs"][0].update(reference="synthetic:safety-r2"))
+        changed("components",lambda m:m["components"][0].update(revision="rev-2"))
+        changed("components",lambda m:m["components"][0].update(substitutions=["switch-alt-b"]))
+        changed("components",lambda m:m["components"].append({"id":"connector","revision":"rev-1","substitutions":[]}))
+        changed("components",lambda m:m.update(components=[]))
+        for field,old,new in cases:
+            with self.subTest(field=field,new=new):
+                report=hardware_lifecycle_delta(old,new)
+                self.assertEqual(report["verdict"],"REVIEW_REQUIRED")
+                self.assertTrue(any(change["field"]==field for change in report["changes"]))
+                self.assertEqual(report["hardware_acceptance"],"NOT_ASSERTED")
+
+    def test_missing_or_unreviewed_hardware_lifecycle_requires_review(self):
+        record=self.lifecycle()
+        self.assertEqual(hardware_lifecycle_delta(None,record)["verdict"],"REVIEW_REQUIRED")
+        self.assertEqual(hardware_lifecycle_delta(record,None)["verdict"],"REVIEW_REQUIRED")
+        unreviewed=copy.deepcopy(record);unreviewed["review_status"]="UNREVIEWED";unreviewed["review_reference"]=""
+        report=hardware_lifecycle_delta(record,unreviewed)
+        self.assertEqual(report["verdict"],"REVIEW_REQUIRED")
+        self.assertTrue(any(change["change"]=="UNREVIEWED" for change in report["changes"]))
+
+    def test_malformed_or_duplicate_hardware_records_are_rejected(self):
+        record=self.lifecycle()
+        cases=[]
+        duplicate=copy.deepcopy(record);duplicate["errata"].append(copy.deepcopy(duplicate["errata"][0]));cases.append(duplicate)
+        duplicate=copy.deepcopy(record);duplicate["vendor_safety_docs"].append(copy.deepcopy(duplicate["vendor_safety_docs"][0]));cases.append(duplicate)
+        duplicate=copy.deepcopy(record);duplicate["components"].append(copy.deepcopy(duplicate["components"][0]));cases.append(duplicate)
+        missing=copy.deepcopy(record);del missing["silicon_stepping"];cases.append(missing)
+        malformed=copy.deepcopy(record);malformed["components"][0]["substitutions"]="switch-alt-a";cases.append(malformed)
+        unreferenced=copy.deepcopy(record);unreferenced["review_reference"]="";cases.append(unreferenced)
+        for invalid in cases:
+            with self.subTest(invalid=invalid),self.assertRaises(ValueError):
+                hardware_lifecycle_delta(record,invalid)
+
+    def test_hardware_lifecycle_cli_requires_review_and_never_claims_acceptance(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);before=root/"before.json";after=root/"after.json"
+            old={"hardware_lifecycle":self.lifecycle()}
+            new=copy.deepcopy(old);new["hardware_lifecycle"]["board_revision"]="board-r2"
+            before.write_text(json.dumps(old),encoding="utf-8")
+            after.write_text(json.dumps(new),encoding="utf-8")
+            command=[sys.executable,str(ROOT/"tools/target_manifest.py"),
+                     "--compare-lifecycle",str(before),str(after)]
+            result=subprocess.run(command,capture_output=True,text=True,check=False)
+            self.assertEqual(result.returncode,2,result.stderr)
+            report=json.loads(result.stdout)
+            after.write_text(json.dumps(old),encoding="utf-8")
+            unchanged=subprocess.run(command,capture_output=True,text=True,check=False)
+            self.assertEqual(unchanged.returncode,0,unchanged.stderr)
+            stable=json.loads(unchanged.stdout)
+        self.assertEqual(stable["verdict"],"NO_CHANGE_RECORDED")
+        self.assertEqual(stable["hardware_acceptance"],"NOT_ASSERTED")
+        self.assertEqual(report["verdict"],"REVIEW_REQUIRED")
+        self.assertEqual(report["hardware_acceptance"],"NOT_ASSERTED")
+
+    def test_hardware_lifecycle_cli_unchanged_record_is_not_approval(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);before=root/"before.json";after=root/"after.json"
+            record={"hardware_lifecycle":self.lifecycle()}
+            before.write_text(json.dumps(record),encoding="utf-8")
+            after.write_text(json.dumps(copy.deepcopy(record)),encoding="utf-8")
+            result=subprocess.run([sys.executable,str(ROOT/"tools/target_manifest.py"),
+                                   "--compare-lifecycle",str(before),str(after)],
+                                  capture_output=True,text=True,check=False)
+        self.assertEqual(result.returncode,0,result.stderr)
+        report=json.loads(result.stdout)
+        self.assertEqual(report["verdict"],"NO_CHANGE_RECORDED")
+        self.assertEqual(report["hardware_acceptance"],"NOT_ASSERTED")
     def test_candidate(self):
         self.assertEqual(validate(self.m),[1,2])
         self.assertEqual(generate(self.m),generate(copy.deepcopy(self.m)))
@@ -22,6 +128,14 @@ class Tests(unittest.TestCase):
             reconcile_kconfig(self.m,p)
             p.write_text("CONFIG_CAN=y\nCONFIG_ZBUS=y\nCONFIG_PM_DEVICE_RUNTIME=y\nCONFIG_NVS=y\n")
             with self.assertRaises(ValueError):reconcile_kconfig(self.m,p)
+
+    def test_optional_hardware_lifecycle_is_validated_at_manifest_admission(self):
+        m=copy.deepcopy(self.m);m["hardware_lifecycle"]=self.lifecycle()
+        self.assertEqual(validate(m),[1,2])
+        malformed=copy.deepcopy(m)
+        malformed["hardware_lifecycle"]["components"].append(
+            copy.deepcopy(malformed["hardware_lifecycle"]["components"][0]))
+        with self.assertRaises(ValueError):validate(malformed)
 
     def test_generated_header_is_byte_reproducible_from_identical_manifest(self):
         with tempfile.TemporaryDirectory() as d:

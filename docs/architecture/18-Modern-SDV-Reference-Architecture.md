@@ -1,6 +1,6 @@
 # Suggested modern SDV vehicle reference architecture
 
-**Status: proposed, informative architecture extension.** It does not amend the 111-requirement baseline or establish product qualification. [Rendered GitHub Pages view](https://susmithmrm.github.io/ZARC/modern-architecture.html) · [Vector source](../../site/assets/modern-sdv.svg).
+**Status: proposed, informative architecture reference.** It does not amend the authoritative Z12 requirements register or establish product qualification. [Rendered GitHub Pages view](https://susmithmrm.github.io/ZARC/modern-architecture.html) · [Vector source](../../site/assets/modern-sdv.svg).
 
 ## 1. Recommended topology
 

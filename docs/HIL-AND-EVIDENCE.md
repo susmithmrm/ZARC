@@ -1,6 +1,6 @@
 # Verification trace and hardware evidence
 
-The [requirement trace](REQUIREMENT-TRACE.csv) contains each of the 111 baseline IDs, matching design, verification method and acceptance condition, candidate implementation/test paths where applicable, and an explicit open evidence gate. It does not change the proposed baseline or claim verification of a requirement because a candidate path exists.
+The [authoritative Z12 register](architecture/12-Requirements-Verification.csv) defines the 178 requirement IDs, design references, verification methods and acceptance conditions. The [requirement trace](REQUIREMENT-TRACE.csv) maps those IDs to candidate implementation/test paths and records the open evidence gate. A candidate path does not claim that a requirement is verified or accepted.
 
 Run the structural check from the repository root:
 

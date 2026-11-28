@@ -13,8 +13,98 @@ PROFILES={"edge": {"core","health"}, "companion":{"core","health","power","broke
           "zonal":{"core","health","endpoint"}, "integrated":{"core","health","ipc"}}
 PHASES={"reset","boot","run","maintenance","shutdown"}
 CONTEXTS={"I0","R1","R2","C3","O4","M5"}
+HARDWARE_LIFECYCLE_FIELDS={"schema","board_revision","silicon_stepping","errata",
+                           "vendor_safety_docs","components","review_status",
+                           "review_reference"}
 def number(x,minimum=1,maximum=0xffffffff):
     return type(x) is int and minimum<=x<=maximum
+
+def _validate_hardware_lifecycle(record):
+    """Validate a supplied lifecycle snapshot; never infer hardware facts."""
+    if not isinstance(record,dict) or set(record)!=HARDWARE_LIFECYCLE_FIELDS:
+        raise ValueError("hardware lifecycle record fields")
+    if record["schema"]!=1 or type(record["schema"]) is not int:
+        raise ValueError("hardware lifecycle schema")
+    for key in ("board_revision","silicon_stepping"):
+        if not isinstance(record[key],str) or not record[key].strip():
+            raise ValueError("hardware lifecycle missing "+key)
+    if record["review_status"] not in ("UNREVIEWED","REVIEWED"):
+        raise ValueError("hardware lifecycle review status")
+    ref=record["review_reference"]
+    if not isinstance(ref,str) or (record["review_status"]=="REVIEWED" and not ref.strip()):
+        raise ValueError("hardware lifecycle review reference")
+    collections=(
+        ("errata",{"id","reference"}),
+        ("vendor_safety_docs",{"id","revision","reference"}),
+        ("components",{"id","revision","substitutions"}),
+    )
+    for name,fields in collections:
+        rows=record[name]
+        if not isinstance(rows,list):
+            raise ValueError("hardware lifecycle "+name+" must be a list")
+        seen=set()
+        for row in rows:
+            if not isinstance(row,dict) or set(row)!=fields:
+                raise ValueError("hardware lifecycle "+name+" record fields")
+            identity=row["id"]
+            if not isinstance(identity,str) or not identity.strip() or identity in seen:
+                raise ValueError("hardware lifecycle duplicate/invalid "+name+" id")
+            seen.add(identity)
+            for key in fields-{"id","substitutions"}:
+                if not isinstance(row[key],str) or not row[key].strip():
+                    raise ValueError("hardware lifecycle missing "+name+" "+key)
+            if "substitutions" in fields:
+                values=row["substitutions"]
+                if (not isinstance(values,list) or
+                    any(not isinstance(value,str) or not value.strip() for value in values) or
+                    len(values)!=len(set(values))):
+                    raise ValueError("hardware lifecycle substitutions")
+
+def hardware_lifecycle_delta(before,after):
+    """Report target lifecycle changes; no hardware acceptance is inferred.
+
+    ``before`` and ``after`` are hardware_lifecycle records from two candidate
+    target manifests. Missing snapshots, unreviewed records or any delta remain
+    REVIEW_REQUIRED. A no-change result means only that the supplied records
+    match and both carry review references; it is not board or vendor approval.
+    """
+    for record in (before,after):
+        if record is not None:
+            _validate_hardware_lifecycle(record)
+    changes=[]
+    if before is None:
+        changes.append({"field":"hardware_lifecycle","change":"MISSING_BEFORE"})
+    if after is None:
+        changes.append({"field":"hardware_lifecycle","change":"MISSING_AFTER"})
+    if before is not None and after is not None:
+        for field in ("board_revision","silicon_stepping"):
+            if before[field]!=after[field]:
+                changes.append({"field":field,"change":"CHANGED",
+                                "before":before[field],"after":after[field]})
+        for name,key_fields in (("errata",("reference",)),
+                                ("vendor_safety_docs",("revision","reference")),
+                                ("components",("revision","substitutions"))):
+            old={row["id"]:row for row in before[name]}
+            new={row["id"]:row for row in after[name]}
+            for identity in sorted(old.keys()|new.keys()):
+                if identity not in old:
+                    changes.append({"field":name,"id":identity,"change":"ADDED"})
+                elif identity not in new:
+                    changes.append({"field":name,"id":identity,"change":"REMOVED"})
+                else:
+                    for field in key_fields:
+                        if old[identity][field]!=new[identity][field]:
+                            changes.append({"field":name,"id":identity,"change":"CHANGED",
+                                            "attribute":field,"before":old[identity][field],
+                                            "after":new[identity][field]})
+        for side,record in (("before",before),("after",after)):
+            if record["review_status"]!="REVIEWED" or not record["review_reference"].strip():
+                changes.append({"field":"review_status","record":side,
+                                "change":"UNREVIEWED"})
+    verdict="REVIEW_REQUIRED" if changes else "NO_CHANGE_RECORDED"
+    return {"verdict":verdict,"changes":changes,
+            "hardware_acceptance":"NOT_ASSERTED",
+            "scope":"manifest delta only; vendor facts and selected-target acceptance remain external"}
 
 def validate_execution(m):
     """Validate declared candidate architecture, not silicon support or safety evidence."""
@@ -101,6 +191,8 @@ def validate(m):
             raise ValueError("missing "+key)
     if m.get("schema")!=1 or m.get("api_major")!=1 or m.get("maturity")!="CANDIDATE":
         raise ValueError("only schema/API 1 and candidate scope admitted")
+    if "hardware_lifecycle" in m:
+        _validate_hardware_lifecycle(m["hardware_lifecycle"])
     profile=m.get("profile")
     if profile not in PROFILES:
         raise ValueError("unknown profile")
@@ -265,11 +357,25 @@ def generate(m):
 
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument("manifest",type=Path)
+    p.add_argument("manifest",type=Path,nargs="?")
     p.add_argument("--kconfig",type=Path)
     p.add_argument("--header",type=Path)
+    p.add_argument("--compare-lifecycle",nargs=2,type=Path,metavar=("BEFORE","AFTER"))
     args=p.parse_args()
     try:
+        if args.compare_lifecycle:
+            if args.manifest or args.kconfig or args.header:
+                p.error("--compare-lifecycle cannot be combined with manifest generation options")
+            old_manifest,new_manifest=(json.loads(path.read_text(encoding="utf-8"))
+                                       for path in args.compare_lifecycle)
+            if not isinstance(old_manifest,dict) or not isinstance(new_manifest,dict):
+                raise ValueError("target manifests must be objects")
+            result=hardware_lifecycle_delta(old_manifest.get("hardware_lifecycle"),
+                                            new_manifest.get("hardware_lifecycle"))
+            print(json.dumps(result,indent=2,sort_keys=True))
+            return 2 if result["verdict"]=="REVIEW_REQUIRED" else 0
+        if args.manifest is None:
+            p.error("manifest is required unless --compare-lifecycle is used")
         m=json.loads(args.manifest.read_text(encoding="utf-8"))
         header=generate(m)
         if args.kconfig:reconcile_kconfig(m,args.kconfig)

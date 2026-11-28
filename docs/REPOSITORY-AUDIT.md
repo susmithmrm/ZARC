@@ -2,6 +2,8 @@
 
 Scope: current desktop prototype, existing architecture and public repository. Review is an engineering baseline, not production validation.
 
+This is a historical snapshot of the 111-item register reviewed on 27 November 2026. The authoritative Z12 register is now `docs/architecture/12-Requirements-Verification.csv` and contains 178 requirements; use it and `docs/REQUIREMENT-TRACE.csv` for current status.
+
 | Area | Result |
 |---|---|
 | Git integrity | git fsck passed, main tracks origin; E: ownership exception required |
