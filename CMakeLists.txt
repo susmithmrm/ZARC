@@ -163,6 +163,12 @@ if(BUILD_TESTING)
       add_test(NAME compiler_flags_audit COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/tools/coding_audit.py
         --compile-commands ${CMAKE_BINARY_DIR}/compile_commands.json)
+      add_test(NAME dependency_boundary_gate COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tools/dependency_boundary.py
+        --compile-commands ${CMAKE_BINARY_DIR}/compile_commands.json
+        --root ${CMAKE_CURRENT_SOURCE_DIR})
+      add_test(NAME dependency_boundary_contract COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/dependency_boundary_test.py)
     endif()
   endif()
   find_program(ZARC_NODE_EXECUTABLE node)
